@@ -1,18 +1,18 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
-import { expressionApi } from '@/store/expression';
+// import { expressionApi } from '@/store/expression';
 
 export const store = configureStore({
   devTools: true,
   reducer: {
     // Add the generated reducer as a specific top-level slice
-    [expressionApi.reducerPath]: expressionApi.reducer,
+    // [expressionApi.reducerPath]: expressionApi.reducer,
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
-    .concat(expressionApi.middleware),
+    // .concat(expressionApi.middleware),
 });
 
 // optional, but required for refetchOnFocus/refetchOnReconnect behaviors

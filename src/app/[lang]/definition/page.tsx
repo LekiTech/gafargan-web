@@ -1,7 +1,6 @@
 import React, { FC, use } from 'react';
 // import '@/i18n';
 import images from '@/store/images';
-import { useSearchExpressionQuery } from '@/store/expression';
 import expressionApi from '@/api/expression';
 import { ResolvingMetadata, Metadata } from 'next';
 import { Lang } from '@/api/types';

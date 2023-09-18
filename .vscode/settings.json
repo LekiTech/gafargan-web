@@ -1,0 +1,40 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "jest.autoRun": "off",
+  "todohighlight.isCaseSensitive": false,
+  "todohighlight.keywords": [
+    {
+      "text": "NOTE:",
+      "color": "#2c3e50",
+      "backgroundColor": "#f1c40f",
+      "overviewRulerColor": "grey"
+    },
+    {
+      "text": "HACK:",
+      "color": "#2ecc71",
+      "backgroundColor": "#2c3e50",
+      "isWholeLine": false
+    },
+    {
+      "text": "TODO:",
+      "color": "yellow",
+      "backgroundColor": "rgb(0,0,0,.2)",
+      "isWholeLine": true
+    },
+    {
+      "text": " SECTION:",
+      "color": "#6c71c4",
+      "border": "1px solid #6c71c4",
+      "borderRadius": "2px", //NOTE: using borderRadius along with `border` or you will see nothing change
+      "backgroundColor": "#002b36",
+      "isWholeLine": true
+      //other styling properties goes here ...
+    }
+  ],
+  "cSpell.words": ["gafargan"]
+}

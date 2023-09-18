@@ -1,7 +1,5 @@
-// "use client";
 import React, { FC, use } from 'react';
 import { useRouter } from 'next/router'
-// import '@/i18n';
 import images from '@/store/images';
 import { Autocomplete, Button, IconButton, Stack, TextField, Typography } from '@mui/material';
 import { useTranslation } from '../i18n';
