@@ -3,9 +3,10 @@ import React, { FC, use } from 'react';
 import { useRouter } from 'next/router'
 // import '@/i18n';
 import images from '@/store/images';
-import { Autocomplete, Button, IconButton, Stack, TextField } from '@mui/material';
+import { Autocomplete, Button, IconButton, Stack, TextField, Typography } from '@mui/material';
 import { useTranslation } from '../i18n';
 import Search from './components/Search';
+import { Lang } from './api/types';
 
 const colors = {
   primary: '#0f3b2e',
@@ -37,13 +38,13 @@ const Home: FC<HomeProps> = async (props) => {
   //   to: 'rus',
   // };
   const selectedLanguages = {
-    from: fromLang ?? 'lez',
-    to: toLang ?? 'rus'
+    from: (fromLang ?? 'lez') as Lang,
+    to: (toLang ?? 'rus') as Lang,
   }
   return (
     <Stack spacing={2} sx={{alignItems: 'center', pt: '25px'}}>
       <Stack direction="row" spacing={2}>
-        <h1>Gafargan</h1>
+        <Typography variant="h1">Гафарган</Typography>
         <Search 
           fromLang={{name: t(`languages.${selectedLanguages.from}`), code: selectedLanguages.from}}
           toLang={{name: t(`languages.${selectedLanguages.to}`), code: selectedLanguages.to}}

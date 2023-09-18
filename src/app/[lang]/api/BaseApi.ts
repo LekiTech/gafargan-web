@@ -13,8 +13,8 @@ export default class BaseApi {
     return this._baseUrl;
   }
 
-  constructor() {
-    this._baseUrl = process.env.API_URL;
+  constructor(baseUrl?: string) {
+    this._baseUrl = baseUrl ?? process.env.API_URL;
     if (!this._baseUrl) {
       throw new Error('API_URL is not defined!');
     }

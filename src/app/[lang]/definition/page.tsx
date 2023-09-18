@@ -1,17 +1,22 @@
-import React, { use } from 'react';
+import React, { FC, use } from 'react';
 // import '@/i18n';
 import images from '@/store/images';
 import { useSearchExpressionQuery } from '@/store/expression';
 import expressionApi from '@/api/expression';
 import { ResolvingMetadata, Metadata } from 'next';
+import { Lang } from '@/api/types';
 
 export async function generateMetadata(
-  { searchParam }: { searchParam: string },
+  { searchParams }: ExpressionPageProps,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
 
   // fetch data
-  const data = await expressionApi.search('къил');
+  const data = await expressionApi.search({
+    exp: searchParams.exp,
+    fromLang: searchParams.fromLang as Lang,
+    toLang: searchParams.toLang as Lang,
+  });
  
   // optionally access and extend (rather than replace) parent metadata
   const previousImages = (await parent).openGraph?.images || []
@@ -32,16 +37,26 @@ const colors = {
   secondaryTint: '#810000',
 }
 
-export default function Home() {
-  const {props} = use(getServerSideProps());
+type ExpressionPageProps = { 
+  params: { lang: string },
+  // replace `exp` with `eid`
+  searchParams: { fromLang: string, toLang: string, exp: string },
+};
+
+const ExpressionPage: FC<ExpressionPageProps> = ({ searchParams }) => {
+  // const {props} = use(getServerSideProps());
   // const { data } = useSearchExpressionQuery('къил');
-  const data = use(expressionApi.search('къил'));
+  const data = use(expressionApi.search({
+    exp: searchParams.exp,
+    fromLang: searchParams.fromLang as Lang,
+    toLang: searchParams.toLang as Lang,
+  }));
   // const dictionary = useSelector((state: any): DictionaryReduxState => state.dictionary);
   return (
     <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100vw'}}>
-      <h1>Test api result</h1>
+      <h1>Props</h1>
       <pre style={{width: '100%'}}>
-        <code>{JSON.stringify(props.data, null, 2)}</code>
+        <code>{JSON.stringify(searchParams, null, 2)}</code>
       </pre>
       <br />
       <h1>Search result</h1>
@@ -51,6 +66,8 @@ export default function Home() {
     </div>
   );
 }
+
+export default ExpressionPage;
 
 // This gets called on every request
 async function getServerSideProps() {

@@ -3,9 +3,12 @@ import React, { FC } from 'react';
 import { usePathname, useRouter,  } from 'next/navigation'
 // import '@/i18n';
 import images from '@/store/images';
-import { Autocomplete, Button, IconButton, Stack, TextField } from '@mui/material';
+import { Box, Button, IconButton, Stack, TextField } from '@mui/material';
+import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
 import SearchIcon from '@mui/icons-material/Search';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
+import ClientExpressionApi from '@/api/clientExpression';
+import { Lang } from '@/api/types';
 
 const colors = {
   primary: '#0f3b2e',
@@ -14,7 +17,7 @@ const colors = {
   secondaryTint: '#810000',
 }
 
-const Search: FC<{fromLang: {code: string, name: string}, toLang: {code: string, name: string}}> = ({fromLang, toLang}) => {
+const Search: FC<{fromLang: {code: Lang, name: string}, toLang: {code: Lang, name: string}}> = ({fromLang, toLang}) => {
   const router = useRouter()
   const pathname = usePathname()
   
@@ -25,10 +28,11 @@ const Search: FC<{fromLang: {code: string, name: string}, toLang: {code: string,
     <Stack spacing={2} sx={{alignItems: 'center', pt: '25px'}}>
       <Stack direction="row" spacing={0}>
         <Autocomplete
+          id="free-solo-search"
           sx={{ width: 300 }}
-          freeSolo
-          id="free-solo-2-demo"
-          disableClearable
+          freeSolo={true}
+          disableClearable={true}
+          onInputChange={async (e, v, r) => setOptions(await ClientExpressionApi.search({exp: v, fromLang: fromLang.code, toLang: toLang.code}))}
           options={options}
           renderInput={(params) => (
             <TextField
@@ -40,6 +44,26 @@ const Search: FC<{fromLang: {code: string, name: string}, toLang: {code: string,
               }}
             />
           )}
+          renderOption={(props, option, state, ownerState) => (
+          <Box
+            sx={{
+              borderRadius: '8px',
+              margin: '5px',
+              [`&.${autocompleteClasses.option}`]: {
+                padding: '8px',
+              },
+            }}
+            component="li"
+            {...props}
+            onClick={(event) => {
+              if (props.onClick) {
+                props.onClick(event);
+              }
+              router.push(pathname + `/definition?fromLang=${fromLang.code}&toLang=${toLang.code}&exp=${option}`)
+            }}
+          >
+            {ownerState.getOptionLabel(option)}
+          </Box>)}
         />
         <Button variant="contained">
           <SearchIcon fontSize="large" />
