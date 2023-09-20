@@ -1,89 +1,56 @@
 import React, { FC, use } from 'react';
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/router';
 import images from '@/store/images';
-import { Autocomplete, Button, IconButton, Stack, TextField, Typography } from '@mui/material';
+import {
+  Autocomplete,
+  Box,
+  Button,
+  Grid,
+  IconButton,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useTranslation } from '../i18n';
 import Search from './components/Search';
-import { Lang } from './api/types';
+import { WebsiteLang } from './api/types';
+import { WordOfTheDay } from './components/WordOfTheDay';
+import { NumbersWidget } from './components/NumbersWidget';
+import { Sources } from './components/Sources';
 
-const colors = {
-  primary: '#0f3b2e',
-  primaryTint: '#132e05',
-  secondary: '#bb1614',
-  secondaryTint: '#810000',
-}
-
-type HomeProps = { 
-  params: { lang: string },
-  searchParams: { fromLang: string, toLang: string },
+type HomeProps = {
+  params: { lang: string };
+  searchParams: { fromLang: string; toLang: string };
 };
 
 const Home: FC<HomeProps> = async (props) => {
-  const { 
-    params: { lang }, 
-    searchParams: { fromLang, toLang } 
+  const {
+    params: { lang },
+    searchParams: { fromLang, toLang },
   } = props;
   // const [options, setOptions] = React.useState<string[]>([]);
   console.log(props);
-  const options: string[] = [];
   const { t } = await useTranslation(lang);
-  // const [lang, setLang] = React.useState({
-  //   from: 'lez',
-  //   to: 'rus',
-  // });
-  // const lang = {
-  //   from: 'lez',
-  //   to: 'rus',
-  // };
-  const selectedLanguages = {
-    from: (fromLang ?? 'lez') as Lang,
-    to: (toLang ?? 'rus') as Lang,
-  }
+
   return (
-    <Stack spacing={2} sx={{alignItems: 'center', pt: '25px'}}>
-      <Stack direction="row" spacing={2}>
-        <Typography variant="h1">Гафарган</Typography>
-        <Search 
-          fromLang={{name: t(`languages.${selectedLanguages.from}`), code: selectedLanguages.from}}
-          toLang={{name: t(`languages.${selectedLanguages.to}`), code: selectedLanguages.to}}
-        />
-        {/* <Stack direction="row" spacing={0}>
-          <Autocomplete
-            sx={{ width: 300 }}
-            freeSolo
-            id="free-solo-2-demo"
-            disableClearable
-            options={options}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Жагъурун"
-                InputProps={{
-                  ...params.InputProps,
-                  type: 'search',
-                }}
-              />
-            )}
+    <Box sx={{ paddingTop: '50px', width: '100%', display: 'flex', justifyContent: 'center' }}>
+      <Grid container spacing={5} sx={{ maxWidth: '1140px' }}>
+        <Grid item xs={6}>
+          <WordOfTheDay lang={lang} />
+        </Grid>
+        <Grid item xs={6}>
+          <NumbersWidget
+            title={t('translateNumbers')}
+            translationLabel={t(`translation`)}
+            enterNumberLabel={t('enterNumber')}
           />
-          <Button variant="contained">
-            <SearchIcon fontSize="large" />
-          </Button>
-          {/* <IconButton aria-label="search" onClick={() => setLang({ from: lang.to, to: lang.from })}>
-            <SearchIcon />
-          </IconButton> * /}
-        </Stack> */}
-      </Stack>
-      {/* <Stack direction="row" spacing={2} sx={{alignItems: 'center'}}>
-        {t(`languages.${lang.from}`)}
-        <IconButton aria-label="switch" onClick={() => {
-        //  setLang({ from: lang.to, to: lang.from })
-        }}>
-          <SwitchIcon />
-        </IconButton>
-        {t(`languages.${lang.to}`)}
-      </Stack> */}
-    </Stack>
+        </Grid>
+        <Grid item xs={12}>
+          <Sources lang={lang} />
+        </Grid>
+      </Grid>
+    </Box>
   );
-}
+};
 
 export default Home;

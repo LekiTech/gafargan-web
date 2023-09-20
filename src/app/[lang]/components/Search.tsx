@@ -3,27 +3,37 @@ import React, { FC } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 // import '@/i18n';
 import images from '@/store/images';
-import { Box, Button, IconButton, Stack, TextField } from '@mui/material';
+import { Box, Button, IconButton, MenuItem, Select, Stack, TextField } from '@mui/material';
 import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
 import SearchIcon from '@mui/icons-material/Search';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
 import ClientExpressionApi from '@/api/clientExpression';
-import { Lang } from '@/api/types';
+import { DictionaryLang } from '@/api/types';
+import { DictionaryLangs } from '@/api/constants';
+import { useSearchParams } from 'next/navigation';
+import { colors } from '@/colors';
 
-const colors = {
-  primary: '#0f3b2e',
-  primaryTint: '#132e05',
-  secondary: '#bb1614',
-  secondaryTint: '#810000',
-};
+// const colors = {
+//   primary: '#0f3b2e',
+//   primaryTint: '#132e05',
+//   secondary: '#bb1614',
+//   secondaryTint: '#810000',
+// };
 
 const roundingRadius = '100px';
 
 const Search: FC<{
-  fromLang: { code: Lang; name: string };
-  toLang: { code: Lang; name: string };
-}> = ({ fromLang, toLang }) => {
+  langs: Record<DictionaryLang, string>;
+  // fromLang: { code: WebsiteLang; name: string };
+  // toLang: { code: WebsiteLang; name: string };
+  searchLabel: string;
+}> = ({ langs, searchLabel }) => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const searchLang = {
+    from: (searchParams.get('fromLang') ?? 'lez') as DictionaryLang,
+    to: (searchParams.get('toLang') ?? 'rus') as DictionaryLang,
+  };
   const pathname = usePathname();
 
   const [options, setOptions] = React.useState<string[]>([]);
@@ -31,26 +41,56 @@ const Search: FC<{
 
   const goToDefinition = (exp: string) => {
     const prefix = pathname.includes('definition') ? pathname : pathname + '/definition';
-    router.push(prefix + `?fromLang=${fromLang.code}&toLang=${toLang.code}&exp=${exp}`);
+    router.push(prefix + `?fromLang=${searchLang.from}&toLang=${searchLang.to}&exp=${exp}`);
   };
 
   return (
-    <Stack direction="row" spacing={2} sx={{ alignItems: 'center', pt: '25px' }}>
-      {fromLang.name}
-      <IconButton
-        aria-label="switch"
-        onClick={() => {
-          //  setLang({ from: lang.to, to: lang.from })
-          router.push(pathname + `?fromLang=${toLang.code}&toLang=${fromLang.code}`);
-        }}
-      >
-        <SwitchIcon />
-      </IconButton>
-      {toLang.name}
+    <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+      {/* {fromLang.name} */}
+      <Stack direction="row" spacing={0} sx={{ width: '400px', justifyContent: 'end' }}>
+        <Select
+          variant="standard"
+          value={searchLang.from}
+          sx={{ color: colors.text.light, '.MuiSelect-icon': { color: colors.text.light } }}
+          // onChange={handleChange}
+          // defaultValue={fromLang.code}
+        >
+          {DictionaryLangs.map((lang) => (
+            <MenuItem key={lang.toString()} value={lang}>
+              {langs[lang]}
+            </MenuItem>
+          ))}
+        </Select>
+        <IconButton
+          aria-label="switch"
+          sx={{ color: colors.text.light }}
+          onClick={() => {
+            //  setLang({ from: lang.to, to: lang.from })
+            router.push(pathname + `?fromLang=${searchLang.to}&toLang=${searchLang.from}`);
+          }}
+        >
+          <SwitchIcon />
+        </IconButton>
+        {/* {toLang.name} */}
+        <Select
+          variant="standard"
+          value={searchLang.to}
+          sx={{ color: colors.text.light, '.MuiSelect-icon': { color: colors.text.light } }}
+          // onChange={handleChange}
+          // defaultValue={toLang.code}
+        >
+          {/* <MenuItem value={toLang.code}>{toLang.name}</MenuItem> */}
+          {DictionaryLangs.map((lang) => (
+            <MenuItem key={lang.toString()} value={lang}>
+              {langs[lang]}
+            </MenuItem>
+          ))}
+        </Select>
+      </Stack>
       <Stack direction="row" spacing={0}>
         <Autocomplete
           id="free-solo-search"
-          sx={{ width: 300 }}
+          sx={{ minWidth: 600 }}
           freeSolo={true}
           disableClearable={true}
           inputValue={inputValue}
@@ -62,8 +102,8 @@ const Search: FC<{
             setOptions(
               await ClientExpressionApi.search({
                 exp: v,
-                fromLang: fromLang.code,
-                toLang: toLang.code,
+                fromLang: searchLang.from,
+                toLang: searchLang.to,
               }),
             );
           }}
@@ -71,13 +111,14 @@ const Search: FC<{
           renderInput={(params) => (
             <TextField
               {...params}
-              label="Жагъурун"
+              label={searchLabel}
               InputProps={{
                 ...params.InputProps,
                 type: 'search',
                 style: {
                   borderStartStartRadius: roundingRadius,
                   borderEndStartRadius: roundingRadius,
+                  backgroundColor: '#fff',
                 },
               }}
             />
@@ -106,7 +147,11 @@ const Search: FC<{
         />
         <Button
           variant="contained"
-          sx={{ borderEndEndRadius: roundingRadius, borderStartEndRadius: roundingRadius }}
+          sx={{
+            borderEndEndRadius: roundingRadius,
+            borderStartEndRadius: roundingRadius,
+            backgroundColor: colors.secondary,
+          }}
           onClick={() => goToDefinition(inputValue)}
         >
           <SearchIcon fontSize="large" />

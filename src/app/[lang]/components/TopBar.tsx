@@ -1,74 +1,52 @@
 'use client';
+import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import { Typography } from '@mui/material';
-import { useTranslation } from '../../i18n';
+import { Avatar, Typography } from '@mui/material';
 import Search from './Search';
-import * as React from 'react';
-import useScrollTrigger from '@mui/material/useScrollTrigger';
-import { Lang } from '../api/types';
-
-type Props = {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * You won't need it on your project.
-   */
-  window?: () => Window;
-  children: React.ReactElement;
-};
-
-function ElevationScroll(props: Props) {
-  const { children, window } = props;
-  // Note that you normally won't need to set the window ref as useScrollTrigger
-  // will default to window.
-  // This is only being set here because the demo is in an iframe.
-  const trigger = useScrollTrigger({
-    disableHysteresis: true,
-    threshold: 0,
-    target: window ? window() : undefined,
-  });
-
-  return React.cloneElement(children, {
-    elevation: trigger ? 4 : 0,
-  });
-}
+import { DictionaryLang } from '../api/types';
+import images from '@/store/images';
+import { ElevationScroll } from './ElevateScroll';
+import { colors } from '@/colors';
 
 type TopBarProps = {
-  children: React.ReactNode;
-  params: { lang: string };
-  searchParams: { fromLang: string; toLang: string };
+  langs: Record<DictionaryLang, string>;
+  searchLabel: string;
 };
 
-export const TopBar = async (props: TopBarProps) => {
-  const {
-    children,
-    params: { lang },
-    searchParams,
-  } = props;
-  const { t } = await useTranslation(lang);
-  const selectedLanguages = {
-    from: (searchParams?.fromLang ?? 'lez') as Lang,
-    to: (searchParams?.toLang ?? 'rus') as Lang,
-  };
+const TopBar = (props: TopBarProps) => {
+  const { langs, searchLabel } = props;
+  console.log('TopBar', props);
   return (
     <ElevationScroll {...props}>
-      <AppBar sx={{ backgroundColor: 'white', color: '#333' }}>
-        <Toolbar>
-          <Typography variant="h6" component="div">
+      <AppBar
+        sx={{
+          backgroundColor: colors.primary, //'white',
+          color: colors.text.light, //'#333',
+          borderBottomStyle: 'solid',
+          borderBottomWidth: '1px',
+          borderBottomColor: 'grey.300',
+        }}
+      >
+        <Toolbar sx={{ display: 'flex', alignItems: 'center', p: '10px' }}>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifySelf: 'start',
+            }}
+          >
+            <Avatar src={images.logo.src} sx={{ m: '10px' }} />
             Гафарган
           </Typography>
-          <Search
-            fromLang={{
-              name: t(`languages.${selectedLanguages.from}`),
-              code: selectedLanguages.from,
-            }}
-            toLang={{
-              name: t(`languages.${selectedLanguages.to}`),
-              code: selectedLanguages.to,
-            }}
-          />
+          <Search searchLabel={searchLabel} langs={langs} />
         </Toolbar>
       </AppBar>
     </ElevationScroll>
   );
 };
+
+export default TopBar;

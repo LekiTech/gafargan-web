@@ -3,22 +3,21 @@ import React, { FC, use } from 'react';
 import images from '@/store/images';
 import expressionApi from '@/api/expression';
 import { ResolvingMetadata, Metadata } from 'next';
-import { Lang } from '@/api/types';
+import { DictionaryLang } from '@/api/types';
 
 export async function generateMetadata(
   { searchParams }: ExpressionPageProps,
-  parent: ResolvingMetadata
+  parent: ResolvingMetadata,
 ): Promise<Metadata> {
-
   // fetch data
   const data = await expressionApi.search({
     exp: searchParams.exp,
-    fromLang: searchParams.fromLang as Lang,
-    toLang: searchParams.toLang as Lang,
+    fromLang: searchParams.fromLang as DictionaryLang,
+    toLang: searchParams.toLang as DictionaryLang,
   });
- 
+
   // optionally access and extend (rather than replace) parent metadata
-  const previousImages = (await parent).openGraph?.images || []
+  const previousImages = (await parent).openGraph?.images || [];
   const spelling = data[0].spelling;
   return {
     title: spelling.charAt(0).toUpperCase() + spelling.slice(1),
@@ -26,7 +25,7 @@ export async function generateMetadata(
     // openGraph: {
     //   images: ['/some-specific-page-image.jpg', ...previousImages],
     // },
-  }
+  };
 }
 
 const colors = {
@@ -34,46 +33,58 @@ const colors = {
   primaryTint: '#132e05',
   secondary: '#bb1614',
   secondaryTint: '#810000',
-}
+};
 
-type ExpressionPageProps = { 
-  params: { lang: string },
+type ExpressionPageProps = {
+  params: { lang: string };
   // replace `exp` with `eid`
-  searchParams: { fromLang: string, toLang: string, exp: string },
+  searchParams: { fromLang: string; toLang: string; exp: string };
 };
 
 const ExpressionPage: FC<ExpressionPageProps> = ({ searchParams }) => {
   // const {props} = use(getServerSideProps());
   // const { data } = useSearchExpressionQuery('къил');
-  const data = use(expressionApi.search({
-    exp: searchParams.exp,
-    fromLang: searchParams.fromLang as Lang,
-    toLang: searchParams.toLang as Lang,
-  }));
+  const data = use(
+    expressionApi.search({
+      exp: searchParams.exp,
+      fromLang: searchParams.fromLang as DictionaryLang,
+      toLang: searchParams.toLang as DictionaryLang,
+    }),
+  );
   // const dictionary = useSelector((state: any): DictionaryReduxState => state.dictionary);
   return (
-    <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100vw'}}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100vw',
+      }}
+    >
       <h1>Props</h1>
-      <pre style={{width: '100%'}}>
+      <pre style={{ width: '100%' }}>
         <code>{JSON.stringify(searchParams, null, 2)}</code>
       </pre>
       <br />
       <h1>Search result</h1>
-      <pre style={{width: '100%'}}>
+      <pre style={{ width: '100%' }}>
         <code>{JSON.stringify(data, null, 2)}</code>
       </pre>
     </div>
   );
-}
+};
 
 export default ExpressionPage;
 
 // This gets called on every request
 async function getServerSideProps() {
   // Fetch data from external API
-  const res = await fetch(`https://api.gafalag.com/expression/search?exp=руш&fromLang=lez&toLang=rus`)
-  const data = await res.json()
- 
+  const res = await fetch(
+    `https://api.gafalag.com/expression/search?exp=руш&fromLang=lez&toLang=rus`,
+  );
+  const data = await res.json();
+
   // Pass data to the page via props
-  return { props: { data } }
+  return { props: { data } };
 }

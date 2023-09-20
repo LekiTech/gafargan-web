@@ -1,7 +1,11 @@
-export type Lang = 'lez' | 'rus' | 'eng' | 'tab';
+import { DictionaryLangs, WebsiteLangs } from './constants';
 
-export type SearchQuery = { 
+export type WebsiteLang = (typeof WebsiteLangs)[number];
+export type DictionaryLang = (typeof DictionaryLangs)[number];
+//'lez' | 'rus' | 'eng' | 'tab';
+
+export type SearchQuery = {
   exp: string;
-  fromLang: Lang,
-  toLang: Lang,
-}
+  fromLang: DictionaryLang;
+  toLang: DictionaryLang;
+};
