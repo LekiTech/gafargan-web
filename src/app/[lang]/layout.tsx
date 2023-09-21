@@ -6,7 +6,7 @@ import { Providers } from './Providers';
 import { dir } from 'i18next';
 import Toolbar from '@mui/material/Toolbar';
 import { useTranslation } from '../i18n';
-import { DictionaryLang } from './api/types';
+import { DictionaryLang, WebsiteLang } from './api/types';
 import TopBar from './components/TopBar';
 import { colors } from './colors';
 
@@ -51,15 +51,20 @@ export default async function RootLayout(props: RootLayoutProps) {
     // searchParams,
   } = props;
   const { t } = await useTranslation(lang);
-  console.log(t('languages', { returnObjects: true }));
   return (
-    <html lang={lang} dir={dir(lang)}>
+    <html
+      lang={lang}
+      dir={dir(lang)}
+      style={{ scrollBehavior: 'smooth', scrollPaddingTop: '100px' }}
+    >
       <body className={inter.className} style={{ backgroundColor: colors.background }}>
         <TopBar
-          langs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
+          currentLang={lang as WebsiteLang}
+          webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
+          dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
           searchLabel={t('search')}
         />
-        <Toolbar />
+        <Toolbar sx={{ p: '10px' }} />
         <Providers>{children}</Providers>
       </body>
     </html>

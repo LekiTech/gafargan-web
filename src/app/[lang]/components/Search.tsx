@@ -9,7 +9,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
 import ClientExpressionApi from '@/api/clientExpression';
 import { DictionaryLang } from '@/api/types';
-import { DictionaryLangs } from '@/api/constants';
+import { DictionaryPairs, DictionaryLangs } from '@/store/constants';
 import { useSearchParams } from 'next/navigation';
 import { colors } from '@/colors';
 
@@ -20,6 +20,10 @@ import { colors } from '@/colors';
 //   secondaryTint: '#810000',
 // };
 
+function findPairLang(lang: DictionaryLang) {
+  return DictionaryPairs.find((pair) => pair.includes(lang))?.filter((pl) => pl !== lang)[0];
+}
+
 const roundingRadius = '100px';
 
 const Search: FC<{
@@ -29,19 +33,43 @@ const Search: FC<{
   searchLabel: string;
 }> = ({ langs, searchLabel }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchLang = {
     from: (searchParams.get('fromLang') ?? 'lez') as DictionaryLang,
     to: (searchParams.get('toLang') ?? 'rus') as DictionaryLang,
   };
-  const pathname = usePathname();
 
   const [options, setOptions] = React.useState<string[]>([]);
   const [inputValue, setInputValue] = React.useState('');
 
   const goToDefinition = (exp: string) => {
+    if (exp === undefined || exp === null || exp.trim() === '') {
+      return;
+    }
     const prefix = pathname.includes('definition') ? pathname : pathname + '/definition';
     router.push(prefix + `?fromLang=${searchLang.from}&toLang=${searchLang.to}&exp=${exp}`);
+  };
+
+  const changeDictLang = (args: { lang: DictionaryLang; isFrom: boolean }) => {
+    const { lang, isFrom } = args;
+    const otherLang = findPairLang(lang);
+    if (otherLang == undefined) {
+      console.error(`Did not find pair language for '${lang}'`);
+      return;
+    }
+    const langsParams = isFrom
+      ? `?fromLang=${lang}&toLang=${otherLang}`
+      : `?fromLang=${otherLang}&toLang=${lang}`;
+    const otherParamsArray: string[] = [];
+    searchParams.forEach((value, key, parent) => {
+      if (key !== 'fromLang' && key !== 'toLang') {
+        otherParamsArray.push(`${key}=${value}`);
+      }
+    });
+    const otherParams = otherParamsArray.length > 0 ? '&' + otherParamsArray.join('&') : '';
+    router.push(pathname + langsParams + otherParams);
+    return;
   };
 
   return (
@@ -51,8 +79,15 @@ const Search: FC<{
         <Select
           variant="standard"
           value={searchLang.from}
-          sx={{ color: colors.text.light, '.MuiSelect-icon': { color: colors.text.light } }}
-          // onChange={handleChange}
+          sx={{
+            color: colors.text.light,
+            '.MuiSelect-icon': { color: colors.text.light },
+            ':before': { borderBottomColor: colors.text.light },
+            ':after': { borderBottomColor: colors.secondary },
+          }}
+          onChange={(e) => {
+            changeDictLang({ lang: e.target.value as DictionaryLang, isFrom: true });
+          }}
           // defaultValue={fromLang.code}
         >
           {DictionaryLangs.map((lang) => (
@@ -75,16 +110,25 @@ const Search: FC<{
         <Select
           variant="standard"
           value={searchLang.to}
-          sx={{ color: colors.text.light, '.MuiSelect-icon': { color: colors.text.light } }}
-          // onChange={handleChange}
-          // defaultValue={toLang.code}
+          sx={{
+            color: colors.text.light,
+            '& .MuiSelect-icon': { color: colors.text.light },
+            ':before': { borderBottomColor: colors.text.light },
+            ':after': { borderBottomColor: colors.secondary },
+          }}
+          onChange={(e) => {
+            changeDictLang({ lang: e.target.value as DictionaryLang, isFrom: false });
+          }}
         >
           {/* <MenuItem value={toLang.code}>{toLang.name}</MenuItem> */}
-          {DictionaryLangs.map((lang) => (
-            <MenuItem key={lang.toString()} value={lang}>
-              {langs[lang]}
-            </MenuItem>
-          ))}
+          {DictionaryPairs.filter((pair) => pair.includes(searchLang.from)).map((pair) => {
+            const lang = pair.filter((pl) => pl !== searchLang.from)[0];
+            return (
+              <MenuItem key={pair.toString()} value={lang}>
+                {langs[lang]}
+              </MenuItem>
+            );
+          })}
         </Select>
       </Stack>
       <Stack direction="row" spacing={0}>
@@ -111,9 +155,10 @@ const Search: FC<{
           renderInput={(params) => (
             <TextField
               {...params}
-              label={searchLabel}
+              // label={searchLabel}
               InputProps={{
                 ...params.InputProps,
+                placeholder: searchLabel,
                 type: 'search',
                 style: {
                   borderStartStartRadius: roundingRadius,
@@ -151,6 +196,9 @@ const Search: FC<{
             borderEndEndRadius: roundingRadius,
             borderStartEndRadius: roundingRadius,
             backgroundColor: colors.secondary,
+            ':hover': {
+              backgroundColor: colors.secondaryTint,
+            },
           }}
           onClick={() => goToDefinition(inputValue)}
         >

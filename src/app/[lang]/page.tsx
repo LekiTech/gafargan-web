@@ -28,8 +28,6 @@ const Home: FC<HomeProps> = async (props) => {
     params: { lang },
     searchParams: { fromLang, toLang },
   } = props;
-  // const [options, setOptions] = React.useState<string[]>([]);
-  console.log(props);
   const { t } = await useTranslation(lang);
 
   return (

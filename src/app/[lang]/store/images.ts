@@ -15,6 +15,9 @@ import booksImage from '@/assets/images/preview_spectacles-open-books-15550565.w
 // import calendarImage from '@/assets/images/red-pushpin-calendar-page-remind-marked-important-eve-events-92566707.webp';
 import calendarImage from '@/assets/images/red-pushpin-calendar-page-remind-marked-important-eve-events-vintage-retro-color-tone-89568116.webp';
 // import calendarImage from '@/assets/images/preview_calendar-10236061.webp';
+import lezgiFlag from '@/assets/images/flags/lez.png';
+import russianFlag from '@/assets/images/flags/rus.png';
+import ukFlag from '@/assets/images/flags/uk.png';
 
 export default {
   logo,
@@ -25,4 +28,7 @@ export default {
   numbersImage,
   booksImage,
   calendarImage,
+  lezgiFlag,
+  russianFlag,
+  ukFlag,
 };

@@ -1,4 +1,4 @@
-import { DictionaryLangs, WebsiteLangs } from './constants';
+import { DictionaryLangs, WebsiteLangs } from '../store/constants';
 
 export type WebsiteLang = (typeof WebsiteLangs)[number];
 export type DictionaryLang = (typeof DictionaryLangs)[number];

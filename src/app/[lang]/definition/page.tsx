@@ -4,6 +4,8 @@ import images from '@/store/images';
 import expressionApi from '@/api/expression';
 import { ResolvingMetadata, Metadata } from 'next';
 import { DictionaryLang } from '@/api/types';
+import { Box, Stack, Typography } from '@mui/material';
+import { Sidebar } from './components/Sidebar';
 
 export async function generateMetadata(
   { searchParams }: ExpressionPageProps,
@@ -28,12 +30,12 @@ export async function generateMetadata(
   };
 }
 
-const colors = {
-  primary: '#0f3b2e',
-  primaryTint: '#132e05',
-  secondary: '#bb1614',
-  secondaryTint: '#810000',
-};
+// const colors = {
+//   primary: '#0f3b2e',
+//   primaryTint: '#132e05',
+//   secondary: '#bb1614',
+//   secondaryTint: '#810000',
+// };
 
 type ExpressionPageProps = {
   params: { lang: string };
@@ -53,25 +55,41 @@ const ExpressionPage: FC<ExpressionPageProps> = ({ searchParams }) => {
   );
   // const dictionary = useSelector((state: any): DictionaryReduxState => state.dictionary);
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '100vw',
-      }}
-    >
-      <h1>Props</h1>
-      <pre style={{ width: '100%' }}>
-        <code>{JSON.stringify(searchParams, null, 2)}</code>
-      </pre>
-      <br />
-      <h1>Search result</h1>
-      <pre style={{ width: '100%' }}>
-        <code>{JSON.stringify(data, null, 2)}</code>
-      </pre>
-    </div>
+    <Stack direction={'row'} spacing={2}>
+      <Sidebar />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100vw',
+          pt: '50px',
+        }}
+      >
+        <Typography variant="h3" id={'noun'}>
+          Существитеьное
+        </Typography>
+        <pre style={{ width: '100%' }}>
+          <code>{JSON.stringify(searchParams, null, 2)}</code>
+        </pre>
+        <br />
+        <Typography id={'adjective'} variant="h3">
+          Прилагательное
+        </Typography>
+        <pre style={{ width: '100%' }}>
+          <code>{JSON.stringify(data, null, 2)}</code>
+        </pre>
+        <Typography variant="h3" id={'examples'}>
+          Примеры
+        </Typography>
+        <pre style={{ width: '100%' }}>
+          <code>{JSON.stringify(searchParams, null, 2)}</code>
+          <code>{JSON.stringify(searchParams, null, 2)}</code>
+          <code>{JSON.stringify(searchParams, null, 2)}</code>
+        </pre>
+      </Box>
+    </Stack>
   );
 };
 
