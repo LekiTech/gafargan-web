@@ -2,7 +2,7 @@ import * as React from 'react';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { FC } from 'react';
-import { useTranslation } from '../../i18n';
+import { useTranslation } from '@i18n/index';
 import images from '@/store/images';
 import { Card, CardActionArea, CardContent, CardActions, CardMedia, Link } from '@mui/material';
 
@@ -15,13 +15,13 @@ export const Sources: FC<WordOfTheDayProps> = async ({ lang }) => {
   return (
     <Card sx={{ minWidth: 275 }}>
       <CardActionArea>
-        <CardMedia
+        {/* <CardMedia
           component="img"
           height="340"
           image={images.booksImage.src}
           alt="sources"
           sx={{ objectPosition: 'center bottom' }}
-        />
+        /> */}
         <CardContent>
           <Typography variant="h5" component="div">
             {t('sources')}

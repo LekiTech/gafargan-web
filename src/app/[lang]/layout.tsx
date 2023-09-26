@@ -5,7 +5,7 @@ import { Inter } from 'next/font/google';
 import { Providers } from './Providers';
 import { dir } from 'i18next';
 import Toolbar from '@mui/material/Toolbar';
-import { useTranslation } from '../i18n';
+import { useTranslation } from '@i18n/index';
 import { DictionaryLang, WebsiteLang } from './api/types';
 import TopBar from './components/TopBar';
 import { colors } from './colors';

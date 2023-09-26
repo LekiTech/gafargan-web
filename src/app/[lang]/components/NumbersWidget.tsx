@@ -6,7 +6,6 @@ import CardContent from '@mui/material/CardContent';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { useTranslation } from '../../i18n';
 import images from '@/store/images';
 import { CardMedia, IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum } from 'lezgi-numbers/lib';
@@ -31,7 +30,7 @@ export const NumbersWidget: FC<NumbersWidgetProps> = ({
   const defaultNumber = new Date().getFullYear();
   const [result, setResult] = React.useState(createResult(defaultNumber));
   return (
-    <Card sx={{ display: 'flex', minWidth: 275, minHeight: 265 }}>
+    <Card sx={{ display: 'flex', minWidth: 275, minHeight: 365 }}>
       {/* <CardMedia
         component="img"
         height="240"

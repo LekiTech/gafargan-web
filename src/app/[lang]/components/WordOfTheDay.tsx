@@ -2,7 +2,7 @@ import * as React from 'react';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { FC } from 'react';
-import { useTranslation } from '../../i18n';
+import { useTranslation } from '@i18n/index';
 import images from '@/store/images';
 import { Card, CardActionArea, CardContent, CardActions, CardMedia, Link } from '@mui/material';
 import { colors } from '@/colors';
@@ -15,8 +15,14 @@ type WordOfTheDayProps = {
 export const WordOfTheDay: FC<WordOfTheDayProps> = async ({ lang }) => {
   const { t } = await useTranslation(lang);
   return (
-    <Card sx={{ minWidth: 275, minHeight: 265 }}>
-      <CardActionArea sx={{ display: 'flex' }}>
+    <Card sx={{ minWidth: 275, minHeight: 365 }}>
+      <CardActionArea
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'stretch',
+        }}
+      >
         {/* <CardMedia
           component="img"
           height="240"

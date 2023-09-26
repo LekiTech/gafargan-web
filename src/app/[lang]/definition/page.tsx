@@ -1,18 +1,24 @@
 import React, { FC, use } from 'react';
-// import '@/i18n';
 import images from '@/store/images';
 import expressionApi from '@/api/expression';
 import { ResolvingMetadata, Metadata } from 'next';
-import { DictionaryLang } from '@/api/types';
+import { DictionaryLang, WebsiteLang } from '@/api/types';
 import { Box, Stack, Typography } from '@mui/material';
 import { Sidebar } from './components/Sidebar';
+import { expressionFont } from '@/fonts';
+import ExpressionDetailsComp from './components/ExpressionDetailsComp';
+import { toContents } from './utils';
+
+function expressionSpellingToLowerCase(spelling: string) {
+  return spelling.toLowerCase().replaceAll('i', 'I');
+}
 
 export async function generateMetadata(
   { searchParams }: ExpressionPageProps,
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
   // fetch data
-  const data = await expressionApi.search({
+  const data = await expressionApi.testSearch({
     exp: searchParams.exp,
     fromLang: searchParams.fromLang as DictionaryLang,
     toLang: searchParams.toLang as DictionaryLang,
@@ -20,34 +26,27 @@ export async function generateMetadata(
 
   // optionally access and extend (rather than replace) parent metadata
   const previousImages = (await parent).openGraph?.images || [];
-  const spelling = data[0].spelling;
+  const spelling = expressionSpellingToLowerCase(data.spelling);
   return {
     title: spelling.charAt(0).toUpperCase() + spelling.slice(1),
-    description: data[0].definitions[0].text,
+    description: data.details[0].definitionDetails[0].definitions[0].value,
     // openGraph: {
     //   images: ['/some-specific-page-image.jpg', ...previousImages],
     // },
   };
 }
 
-// const colors = {
-//   primary: '#0f3b2e',
-//   primaryTint: '#132e05',
-//   secondary: '#bb1614',
-//   secondaryTint: '#810000',
-// };
-
 type ExpressionPageProps = {
-  params: { lang: string };
-  // replace `exp` with `eid`
+  params: { lang: WebsiteLang };
+  // replace `exp` with `expId`
   searchParams: { fromLang: string; toLang: string; exp: string };
 };
 
-const ExpressionPage: FC<ExpressionPageProps> = ({ searchParams }) => {
+const ExpressionPage: FC<ExpressionPageProps> = ({ params: { lang }, searchParams }) => {
   // const {props} = use(getServerSideProps());
   // const { data } = useSearchExpressionQuery('къил');
   const data = use(
-    expressionApi.search({
+    expressionApi.testSearch({
       exp: searchParams.exp,
       fromLang: searchParams.fromLang as DictionaryLang,
       toLang: searchParams.toLang as DictionaryLang,
@@ -55,41 +54,45 @@ const ExpressionPage: FC<ExpressionPageProps> = ({ searchParams }) => {
   );
   // const dictionary = useSelector((state: any): DictionaryReduxState => state.dictionary);
   return (
-    <Stack direction={'row'} spacing={2}>
-      <Sidebar />
-      <Box
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'center',
+      }}
+    >
+      <Stack
+        direction={'row'}
+        spacing={2}
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: '100vw',
-          pt: '50px',
+          maxWidth: '1400px',
         }}
       >
-        <Typography variant="h3" id={'noun'}>
-          Существитеьное
-        </Typography>
-        <pre style={{ width: '100%' }}>
-          <code>{JSON.stringify(searchParams, null, 2)}</code>
-        </pre>
-        <br />
-        <Typography id={'adjective'} variant="h3">
-          Прилагательное
-        </Typography>
-        <pre style={{ width: '100%' }}>
-          <code>{JSON.stringify(data, null, 2)}</code>
-        </pre>
-        <Typography variant="h3" id={'examples'}>
-          Примеры
-        </Typography>
-        <pre style={{ width: '100%' }}>
-          <code>{JSON.stringify(searchParams, null, 2)}</code>
-          <code>{JSON.stringify(searchParams, null, 2)}</code>
-          <code>{JSON.stringify(searchParams, null, 2)}</code>
-        </pre>
-      </Box>
-    </Stack>
+        <Sidebar contents={data.details.map((d, i) => toContents(i, data.spelling, d))} />
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'left',
+            justifyContent: 'center',
+            width: '100vw',
+            pt: '25px',
+            pl: '25px',
+            pb: '50px',
+          }}
+        >
+          {/* BELOW is implementation for a SINGLE expression detail */}
+          {data.details.map((detail, i) => (
+            <ExpressionDetailsComp
+              key={`exp_det_${i}`}
+              idx={i}
+              lang={lang}
+              spelling={data.spelling}
+              data={detail}
+            />
+          ))}
+        </Box>
+      </Stack>
+    </Box>
   );
 };
 

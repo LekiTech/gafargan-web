@@ -75,7 +75,7 @@ const Search: FC<{
   return (
     <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
       {/* {fromLang.name} */}
-      <Stack direction="row" spacing={0} sx={{ width: '400px', justifyContent: 'end' }}>
+      <Stack direction="row" spacing={0} sx={{ justifyContent: 'end' }}>
         <Select
           variant="standard"
           value={searchLang.from}
@@ -134,7 +134,7 @@ const Search: FC<{
       <Stack direction="row" spacing={0}>
         <Autocomplete
           id="free-solo-search"
-          sx={{ minWidth: 600 }}
+          sx={{ minWidth: 400 }}
           freeSolo={true}
           disableClearable={true}
           inputValue={inputValue}
