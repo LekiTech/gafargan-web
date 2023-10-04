@@ -8,6 +8,7 @@ import { Sidebar } from './components/Sidebar';
 import { expressionFont } from '@/fonts';
 import ExpressionDetailsComp from './components/ExpressionDetailsComp';
 import { toContents } from './utils';
+import { useTranslation } from '@i18n/index';
 
 function expressionSpellingToLowerCase(spelling: string) {
   return spelling.toLowerCase().replaceAll('i', 'I');
@@ -42,16 +43,17 @@ type ExpressionPageProps = {
   searchParams: { fromLang: string; toLang: string; exp: string };
 };
 
-const ExpressionPage: FC<ExpressionPageProps> = ({ params: { lang }, searchParams }) => {
+const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searchParams }) => {
   // const {props} = use(getServerSideProps());
   // const { data } = useSearchExpressionQuery('къил');
-  const data = use(
-    expressionApi.testSearch({
-      exp: searchParams.exp,
-      fromLang: searchParams.fromLang as DictionaryLang,
-      toLang: searchParams.toLang as DictionaryLang,
-    }),
-  );
+  const { t } = await useTranslation(lang);
+  const data = await //use(
+  expressionApi.testSearch({
+    exp: searchParams.exp,
+    fromLang: searchParams.fromLang as DictionaryLang,
+    toLang: searchParams.toLang as DictionaryLang,
+  });
+  //);
   // const dictionary = useSelector((state: any): DictionaryReduxState => state.dictionary);
   return (
     <Box
@@ -67,7 +69,10 @@ const ExpressionPage: FC<ExpressionPageProps> = ({ params: { lang }, searchParam
           maxWidth: '1400px',
         }}
       >
-        <Sidebar contents={data.details.map((d, i) => toContents(i, data.spelling, d))} />
+        <Sidebar
+          contents={data.details.map((d, i) => toContents(i, data.spelling, d))}
+          otherExamplesLabel={t('otherExamples')}
+        />
         <Box
           sx={{
             display: 'flex',

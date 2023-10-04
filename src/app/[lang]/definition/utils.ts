@@ -25,12 +25,16 @@ export function createDetailsId(
   }`.replaceAll(' ', '_');
 }
 
+export function createOtherExamplesId(idx: number) {
+  return `${idx}-other-examples`;
+}
+
 export function toContents(
   idx: number,
   spelling: string,
   expressionDetails: ExpressionDetails,
 ): Contents {
-  const commonExamplesCount = expressionDetails.examples?.length ?? 0;
+  const otherExamplesCount = expressionDetails.examples?.length ?? 0;
   return {
     spellingId: createSpellingId(
       idx,
@@ -66,9 +70,9 @@ export function toContents(
         };
       })
       .filter((d) => d.definitionsCount > 0 || d.examplesCount > 0),
-    commonExamplesId:
-      `common-examples-${spelling}-${expressionDetails.inflection}` +
-      `-${commonExamplesCount}-${Math.random()}`,
-    commonExamplesCount: commonExamplesCount,
+    otherExamplesId: createOtherExamplesId(idx),
+    // `common-examples-${spelling}-${expressionDetails.inflection}` +
+    // `-${commonExamplesCount}-${Math.random()}`,
+    otherExamplesCount,
   };
 }

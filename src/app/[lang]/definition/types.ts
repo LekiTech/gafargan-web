@@ -11,6 +11,6 @@ export type Contents = {
     preview: string;
   }[];
   /** Pure visual ID for UI purposes */
-  commonExamplesId: string;
-  commonExamplesCount: number;
+  otherExamplesId: string;
+  otherExamplesCount: number;
 };

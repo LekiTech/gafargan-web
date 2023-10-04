@@ -6,6 +6,7 @@ import { useTranslation } from '@i18n/index';
 import { expressionFont, lusitanaFont } from '@/fonts';
 import { DefinitionDetailsComp } from './DefinitionComp';
 import { createSpellingId } from '../utils';
+import { ExamplesComp } from './ExampleComp';
 
 function expressionSpellingToLowerCase(spelling: string) {
   return spelling.toLowerCase().replaceAll('i', 'I');
@@ -23,7 +24,8 @@ const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = async ({
   spelling,
   data,
 }) => {
-  const { t } = await useTranslation(lang, 'tags');
+  const { t } = await useTranslation(lang);
+  // const { t: tTags } = await useTranslation(lang, 'tags');
   return (
     <Stack
       // spacing={4}
@@ -100,7 +102,13 @@ const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = async ({
         //   ))} */}
         // </Stack>
       ))}
-
+      <ExamplesComp
+        parentIdx={idx}
+        lang={lang}
+        title={t('otherExamples')}
+        includeId={true}
+        examples={data.examples}
+      />
       {/* <pre style={{ width: '100%' }}>
         {/* {data.definitionDetails
           .map((dd) => [...dd.definitions.map((d) => d.tags).flat(), ...(dd.tags ?? [])])

@@ -9,6 +9,8 @@
   "learnMore": "Learn more",
   "translateNumbers": "Translate numbers",
   "translation": "Translation",
+  "examples": "Examples",
+  "otherExamples": "Other examples",
   "enterNumber": "Enter a number",
   "language": "Language",
   "dialect": "Dialect",
@@ -26,5 +28,33 @@
   "meta": {
     "title": "Gafargan - convenient dictionary of languages of small nations | Lezgin dictionary | Tabasaran dictionary",
     "description": "An open-source dictionary and translator for languages of small nations. At the moment there is support for Lezgin and Tabasaran languages.  You can find translations of Lezgin-Russian, Russian-Lezgin and Tabasaran-Russian dictionaries here. We also support search in translations what gives the possibility to search by Russian-Tabasaran dictionary type as well. Our dictionary, among other things, gives you the possibility of imprecise search which, if you enter several words, works as a translator or phrasebook finding all or some of the words you enter"
-  }
+  },
+  "alphabet": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z"
+  ]
 }
