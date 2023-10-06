@@ -93,6 +93,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
               lang={lang}
               spelling={data.spelling}
               data={detail}
+              isLast={i === data.details.length - 1}
             />
           ))}
         </Box>

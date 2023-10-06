@@ -61,6 +61,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
           setActiveStep(i);
           break;
         }
+        const exampleBoundingRect = document
+          .getElementById(step.otherExamplesId)
+          ?.getBoundingClientRect();
+        if (
+          exampleBoundingRect?.top &&
+          exampleBoundingRect?.bottom &&
+          exampleBoundingRect.top < window.innerHeight &&
+          exampleBoundingRect.bottom > 0
+        ) {
+          setActiveStepDetailId(step.otherExamplesId);
+          break;
+        }
       }
     };
     document.addEventListener('scroll', eventListener);

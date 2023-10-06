@@ -4,6 +4,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
   Chip,
   Grid,
   List,
@@ -18,6 +19,7 @@ import { useTranslation } from '@i18n/index';
 import { expressionFont } from '@/fonts';
 import { createDetailsId } from '../utils';
 import { ExamplesComp } from './ExampleComp';
+import { colors } from '@/colors';
 
 // const idxToChar = (lang: WebsiteLang, idx: number) => {
 //   return lang === 'rus' || lang === 'lez'
@@ -135,12 +137,22 @@ export const DefinitionDetailsComp: FC<{
 }> = ({ idx, definitionDetails, lang, spelling, inflection }) => {
   return (
     <Stack direction="row" key={`exp_det_${idx}`} sx={{ position: 'relative' }}>
-      <Typography
-        variant="body1"
-        sx={{ fontWeight: 'bold', fontSize: '20px', width: '20px', textAlign: 'end' }}
-      >
-        {idx + 1}
-      </Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography
+          variant="body1"
+          sx={{
+            fontWeight: 'bold',
+            fontSize: '20px',
+            width: '20px',
+            textAlign: 'center',
+          }}
+        >
+          {idx + 1}
+        </Typography>
+        <Box
+          sx={{ flex: 2, width: '4px', backgroundColor: colors.primaryTint, opacity: 0.03 }}
+        ></Box>
+      </Box>
       <DefinitionsGroup
         idx={idx}
         lang={lang}

@@ -17,15 +17,15 @@ export const ExamplesComp: FC<{
   parentIdx: number;
   lang: WebsiteLang;
   title: string;
-  includeId?: boolean;
+  isOtherExamples?: boolean;
   examples?: Example[];
-}> = async ({ parentIdx, title, examples, includeId }) => {
+}> = async ({ parentIdx, title, examples, isOtherExamples }) => {
   // const { t } = await useTranslation(lang);
   return examples && examples.length > 0 ? (
     <Accordion
-      id={includeId ? createOtherExamplesId(parentIdx) : undefined}
       variant="outlined"
-      sx={{ backgroundColor: 'inherit', width: includeId ? '100%' : '500px' }}
+      sx={{ backgroundColor: 'inherit', width: isOtherExamples ? '100%' : '500px' }}
+      TransitionProps={{ timeout: 200 }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
         <Typography color="text.secondary">{title}</Typography>
