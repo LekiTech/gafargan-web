@@ -30,7 +30,7 @@ export const NumbersWidget: FC<NumbersWidgetProps> = ({
   const defaultNumber = new Date().getFullYear();
   const [result, setResult] = React.useState(createResult(defaultNumber));
   return (
-    <Card sx={{ display: 'flex', minWidth: 275, minHeight: 365 }}>
+    <Card sx={{ display: 'flex', minWidth: 275, height: 365, padding: '20px' }}>
       {/* <CardMedia
         component="img"
         height="240"
@@ -38,8 +38,16 @@ export const NumbersWidget: FC<NumbersWidgetProps> = ({
         alt="numbers"
         sx={{ flex: 1 }}
       /> */}
-      <CardContent sx={{ flex: 2 }}>
-        <Typography gutterBottom variant="h5" component="div">
+      <CardContent
+        sx={{
+          flex: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          alignItems: 'stretch',
+        }}
+      >
+        <Typography gutterBottom variant="h5">
           {title}
         </Typography>
         <br />

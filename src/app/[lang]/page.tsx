@@ -18,7 +18,9 @@ const Home: FC<HomeProps> = async (props) => {
   const { t } = await useTranslation(lang);
 
   return (
-    <Box sx={{ paddingTop: '150px', width: '100%', display: 'flex', justifyContent: 'center' }}>
+    <Box
+      sx={{ pt: '150px', pb: '150px', width: '100%', display: 'flex', justifyContent: 'center' }}
+    >
       <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
         <Grid item xs={6}>
           <WordOfTheDay lang={lang} />
