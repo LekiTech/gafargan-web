@@ -25,21 +25,6 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = async ({ lang }) => {
   const { t } = await useTranslation(lang);
   return (
     <Card sx={{ minWidth: 275, height: 365, padding: '20px' }}>
-      {/* <CardActionArea
-        sx={{
-          // display: 'flex',
-          width: '100%',
-          height: '100%',
-          p: '20px',
-        }}
-      > */}
-      {/* <CardMedia
-          component="img"
-          height="240"
-          image={images.calendarImage.src}
-          alt="word of the day"
-          sx={{ objectPosition: 'center bottom', flex: 1 }}
-        /> */}
       <CardContent
         sx={{
           width: '100%',
@@ -91,10 +76,6 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = async ({ lang }) => {
           <Link>{t('learnMore')}</Link>
         </Typography>
       </CardContent>
-      {/* </CardActionArea> */}
-      {/* <CardActions>
-        <Button size="small">{t('learnMore')}</Button>
-      </CardActions> */}
     </Card>
   );
 };

@@ -31,13 +31,6 @@ export const NumbersWidget: FC<NumbersWidgetProps> = ({
   const [result, setResult] = React.useState(createResult(defaultNumber));
   return (
     <Card sx={{ display: 'flex', minWidth: 275, height: 365, padding: '20px' }}>
-      {/* <CardMedia
-        component="img"
-        height="240"
-        image={images.numbersImage.src}
-        alt="numbers"
-        sx={{ flex: 1 }}
-      /> */}
       <CardContent
         sx={{
           flex: 2,
@@ -104,9 +97,6 @@ export const NumbersWidget: FC<NumbersWidgetProps> = ({
         </Typography>
       </CardContent>
       <CardActions sx={{ display: 'flex', alignItems: 'end' }}>
-        {/* <Button size="small" color="primary">
-          Copy
-        </Button> */}
         <IconButton
           color="primary"
           aria-label="copy"

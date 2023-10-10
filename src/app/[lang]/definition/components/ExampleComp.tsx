@@ -4,14 +4,18 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Chip,
+  Divider,
   List,
   ListItem,
   ListItemText,
+  Stack,
   Typography,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { createOtherExamplesId } from '../utils';
-// import { useTranslation } from '@i18n/index';
+import { ParsedTextComp } from './ParsedTextComp';
+import { useTranslation } from '@i18n/index';
+import { TagComp } from './TagComp';
 
 export const ExamplesComp: FC<{
   parentIdx: number;
@@ -19,8 +23,8 @@ export const ExamplesComp: FC<{
   title: string;
   isOtherExamples?: boolean;
   examples?: Example[];
-}> = async ({ parentIdx, title, examples, isOtherExamples }) => {
-  // const { t } = await useTranslation(lang);
+}> = async ({ parentIdx, lang, title, examples, isOtherExamples }) => {
+  const { t: tTags } = await useTranslation(lang, 'tags');
   return examples && examples.length > 0 ? (
     <Accordion
       variant="outlined"
@@ -35,15 +39,54 @@ export const ExamplesComp: FC<{
           {examples?.map((ex, i) => {
             if (ex.src && ex.trl) {
               return (
-                <ListItem key={`${parentIdx}_${i}`}>
-                  <ListItemText primary={ex.src} secondary={ex.trl} />
-                </ListItem>
+                <>
+                  <Divider component="li" />
+                  <ListItem key={`${parentIdx}_${i}`}>
+                    <Stack direction="column">
+                      <ListItemText
+                        primary={<ParsedTextComp text={ex.src} />}
+                        secondary={<ParsedTextComp text={ex.trl} />}
+                        // primary={ex.src}
+                        // secondary={ex.trl}
+                      />
+                      {ex.tags && ex.tags.length > 0 && (
+                        <Stack direction="row" spacing={2}>
+                          {ex.tags.map((tag, t_i) => (
+                            <TagComp
+                              key={`example_${parentIdx}_${i}_tags_${tag}_${t_i}`}
+                              label={tTags(tag)}
+                              // size="small"
+                              // sx={{ maxWidth: '250px', fontSize: '12px', width: 'wrap-content' }}
+                            />
+                          ))}
+                        </Stack>
+                      )}
+                    </Stack>
+                  </ListItem>
+                </>
               );
             }
             return (
-              <ListItem key={`${parentIdx}_${i}`}>
-                <ListItemText primary={ex.raw} />
-              </ListItem>
+              <>
+                <Divider component="li" />
+                <ListItem key={`${parentIdx}_${i}`}>
+                  <Stack direction="column">
+                    <ListItemText primary={<ParsedTextComp text={ex.raw} />} />
+                    {ex.tags && ex.tags.length > 0 && (
+                      <Stack direction="row" spacing={2}>
+                        {ex.tags.map((tag, t_i) => (
+                          <TagComp
+                            key={`example_${parentIdx}_${i}_tags_${tag}_${t_i}`}
+                            label={tTags(tag)}
+                            // size="small"
+                            // sx={{ maxWidth: '250px', width: 'wrap-content' }}
+                          />
+                        ))}
+                      </Stack>
+                    )}
+                  </Stack>
+                </ListItem>
+              </>
             );
           })}
         </List>

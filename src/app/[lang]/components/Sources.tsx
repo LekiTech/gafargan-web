@@ -14,20 +14,6 @@ export const Sources: FC<WordOfTheDayProps> = async ({ lang }) => {
   const { t } = await useTranslation(lang);
   return (
     <Card sx={{ minWidth: 275, height: 365, padding: '20px' }}>
-      {/* <CardActionArea
-        sx={{
-          width: '100%',
-          height: '100%',
-          p: '20px',
-        }}
-      > */}
-      {/* <CardMedia
-          component="img"
-          height="340"
-          image={images.booksImage.src}
-          alt="sources"
-          sx={{ objectPosition: 'center bottom' }}
-        /> */}
       <CardContent
         sx={{
           width: '100%',
@@ -48,7 +34,6 @@ export const Sources: FC<WordOfTheDayProps> = async ({ lang }) => {
           <Link>{t('learnMore')}</Link>
         </Typography>
       </CardContent>
-      {/* </CardActionArea> */}
       {/* <CardActions>
         <Button size="small">{t('learnMore')}</Button>
       </CardActions> */}

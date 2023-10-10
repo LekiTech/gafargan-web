@@ -1,25 +1,11 @@
-import React, { FC, use } from 'react';
-import { Definition, DefinitionDetails, DictionaryLang, Example, WebsiteLang } from '@/api/types';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Chip,
-  Grid,
-  List,
-  ListItem,
-  ListItemText,
-  ListSubheader,
-  Stack,
-  Typography,
-} from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import React, { FC } from 'react';
+import { Definition, DefinitionDetails, Example, WebsiteLang } from '@/api/types';
+import { Box, Grid, Stack, Typography } from '@mui/material';
 import { useTranslation } from '@i18n/index';
-import { expressionFont } from '@/fonts';
 import { createDetailsId } from '../utils';
 import { ExamplesComp } from './ExampleComp';
 import { colors } from '@/colors';
+import { TagComp } from './TagComp';
 
 // const idxToChar = (lang: WebsiteLang, idx: number) => {
 //   return lang === 'rus' || lang === 'lez'
@@ -61,10 +47,10 @@ const DefinitionComp: FC<DefinitionCompProps> = async ({ idx, lang, key, definit
       </Stack>
       <Stack direction="row" spacing={2}>
         {definition.tags?.map((tag, t_i) => (
-          <Chip
+          <TagComp
             key={`exp_det_${key}_tags_${tag}_${t_i}`}
-            sx={{ maxWidth: '250px', width: 'wrap-content' }}
             label={tTags(tag)}
+            // sx={{ maxWidth: '250px', width: 'wrap-content' }}
           />
         ))}
       </Stack>
