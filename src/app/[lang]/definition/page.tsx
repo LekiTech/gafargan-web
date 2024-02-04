@@ -1,11 +1,10 @@
-import React, { FC, use } from 'react';
-import images from '@/store/images';
-import expressionApi from '@/api/expression';
+import React, { FC } from 'react';
+import * as expressionApi from '@api/expressionApi';
 import { ResolvingMetadata, Metadata } from 'next';
-import { DictionaryLang, WebsiteLang } from '@/api/types';
-import { Box, Stack, Typography } from '@mui/material';
+import { DictionaryLang, WebsiteLang } from '../../api/types.model';
+// Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
+import { Box, Stack } from '@mui/material/index';
 import { Sidebar } from './components/Sidebar';
-import { expressionFont } from '@/fonts';
 import ExpressionDetailsComp from './components/ExpressionDetailsComp';
 import { toContents } from './utils';
 import { useTranslation } from '@i18n/index';
@@ -19,18 +18,19 @@ export async function generateMetadata(
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
   // fetch data
-  const data = await expressionApi.testSearch({
-    exp: searchParams.exp,
-    fromLang: searchParams.fromLang as DictionaryLang,
-    toLang: searchParams.toLang as DictionaryLang,
+  const data = await expressionApi.search({
+    spelling: searchParams.exp,
+    expLang: searchParams.fromLang as DictionaryLang,
+    defLang: searchParams.toLang as DictionaryLang,
+    similarCount: 0,
   });
 
   // optionally access and extend (rather than replace) parent metadata
   const previousImages = (await parent).openGraph?.images || [];
-  const spelling = expressionSpellingToLowerCase(data.spelling);
+  const spelling = expressionSpellingToLowerCase(data?.found?.spelling || '');
   return {
     title: spelling.charAt(0).toUpperCase() + spelling.slice(1),
-    description: data.details[0].definitionDetails[0].definitions[0].value,
+    description: data?.found?.details[0].definitionDetails[0].definitions[0].value,
     // openGraph: {
     //   images: ['/some-specific-page-image.jpg', ...previousImages],
     // },
@@ -48,11 +48,18 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
   // const { data } = useSearchExpressionQuery('къил');
   const { t } = await useTranslation(lang);
   const data = await //use(
-  expressionApi.testSearch({
-    exp: searchParams.exp,
-    fromLang: searchParams.fromLang as DictionaryLang,
-    toLang: searchParams.toLang as DictionaryLang,
+  expressionApi.search({
+    spelling: searchParams.exp,
+    expLang: searchParams.fromLang as DictionaryLang,
+    defLang: searchParams.toLang as DictionaryLang,
   });
+  if (!data) {
+    return <div>loading...</div>;
+  }
+  const { found: expression, similar } = data;
+  if (!expression) {
+    return <div>not found</div>;
+  }
   //);
   // const dictionary = useSelector((state: any): DictionaryReduxState => state.dictionary);
   return (
@@ -70,7 +77,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
         }}
       >
         <Sidebar
-          contents={data.details.map((d, i) => toContents(i, data.spelling, d))}
+          contents={expression.details.map((d, i) => toContents(i, expression.spelling, d))}
           otherExamplesLabel={t('otherExamples')}
         />
         <Box
@@ -86,14 +93,14 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
           }}
         >
           {/* BELOW is implementation for a SINGLE expression detail */}
-          {data.details.map((detail, i) => (
+          {expression.details.map(async (detail, i) => (
             <ExpressionDetailsComp
               key={`exp_det_${i}`}
               idx={i}
               lang={lang}
-              spelling={data.spelling}
+              spelling={expression.spelling}
               data={detail}
-              isLast={i === data.details.length - 1}
+              isLast={i === expression.details.length - 1}
             />
           ))}
         </Box>

@@ -1,4 +1,4 @@
-import { ExpressionDetails } from '@/api/types';
+import { ExpressionDetails } from '../../api/types.model';
 import { Contents } from './types';
 
 export function createSpellingId(

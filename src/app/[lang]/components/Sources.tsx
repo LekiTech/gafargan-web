@@ -1,17 +1,18 @@
-import * as React from 'react';
-import Button from '@mui/material/Button';
+'use client';
+import React, { FC } from 'react';
 import Typography from '@mui/material/Typography';
-import { FC } from 'react';
 import { useTranslation } from '@i18n/index';
-import images from '@/store/images';
-import { Card, CardActionArea, CardContent, CardActions, CardMedia, Link } from '@mui/material';
+import { Card, CardContent, Link } from '@mui/material';
 
 type WordOfTheDayProps = {
-  lang: string;
+  labels: {
+    sources: string;
+    learnMore: string;
+  };
 };
 
-export const Sources: FC<WordOfTheDayProps> = async ({ lang }) => {
-  const { t } = await useTranslation(lang);
+export const Sources: FC<WordOfTheDayProps> = ({ labels }) => {
+  const { sources, learnMore } = labels;
   return (
     <Card sx={{ minWidth: 275, height: 365, padding: '20px' }}>
       <CardContent
@@ -25,13 +26,14 @@ export const Sources: FC<WordOfTheDayProps> = async ({ lang }) => {
         }}
       >
         <Typography variant="h5" component="div">
-          {t('sources')}
+          {/* {t('sources')} */}
+          {sources}
         </Typography>
         <br />
         <br />
 
         <Typography sx={{ m: 1.5, textAlign: 'end', cursor: 'pointer' }} variant="body2">
-          <Link>{t('learnMore')}</Link>
+          <Link>{learnMore}</Link>
         </Typography>
       </CardContent>
       {/* <CardActions>

@@ -3,7 +3,7 @@ import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { MenuItem, Select } from '@mui/material';
-import { WebsiteLang } from '../api/types';
+import { WebsiteLang } from '../../api/types.model';
 import images from '@/store/images';
 import { colors } from '@/colors';
 import Image from 'next/image';
@@ -27,12 +27,11 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
     <Select
       variant="standard"
       value={currentLang}
+      disableUnderline={true}
       onChange={(e) => changeWebLang(e.target.value as WebsiteLang)}
       sx={{
         color: colors.text.light,
         '.MuiSelect-icon': { color: colors.text.light },
-        ':before': { borderBottomColor: colors.text.light },
-        ':after': { borderBottomColor: colors.secondary },
         '.MuiSelect-select': {
           display: 'flex',
           flexDirection: 'row',

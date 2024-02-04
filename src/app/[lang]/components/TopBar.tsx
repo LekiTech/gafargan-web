@@ -4,7 +4,7 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import { Avatar, Box, Grid, Typography } from '@mui/material';
 import Search from './Search';
-import { DictionaryLang, WebsiteLang } from '../api/types';
+import { DictionaryLang, WebsiteLang } from '../../api/types.model';
 import images from '@/store/images';
 import { ElevationScroll } from './ElevateScroll';
 import { colors } from '@/colors';

@@ -1,6 +1,7 @@
 import React, { FC } from 'react';
-import { Definition, DefinitionDetails, Example, WebsiteLang } from '@/api/types';
-import { Box, Grid, Stack, Typography } from '@mui/material';
+import { WebsiteLang, Definition, DefinitionDetails, Example } from '@api/types.model';
+// Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
+import { Box, Grid, Stack, Typography } from '@mui/material/index';
 import { useTranslation } from '@i18n/index';
 import { createDetailsId } from '../utils';
 import { ExamplesComp } from './ExampleComp';

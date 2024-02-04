@@ -7,11 +7,14 @@ import { Box, Button, IconButton, MenuItem, Select, Stack, TextField } from '@mu
 import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
 import SearchIcon from '@mui/icons-material/Search';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
-import ClientExpressionApi from '@/api/clientExpression';
-import { DictionaryLang } from '@/api/types';
-import { DictionaryPairs, DictionaryLangs } from '@/store/constants';
+// import ClientExpressionApi from '@/api/clientExpression';
+import * as expressionApi from '../../api/expressionApi';
+import { DictionaryPairs } from '@/store/constants';
 import { useSearchParams } from 'next/navigation';
 import { colors } from '@/colors';
+import { DictionaryLang } from '../../api/types.model';
+import { SuggestionResponseDto } from '../../api/types.dto';
+import { DictionaryLangs } from '../../api/languages';
 
 // const colors = {
 //   primary: '#0f3b2e',
@@ -40,8 +43,8 @@ const Search: FC<{
     to: (searchParams.get('toLang') ?? 'rus') as DictionaryLang,
   };
 
-  const [options, setOptions] = React.useState<string[]>([]);
-  const [inputValue, setInputValue] = React.useState('');
+  const [options, setOptions] = React.useState<SuggestionResponseDto[]>([]);
+  const [inputValue, setInputValue] = React.useState<string>('');
 
   const goToDefinition = (exp: string) => {
     if (exp === undefined || exp === null || exp.trim() === '') {
@@ -79,11 +82,10 @@ const Search: FC<{
         <Select
           variant="standard"
           value={searchLang.from}
+          disableUnderline={true}
           sx={{
             color: colors.text.light,
             '.MuiSelect-icon': { color: colors.text.light },
-            ':before': { borderBottomColor: colors.text.light },
-            ':after': { borderBottomColor: colors.secondary },
           }}
           onChange={(e) => {
             changeDictLang({ lang: e.target.value as DictionaryLang, isFrom: true });
@@ -110,11 +112,10 @@ const Search: FC<{
         <Select
           variant="standard"
           value={searchLang.to}
+          disableUnderline={true}
           sx={{
             color: colors.text.light,
             '& .MuiSelect-icon': { color: colors.text.light },
-            ':before': { borderBottomColor: colors.text.light },
-            ':after': { borderBottomColor: colors.secondary },
           }}
           onChange={(e) => {
             changeDictLang({ lang: e.target.value as DictionaryLang, isFrom: false });
@@ -125,7 +126,7 @@ const Search: FC<{
             const lang = pair.filter((pl) => pl !== searchLang.from)[0];
             return (
               <MenuItem key={pair.toString()} value={lang}>
-                {langs[lang]}
+                {langs[lang as DictionaryLang]}
               </MenuItem>
             );
           })}
@@ -139,56 +140,74 @@ const Search: FC<{
           disableClearable={true}
           inputValue={inputValue}
           // On `Enter` key press
-          onChange={(e, v, r) => goToDefinition(v)}
+          onChange={(e, v, r) => {
+            // check below if 'v' is a string
+            if (typeof v === 'string') {
+              goToDefinition(v);
+              return;
+            }
+            goToDefinition(v.spelling);
+          }}
           // On input change, visible to user text change
           onInputChange={async (e, v, r) => {
             setInputValue(v);
             setOptions(
-              await ClientExpressionApi.search({
-                exp: v,
-                fromLang: searchLang.from,
-                toLang: searchLang.to,
+              await expressionApi.suggestions({
+                spelling: v,
+                expLang: searchLang.from,
+                defLang: searchLang.to,
+                size: 10,
               }),
             );
           }}
           options={options}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              // label={searchLabel}
-              InputProps={{
-                ...params.InputProps,
-                placeholder: searchLabel,
-                type: 'search',
-                style: {
-                  borderStartStartRadius: roundingRadius,
-                  borderEndStartRadius: roundingRadius,
-                  backgroundColor: '#fff',
-                },
-              }}
-            />
-          )}
-          renderOption={(props, option, state, ownerState) => (
-            <Box
-              sx={{
-                borderRadius: '8px',
-                margin: '5px',
-                [`&.${autocompleteClasses.option}`]: {
-                  padding: '8px',
-                },
-              }}
-              component="li"
-              {...props}
-              onClick={(event) => {
-                if (props.onClick) {
-                  props.onClick(event);
-                }
-                goToDefinition(option);
-              }}
-            >
-              {ownerState.getOptionLabel(option)}
-            </Box>
-          )}
+          renderInput={(params) => {
+            return (
+              <TextField
+                {...params}
+                // label={searchLabel}
+                InputProps={{
+                  ...params.InputProps,
+                  placeholder: searchLabel,
+                  type: 'search',
+                  style: {
+                    borderStartStartRadius: roundingRadius,
+                    borderEndStartRadius: roundingRadius,
+                    backgroundColor: '#fff',
+                  },
+                }}
+              />
+            );
+          }}
+          getOptionLabel={(option) => {
+            if (typeof option === 'string') {
+              return option;
+            }
+            return option.spelling.toLowerCase();
+          }}
+          renderOption={(props, option, state, ownerState) => {
+            return (
+              <Box
+                sx={{
+                  borderRadius: '8px',
+                  margin: '5px',
+                  [`&.${autocompleteClasses.option}`]: {
+                    padding: '8px',
+                  },
+                }}
+                component="li"
+                {...props}
+                onClick={(event) => {
+                  if (props.onClick) {
+                    props.onClick(event);
+                  }
+                  goToDefinition(option.spelling);
+                }}
+              >
+                {ownerState.getOptionLabel(option.spelling.toLowerCase())}
+              </Box>
+            );
+          }}
         />
         <Button
           variant="contained"

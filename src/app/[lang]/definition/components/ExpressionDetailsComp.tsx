@@ -1,7 +1,7 @@
-import React, { FC, use } from 'react';
-import expressionApi from '@/api/expression';
-import { ExpressionDetails, WebsiteLang } from '@/api/types';
-import { Box, Chip, Divider, Stack, Typography } from '@mui/material';
+import React, { FC } from 'react';
+import { ExpressionDetails, WebsiteLang } from '../../../api/types.model';
+// Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
+import { Box, Chip, Divider, Stack, Typography } from '@mui/material/index';
 import { useTranslation } from '@i18n/index';
 import { expressionFont, lusitanaFont } from '@/fonts';
 import { DefinitionDetailsComp } from './DefinitionComp';
@@ -27,7 +27,7 @@ const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = async ({
   isLast,
 }) => {
   const { t } = await useTranslation(lang);
-  // const { t: tTags } = await useTranslation(lang, 'tags');
+  const { t: tTags } = await useTranslation(lang, 'tags');
   return (
     <Stack
       sx={{

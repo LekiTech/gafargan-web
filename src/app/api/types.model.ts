@@ -1,16 +1,10 @@
-import { DictionaryLangs, WebsiteLangs } from '../store/constants';
+'use server';
+import { DictionaryLangs, WebsiteLangs } from './languages';
 
 export type WebsiteLang = (typeof WebsiteLangs)[number];
 export type DictionaryLang = (typeof DictionaryLangs)[number];
 //'lez' | 'rus' | 'eng' | 'tab';
 
-export type SearchQuery = {
-  exp: string;
-  fromLang: DictionaryLang;
-  toLang: DictionaryLang;
-};
-
-// RESPONSES
 export type Example = { raw: string; src?: string; trl?: string; tags?: string[] };
 
 export type Definition = { value: string; tags?: string[] };

@@ -2,9 +2,7 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import Divider from '@mui/material/Divider';
 import {
   Stepper,
   Step,
@@ -15,7 +13,7 @@ import {
   ListItemText,
   ListItemButton,
 } from '@mui/material';
-import { red } from '@mui/material/colors';
+import { red, grey, green } from '@mui/material/colors';
 import { colors } from '@/colors';
 import Link from 'next/link';
 import { Contents } from '../types';
@@ -44,7 +42,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
             detailBoundingRect?.top &&
             detailBoundingRect?.bottom &&
             detailBoundingRect.top < window.innerHeight &&
-            detailBoundingRect.bottom > 250
+            detailBoundingRect.bottom > 50
           ) {
             setActiveStep(i);
             setActiveStepDetailId(detail.detailsId);
@@ -80,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
   }, [contents]);
 
   const getBackgroundColor = (detailsId: string) =>
-    activeStepDetailId === detailsId ? red[50] : 'inherit';
+    activeStepDetailId === detailsId ? green[50] : 'inherit';
   return (
     <Drawer
       sx={{
@@ -102,13 +100,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
       {/* <Toolbar sx={{ p: '10px' }} />
       <Divider /> */}
       <Box sx={{ display: 'flex', justifyContent: 'start', pt: '25px' }}>
-        <Stepper activeStep={activeStep} orientation="vertical">
+        <Stepper
+          activeStep={activeStep}
+          orientation="vertical"
+          sx={{ '.MuiStepContent-root': { pl: 0 } }}
+        >
           {contents.map((step, index) => (
             <Step key={`step-${step.spellingId}-${index}`}>
               <StepLabel
                 sx={{
                   '.MuiStepIcon-root.Mui-active': { color: colors.secondary },
                   '.MuiStepIcon-root.Mui-completed': { color: colors.primary },
+                  '.MuiStepLabel-iconContainer': { mt: '5px' },
+                  alignItems: 'flex-start',
                 }}
                 optional={
                   step.inflection ? (
@@ -116,40 +120,74 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
                   ) : null
                 }
               >
-                <Link
-                  href={`#${step.spellingId}`}
-                  style={{ color: 'inherit', textDecoration: 'none' }}
-                >
-                  <Typography variant="h6">{step.spelling}</Typography>
+                <Link href={`#${step.spellingId}`} style={{ textDecoration: 'none' }}>
+                  <Typography sx={{ fontWeight: 'bold', color: grey[800] }} variant="h6">
+                    {step.spelling}
+                  </Typography>
                 </Link>
               </StepLabel>
               <StepContent>
                 {/* <Typography>{step.description}</Typography> */}
                 <List sx={{ width: '100%' }}>
                   {step.details.map((d, stepDetailsIdx) => (
-                    <ListItem key={`step-${d.detailsId}`}>
+                    <ListItem
+                      key={`step-${d.detailsId}`}
+                      sx={{ pt: 0, pb: 0, '&.MuiListItem-root': { pl: 0 } }}
+                    >
                       <ListItemButton
                         component="a"
                         href={`#${d.detailsId}`}
                         sx={{
                           backgroundColor: getBackgroundColor(d.detailsId),
+
                           // backgroundColor:
                           //   activeStepDetailId === d.detailsId ? colors.primary : 'inherit',
                           borderTopRightRadius: '100px',
                           borderBottomRightRadius: '100px',
+                          '&.MuiListItemButton-root': {
+                            pt: '4px',
+                            pb: '4px',
+                            pl: 0,
+                            // ml: '16px',
+                          },
                         }}
                       >
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            width: '2px',
+                            height: '100%',
+                            mt: 0,
+                            mb: 0,
+                            backgroundColor:
+                              activeStepDetailId === d.detailsId ? grey[700] : 'none',
+                            borderTopRightRadius: '10px',
+                            borderBottomRightRadius: '10px',
+                          }}
+                        ></Box>
+                        <Box
+                          sx={{
+                            width: '7px',
+                            height: '14px',
+                            backgroundColor:
+                              activeStepDetailId === d.detailsId ? grey[700] : 'none',
+                            borderTopRightRadius: '10px',
+                            borderBottomRightRadius: '10px',
+                          }}
+                        ></Box>
                         <ListItemText
                           sx={{
+                            marginLeft: '24px',
                             color:
-                              activeStepDetailId === d.detailsId ? colors.secondary : 'inherit',
+                              activeStepDetailId === d.detailsId ? colors.primaryTint : grey[700],
                             // backgroundColor: getBackgroundColor(d.detailsId),
                             // color: activeStepDetailId === d.detailsId ? '#fff' : 'inherit',
                             // backgroundColor:
                             //   activeStepDetailId === d.detailsId ? colors.secondary : 'inherit',
                             '.MuiListItemText-primary': {
+                              fontWeight: 'bold',
                               // fontWeight: activeStepDetailId === d.detailsId ? 'bold' : 'inherit',
-                              // fontSize: '1.1rem',
+                              fontSize: '14px',
                             },
                             // borderLeft:
                             //   activeStepDetailId === d.detailsId
@@ -160,13 +198,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
                             //     activeStepDetailId === d.detailsId ? colors.secondary : 'inherit',
                             // },
                           }}
-                          primary={`${stepDetailsIdx + 1}. ${d.preview}`} //{`Definitions (${d.definitionsCount})\nExamples (${d.examplesCount})`}
+                          primary={`${stepDetailsIdx + 1}. ${d.preview.toUpperCase()}`} //{`Definitions (${d.definitionsCount})\nExamples (${d.examplesCount})`}
                         />
                       </ListItemButton>
                     </ListItem>
                   ))}
                   {step.otherExamplesId && step.otherExamplesCount > 0 && (
-                    <ListItem key={`step-${step.otherExamplesId}`}>
+                    <ListItem key={`step-${step.otherExamplesId}`} sx={{ pt: 0, pb: 0 }}>
                       <ListItemButton
                         component="a"
                         href={`#${step.otherExamplesId}`}
@@ -180,8 +218,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
                           sx={{
                             color:
                               activeStepDetailId === step.otherExamplesId
-                                ? colors.secondary
-                                : 'inherit',
+                                ? colors.primary
+                                : grey[700],
+                            '.MuiListItemText-primary': {
+                              fontWeight: 'bold',
+                            },
                           }}
                           primary={`${otherExamplesLabel} (${step.otherExamplesCount})`} //{`Definitions (${d.definitionsCount})\nExamples (${d.examplesCount})`}
                         />

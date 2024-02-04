@@ -1,12 +1,12 @@
 import './globals.css';
-import type { Metadata, ResolvingMetadata } from 'next';
 import * as React from 'react';
+import type { Metadata, ResolvingMetadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Providers } from './Providers';
 import { dir } from 'i18next';
 import Toolbar from '@mui/material/Toolbar';
 import { useTranslation } from '@i18n/index';
-import { DictionaryLang, WebsiteLang } from './api/types';
+import { DictionaryLang, WebsiteLang } from '../api/types.model';
 import TopBar from './components/TopBar';
 import { colors } from './colors';
 

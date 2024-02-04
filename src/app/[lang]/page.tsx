@@ -23,7 +23,13 @@ const Home: FC<HomeProps> = async (props) => {
     >
       <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
         <Grid item xs={6}>
-          <WordOfTheDay lang={lang} />
+          <WordOfTheDay
+            labels={{
+              wordOfTheDay: t('wordOfTheDay'),
+              examples: t('examples'),
+              learnMore: t('learnMore'),
+            }}
+          />
         </Grid>
         <Grid item xs={6}>
           <NumbersWidget
@@ -33,7 +39,7 @@ const Home: FC<HomeProps> = async (props) => {
           />
         </Grid>
         <Grid item xs={12}>
-          <Sources lang={lang} />
+          <Sources labels={{ sources: t('sources'), learnMore: t('learnMore') }} />
         </Grid>
       </Grid>
     </Box>

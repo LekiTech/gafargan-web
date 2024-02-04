@@ -1,3 +1,4 @@
+'use client';
 import * as React from 'react';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
@@ -18,11 +19,15 @@ import { colors } from '@/colors';
 import { expressionFont } from '@/fonts';
 
 type WordOfTheDayProps = {
-  lang: string;
+  labels: {
+    wordOfTheDay: string;
+    examples: string;
+    learnMore: string;
+  };
 };
 
-export const WordOfTheDay: FC<WordOfTheDayProps> = async ({ lang }) => {
-  const { t } = await useTranslation(lang);
+export const WordOfTheDay: FC<WordOfTheDayProps> = ({ labels }) => {
+  const { wordOfTheDay, examples, learnMore } = labels;
   return (
     <Card sx={{ minWidth: 275, height: 365, padding: '20px' }}>
       <CardContent
@@ -42,7 +47,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = async ({ lang }) => {
           // color="text.secondary"
           gutterBottom
         >
-          {t('wordOfTheDay')}
+          {wordOfTheDay}
         </Typography>
         <Typography variant="h4" component="div" className={expressionFont.className}>
           {`ПАТАЛАЙ`.toLowerCase()}
@@ -57,7 +62,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = async ({ lang }) => {
         <br />
         {/* <br /> */}
         <Typography variant="body2" color="text.secondary">
-          {t('examples')}
+          {examples}
         </Typography>
         <Typography
           variant="body2"
@@ -73,7 +78,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = async ({ lang }) => {
           <i style={{ color: 'GrayText' }}>{`поздравь своего брата со свадьбой и от нас`}</i>
         </Typography>
         <Typography sx={{ m: 1.5, textAlign: 'end', cursor: 'pointer' }} variant="body2">
-          <Link>{t('learnMore')}</Link>
+          <Link>{learnMore}</Link>
         </Typography>
       </CardContent>
     </Card>

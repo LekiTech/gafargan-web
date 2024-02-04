@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@api/*": ["./src/app/api/*"],
       "@/*": ["./src/app/[lang]/*"],
       "@i18n/*": ["./src/app/i18n/*"]
     }
