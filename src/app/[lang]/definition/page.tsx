@@ -30,7 +30,7 @@ export async function generateMetadata(
   const spelling = expressionSpellingToLowerCase(data?.found?.spelling || '');
   return {
     title: spelling.charAt(0).toUpperCase() + spelling.slice(1),
-    description: data?.found?.details[0].definitionDetails[0].definitions[0].value,
+    description: data?.found?.details[0].definitionDetails[0]?.definitions[0]?.value,
     // openGraph: {
     //   images: ['/some-specific-page-image.jpg', ...previousImages],
     // },

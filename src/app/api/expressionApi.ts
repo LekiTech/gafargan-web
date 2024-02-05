@@ -7,6 +7,7 @@ import {
   SuggestionResponseDto,
   SuggestionsQuery,
 } from './types.dto';
+import { Expression } from './types.model';
 // import sampleExpression from './qhil.json';
 // import { Expression } from './types.model';
 // /v2/expressions/search/suggestions
@@ -40,12 +41,24 @@ class ExpressionApi extends BaseApi {
     }
   });
 
-  // testSearch = async (query: SearchQuery): Promise<Expression> => {
-  //   return sampleExpression;
-  // };
+  /**
+   * Get the word of the day.
+   * @param currentDate - The current date in the format 'YYYY-MM-DD'.
+   */
+  wordOfTheDay = cache(async (currentDate: string): Promise<Expression | undefined> => {
+    try {
+      const response = await this.get(`${prefix}/day`, {
+        params: { currentDate },
+      });
+      return response.data;
+    } catch (e) {
+      console.error(e);
+    }
+  });
 }
 
 const api = new ExpressionApi();
 // NOTE: Files marked with 'use server' can only export async functions.
 export const search = api.search;
 export const suggestions = api.suggestions;
+export const wordOfTheDay = api.wordOfTheDay;

@@ -5,12 +5,9 @@ import { Box, Chip, Divider, Stack, Typography } from '@mui/material/index';
 import { useTranslation } from '@i18n/index';
 import { expressionFont, lusitanaFont } from '@/fonts';
 import { DefinitionDetailsComp } from './DefinitionComp';
-import { createOtherExamplesId, createSpellingId } from '../utils';
+import { createOtherExamplesId, createSpellingId, expressionSpellingToLowerCase } from '../utils';
 import { ExamplesComp } from './ExampleComp';
 
-function expressionSpellingToLowerCase(spelling: string) {
-  return spelling.toLowerCase().replaceAll('i', 'I');
-}
 type ExpressionDetailsCompProps = {
   idx: number;
   lang: WebsiteLang;

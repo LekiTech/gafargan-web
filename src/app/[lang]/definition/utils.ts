@@ -76,3 +76,11 @@ export function toContents(
     otherExamplesCount,
   };
 }
+
+export function expressionSpellingToLowerCase(spelling: string) {
+  return spelling.toLowerCase().replaceAll('i', 'I');
+}
+
+export function capitalizeFirstLetter(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}

@@ -4,6 +4,7 @@ import { useTranslation } from '@i18n/index';
 import { WordOfTheDay } from './components/WordOfTheDay';
 import { NumbersWidget } from './components/NumbersWidget';
 import { Sources } from './components/Sources';
+import * as expressionApi from '@api/expressionApi';
 
 type HomeProps = {
   params: { lang: string };
@@ -16,7 +17,10 @@ const Home: FC<HomeProps> = async (props) => {
     searchParams: { fromLang, toLang },
   } = props;
   const { t } = await useTranslation(lang);
-
+  const date = new Date();
+  const wordOfTheDay = await expressionApi.wordOfTheDay(
+    `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate() + 19}`, //19
+  );
   return (
     <Box
       sx={{ pt: '150px', pb: '150px', width: '100%', display: 'flex', justifyContent: 'center' }}
@@ -24,6 +28,8 @@ const Home: FC<HomeProps> = async (props) => {
       <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
         <Grid item xs={6}>
           <WordOfTheDay
+            // TODO: fix Skeleton loading
+            expression={wordOfTheDay!}
             labels={{
               wordOfTheDay: t('wordOfTheDay'),
               examples: t('examples'),
