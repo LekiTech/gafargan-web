@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 import { Box, Grid } from '@mui/material';
 import { useTranslation } from '@i18n/index';
 import { WordOfTheDay } from './components/WordOfTheDay';
-import { NumbersWidget } from './components/NumbersWidget';
+import { LezgiToNumbers, NumbersToLezgi } from './components/NumbersWidget';
 import { Sources } from './components/Sources';
 import * as expressionApi from '@api/expressionApi';
 
@@ -19,14 +19,14 @@ const Home: FC<HomeProps> = async (props) => {
   const { t } = await useTranslation(lang);
   const date = new Date();
   const wordOfTheDay = await expressionApi.wordOfTheDay(
-    `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate() + 19}`, //19
+    `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`, //19
   );
   return (
     <Box
       sx={{ pt: '150px', pb: '150px', width: '100%', display: 'flex', justifyContent: 'center' }}
     >
       <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
-        <Grid item xs={6}>
+        <Grid item xs={4}>
           <WordOfTheDay
             // TODO: fix Skeleton loading
             expression={wordOfTheDay!}
@@ -37,11 +37,18 @@ const Home: FC<HomeProps> = async (props) => {
             }}
           />
         </Grid>
-        <Grid item xs={6}>
-          <NumbersWidget
+        <Grid item xs={4}>
+          <NumbersToLezgi
             title={t('translateNumbers')}
             translationLabel={t(`translation`)}
             enterNumberLabel={t('enterNumber')}
+          />
+        </Grid>
+        <Grid item xs={4}>
+          <LezgiToNumbers
+            title={t('translateNumbers')}
+            enterTextLabel={t(`translation`)}
+            numberLabel={t('enterNumber')}
           />
         </Grid>
         <Grid item xs={12}>

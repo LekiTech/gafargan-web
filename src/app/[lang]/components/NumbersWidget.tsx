@@ -11,24 +11,23 @@ import { CardMedia, IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
 
-type NumbersWidgetProps = {
+type NumbersToLezgiProps = {
   title: string;
   enterNumberLabel: string;
   translationLabel: string;
 };
 
-function createResult(num: number): string {
+function convertToLezgiAndFormat(num: number): string {
   const newResult = numToLezgi(num);
   return newResult.charAt(0).toUpperCase() + newResult.slice(1);
 }
-
-export const NumbersWidget: FC<NumbersWidgetProps> = ({
+const defaultNumber = new Date().getFullYear();
+export const NumbersToLezgi: FC<NumbersToLezgiProps> = ({
   title,
   translationLabel,
   enterNumberLabel,
 }) => {
-  const defaultNumber = new Date().getFullYear();
-  const [result, setResult] = React.useState(createResult(defaultNumber));
+  const [result, setResult] = React.useState(convertToLezgiAndFormat(defaultNumber));
   return (
     <Card sx={{ display: 'flex', minWidth: 275, height: 365, padding: '20px' }}>
       <CardContent
@@ -43,7 +42,6 @@ export const NumbersWidget: FC<NumbersWidgetProps> = ({
         <Typography gutterBottom variant="h5">
           {title}
         </Typography>
-        <br />
         <TextField
           label={enterNumberLabel}
           defaultValue={defaultNumber}
@@ -74,14 +72,91 @@ export const NumbersWidget: FC<NumbersWidgetProps> = ({
             }
             const newValue = inputValue.toLocaleString('en-US').replaceAll(',', ' ');
             e.target.value = newValue;
-            setResult(createResult(inputValue));
+            setResult(convertToLezgiAndFormat(inputValue));
             e.target.selectionStart = e.target.selectionEnd = newValue.length - endOffset;
           }}
         />
-        <br />
-        <br />
         <Typography variant="caption" color="text.secondary">
           {translationLabel}
+        </Typography>
+        <Typography
+          variant="h6"
+          sx={{
+            fontSize: '1.1rem',
+            borderLeftWidth: '2px',
+            borderLeftStyle: 'solid',
+            borderLeftColor: 'grey.300',
+            paddingLeft: '10px',
+          }}
+          className={expressionFont.className}
+        >
+          {result}
+        </Typography>
+      </CardContent>
+      <CardActions sx={{ display: 'flex', alignItems: 'end' }}>
+        <IconButton
+          color="primary"
+          aria-label="copy"
+          onClick={() => navigator.clipboard.writeText(result)}
+        >
+          <ContentCopyIcon />
+        </IconButton>
+      </CardActions>
+    </Card>
+  );
+};
+
+type LezgiToNumbersProps = {
+  title: string;
+  enterTextLabel: string;
+  numberLabel: string;
+};
+function convertLezgiToNumberAndFormat(lezgiNumeral: string): string {
+  try {
+    const preprocessed = lezgiNumeral.toLowerCase().replaceAll(/(?<=[кптцчКПТЦЧ])[i1lӏ|!]/g, 'I');
+    const newResult = lezgiToNum(preprocessed);
+    return newResult.toLocaleString('en-US').replaceAll(',', ' ');
+  } catch (e) {
+    return '...';
+  }
+}
+const defaultNumericalText = 'Агъзурни кIуьд вишни къанни цIуд';
+export const LezgiToNumbers: FC<LezgiToNumbersProps> = ({ title, enterTextLabel, numberLabel }) => {
+  const [result, setResult] = React.useState(convertLezgiToNumberAndFormat(defaultNumericalText));
+  return (
+    <Card sx={{ display: 'flex', minWidth: 275, height: 365, padding: '20px' }}>
+      <CardContent
+        sx={{
+          flex: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          alignItems: 'stretch',
+        }}
+      >
+        <Typography gutterBottom variant="h5">
+          {title}
+        </Typography>
+        <TextField
+          label={enterTextLabel}
+          defaultValue={defaultNumericalText}
+          multiline
+          sx={{ width: '100%', mb: '10px' }}
+          inputProps={{
+            inputMode: 'text',
+            pattern: '[ 1iI\u0400-\u04ff]*',
+          }}
+          onChange={(e) => {
+            const inputValue = e.target.value;
+            if (inputValue === '') {
+              setResult('...');
+              return;
+            }
+            setResult(convertLezgiToNumberAndFormat(inputValue));
+          }}
+        />
+        <Typography variant="caption" color="text.secondary">
+          {numberLabel}
         </Typography>
         <Typography
           variant="h6"

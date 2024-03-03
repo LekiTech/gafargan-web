@@ -5,6 +5,7 @@ import { Box, Grid, Stack, Typography } from '@mui/material/index';
 import { useTranslation } from '@i18n/index';
 import { createDetailsId } from '../utils';
 import { ExamplesComp } from './ExampleComp';
+import { ParsedTextComp } from '../../components/ParsedTextComp';
 import { colors } from '@/colors';
 import { TagComp } from './TagComp';
 
@@ -43,7 +44,7 @@ const DefinitionComp: FC<DefinitionCompProps> = async ({ idx, lang, key, definit
           {t(`alphabet.${idx}`) + ' :'}
         </Typography>
         <Typography variant="body1" sx={{ fontSize: '20px' }}>
-          {definition.value}
+          <ParsedTextComp text={definition.value} />
         </Typography>
       </Stack>
       <Stack direction="row" spacing={2}>

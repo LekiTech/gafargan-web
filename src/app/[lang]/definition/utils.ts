@@ -7,10 +7,10 @@ export function createSpellingId(
   definitionDetailsLength: number,
   inflection?: string,
 ) {
-  return `${idx}-spelling-${spelling}-${inflection}-${definitionDetailsLength}`.replaceAll(
-    ' ',
-    '_',
-  );
+  const spellingId = `${idx}-spelling-${spelling}-${inflection}-${definitionDetailsLength}`
+    .replaceAll(' ', '_')
+    .replaceAll('undefined', '');
+  return spellingId;
 }
 
 export function createDetailsId(
@@ -20,9 +20,12 @@ export function createDetailsId(
   inflection?: string,
   examplesCount?: number,
 ) {
-  return `${idx}-details-${spelling}-${inflection}-${definitionsCount}-${
+  const detailsId = `${idx}-details-${spelling}-${inflection}-${definitionsCount}-${
     examplesCount ?? 0
-  }`.replaceAll(' ', '_');
+  }`
+    .replaceAll(' ', '_')
+    .replaceAll('undefined', '');
+  return detailsId;
 }
 
 export function createOtherExamplesId(idx: number) {
@@ -50,7 +53,7 @@ export function toContents(
           dd.definitions[0]?.value ??
           dd.examples?.[0]?.raw ??
           ''
-        ).replaceAll(/\{\}/g, '');
+        ).replaceAll(/({|}|<|>)/g, '');
         return {
           detailsId: createDetailsId(
             i,

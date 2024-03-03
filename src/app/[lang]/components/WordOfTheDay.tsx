@@ -1,26 +1,13 @@
 'use client';
 import * as React from 'react';
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import { FC } from 'react';
-import { useTranslation } from '@i18n/index';
-import images from '@/store/images';
-import {
-  Card,
-  CardActionArea,
-  CardContent,
-  CardActions,
-  CardMedia,
-  Link,
-  Chip,
-  Stack,
-} from '@mui/material';
-import { colors } from '@/colors';
+import { Card, CardContent, Link, Chip, Stack } from '@mui/material';
 import { expressionFont } from '@/fonts';
 import { Expression } from '@api/types.model';
-import ExpressionDetailsComp from '@/definition/components/ExpressionDetailsComp';
 import { capitalizeFirstLetter, expressionSpellingToLowerCase } from '@/definition/utils';
 import { usePathname } from 'next/navigation';
+import { ParsedTextComp } from './ParsedTextComp';
 
 type WordOfTheDayProps = {
   expression: Expression;
@@ -44,31 +31,17 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
         sx={{
           width: '100%',
           height: '100%',
-          // flex: 2,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
           alignItems: 'stretch',
         }}
       >
-        <Typography
-          // sx={{ fontSize: 14 }}
-          variant="h5"
-          // color="text.secondary"
-          gutterBottom
-        >
+        <Typography variant="h5" gutterBottom>
           {wordOfTheDay}
         </Typography>
-        {/* <ExpressionDetailsComp
-          idx={0}
-          lang={'eng'}
-          spelling={expression.spelling}
-          data={expression.details[0]}
-          isLast={true}
-        /> */}
-        <Typography variant="h2" component="div" className={expressionFont.className}>
+        <Typography variant="h3" component="div" className={expressionFont.className}>
           {capitalizeFirstLetter(expressionSpellingToLowerCase(expression.spelling))}
-          {/* {expression.spelling} */}
         </Typography>
         {expression.details[0]?.inflection && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: '10px' }}>
@@ -102,7 +75,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
           <ul>
             {firstDefinition.definitions.slice(0, 3).map((def, i) => (
               <Typography key={`${def.value}_${i}`} component="li" variant="subtitle1">
-                {def.value}
+                <ParsedTextComp text={def.value} />
               </Typography>
             ))}
           </ul>

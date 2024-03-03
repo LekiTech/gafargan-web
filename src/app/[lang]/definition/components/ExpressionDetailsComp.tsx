@@ -55,9 +55,11 @@ const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = async ({
           inflection={data.inflection}
         />
       ))}
-      <Typography id={createOtherExamplesId(idx)} variant="h5" sx={{ pl: '3px', mb: '10px' }}>
-        ● {t('otherExamples').toLowerCase()} ({data.examples?.length ?? 0}):
-      </Typography>
+      {data.examples && data.examples.length > 0 && (
+        <Typography id={createOtherExamplesId(idx)} variant="h5" sx={{ pl: '3px', mb: '10px' }}>
+          ● {t('otherExamples').toLowerCase()} ({data.examples.length}):
+        </Typography>
+      )}
       <ExamplesComp
         parentIdx={idx}
         lang={lang}
