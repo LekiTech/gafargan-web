@@ -54,9 +54,13 @@ const Search: FC<{
     router.push(prefix + `?fromLang=${searchLang.from}&toLang=${searchLang.to}&exp=${exp}`);
   };
 
-  const changeDictLang = (args: { lang: DictionaryLang; isFrom: boolean }) => {
+  const changeDictLang = (args: {
+    lang: DictionaryLang;
+    isFrom: boolean;
+    otherLang?: DictionaryLang;
+  }) => {
     const { lang, isFrom } = args;
-    const otherLang = findPairLang(lang);
+    const otherLang = args.otherLang ?? findPairLang(lang);
     if (otherLang == undefined) {
       console.error(`Did not find pair language for '${lang}'`);
       return;
@@ -102,8 +106,7 @@ const Search: FC<{
           aria-label="switch"
           sx={{ color: colors.text.light }}
           onClick={() => {
-            //  setLang({ from: lang.to, to: lang.from })
-            router.push(pathname + `?fromLang=${searchLang.to}&toLang=${searchLang.from}`);
+            changeDictLang({ lang: searchLang.to, isFrom: true, otherLang: searchLang.from });
           }}
         >
           <SwitchIcon />

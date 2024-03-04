@@ -3,11 +3,9 @@ import React, { FC } from 'react';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import images from '@/store/images';
-import { CardMedia, IconButton, TextField } from '@mui/material';
+import { IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
 

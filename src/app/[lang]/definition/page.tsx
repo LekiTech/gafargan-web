@@ -57,9 +57,19 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
     return <div>loading...</div>;
   }
   const { found: expression, similar } = data;
-  if (!expression) {
-    return <div>not found</div>;
-  }
+  const foundInExamples = expression
+    ? [
+        /* API request */
+      ]
+    : [];
+  const foundInDefinitions = expression
+    ? [
+        /* API request */
+      ]
+    : [];
+  // if (!expression) {
+  //   return <div>not found</div>;
+  // }
   //);
   // const dictionary = useSelector((state: any): DictionaryReduxState => state.dictionary);
   return (
@@ -76,34 +86,52 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
           maxWidth: '1400px',
         }}
       >
-        <Sidebar
-          contents={expression.details.map((d, i) => toContents(i, expression.spelling, d))}
-          otherExamplesLabel={t('otherExamples')}
-        />
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'left',
-            justifyContent: 'center',
-            width: '100vw',
-            pt: '25px',
-            pl: '25px',
-            pb: '50px',
-          }}
-        >
-          {/* BELOW is implementation for a SINGLE expression detail */}
-          {expression.details.map(async (detail, i) => (
-            <ExpressionDetailsComp
-              key={`exp_det_${i}`}
-              idx={i}
-              lang={lang}
-              spelling={expression.spelling}
-              data={detail}
-              isLast={i === expression.details.length - 1}
+        {expression ? (
+          <>
+            <Sidebar
+              contents={expression.details.map((d, i) => toContents(i, expression.spelling, d))}
+              otherExamplesLabel={t('otherExamples')}
             />
-          ))}
-        </Box>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'left',
+                justifyContent: 'center',
+                width: '100vw',
+                pt: '25px',
+                pl: '25px',
+                pb: '50px',
+              }}
+            >
+              {/* BELOW is implementation for a SINGLE expression detail */}
+              {expression.details.map(async (detail, i) => (
+                <ExpressionDetailsComp
+                  key={`exp_det_${i}`}
+                  idx={i}
+                  lang={lang}
+                  spelling={expression.spelling}
+                  data={detail}
+                  isLast={i === expression.details.length - 1}
+                />
+              ))}
+            </Box>
+          </>
+        ) : (
+          // TODO: add component for each of the following
+          // TODO: add API request for each of the following
+          <Stack direction={'column'} spacing={2}>
+            {similar?.map((s, i) => (
+              <Box key={`similar_${i}`}>{s.spelling}</Box>
+            ))}
+            {foundInExamples.map((s, i) => (
+              <Box key={`foundInExamples_${i}`}>{s}</Box>
+            ))}
+            {foundInDefinitions.map((s, i) => (
+              <Box key={`foundInDefinitions_${i}`}>{s}</Box>
+            ))}
+          </Stack>
+        )}
       </Stack>
     </Box>
   );
