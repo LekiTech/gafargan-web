@@ -41,10 +41,12 @@ const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = async ({
       >
         {expressionSpellingToLowerCase(spelling)}
       </Typography>
-      <Typography variant="h6" color="text.secondary" sx={{ mb: '50px' }}>
+      <Typography variant="h6" color="text.secondary">
         {data.inflection}
       </Typography>
-
+      <Typography variant="caption" color="text.secondary" sx={{ m: '25px 0' }}>
+        {`${data.writtenSources[0].title} - ${data.writtenSources[0].authors}`}
+      </Typography>
       {data.definitionDetails.map((dd, i) => (
         <DefinitionDetailsComp
           key={`exp_det_${i}`}

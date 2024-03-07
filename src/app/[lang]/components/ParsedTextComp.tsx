@@ -45,7 +45,7 @@ export function definitionToFormatJson(definition: string) {
   return result;
 }
 
-export const ParsedTextComp: FC<{ text: string }> = async ({ text }) => {
+export const ParsedTextComp: FC<{ text: string }> = ({ text }) => {
   return text && text.length > 0
     ? definitionToFormatJson(text).map((textObj, i) => {
         const key = `${textObj.text}_${i}_${Math.random()}`;

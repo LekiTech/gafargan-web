@@ -1,10 +1,11 @@
 import React, { FC } from 'react';
-import { Box, Grid } from '@mui/material';
+import { Box, Grid } from '@mui/material/index';
 import { useTranslation } from '@i18n/index';
 import { WordOfTheDay } from './components/WordOfTheDay';
 import { LezgiToNumbers, NumbersToLezgi } from './components/NumbersWidget';
 import { Sources } from './components/Sources';
 import * as expressionApi from '@api/expressionApi';
+import * as dictionaryApi from '@api/dictionaryApi';
 
 type HomeProps = {
   params: { lang: string };
@@ -21,6 +22,7 @@ const Home: FC<HomeProps> = async (props) => {
   const wordOfTheDay = await expressionApi.wordOfTheDay(
     `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`, //19
   );
+  const sources = await dictionaryApi.getSources();
   return (
     <Box
       sx={{ pt: '150px', pb: '150px', width: '100%', display: 'flex', justifyContent: 'center' }}
@@ -52,7 +54,10 @@ const Home: FC<HomeProps> = async (props) => {
           />
         </Grid>
         <Grid item xs={12}>
-          <Sources labels={{ sources: t('sources'), learnMore: t('learnMore') }} />
+          <Sources
+            labels={{ sources: t('sources'), learnMore: t('learnMore') }}
+            sources={sources}
+          />
         </Grid>
       </Grid>
     </Box>

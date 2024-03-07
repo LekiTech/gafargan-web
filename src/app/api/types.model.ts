@@ -22,6 +22,7 @@ export type ExpressionDetails = {
   inflection?: string;
   definitionDetails: DefinitionDetails[];
   examples?: Example[];
+  writtenSources: WrittenSourceShort[];
 };
 
 export type Expression = {
@@ -30,15 +31,20 @@ export type Expression = {
 };
 
 export type WrittenSource = {
-  name: string;
-  authors?: string;
+  id: string;
+  title: string;
+  authors: string;
   publicationYear?: string;
-  description?: string;
   providedBy?: string;
   providedByURL?: string;
   processedBy?: string;
   copyright?: string;
   seeSourceURL?: string;
-  expressionLanguageId: string;
-  definitionLanguageId: string;
+  description?: string;
+};
+
+export type WrittenSourceShort = {
+  id: string;
+  title: string;
+  authors: string;
 };
