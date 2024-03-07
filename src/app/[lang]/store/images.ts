@@ -10,6 +10,7 @@ import lezgiFlag from '@/assets/images/flags/lez.png';
 import russianFlag from '@/assets/images/flags/rus.png';
 import ukFlag from '@/assets/images/flags/uk.png';
 import usFlag from '@/assets/images/flags/us.png';
+import turFlag from '@/assets/images/flags/tur.png';
 
 export default {
   logo,
@@ -24,4 +25,5 @@ export default {
   russianFlag,
   ukFlag,
   usFlag,
+  turFlag,
 };

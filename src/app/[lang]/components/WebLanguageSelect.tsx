@@ -69,6 +69,16 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
         />
         {webLangs['eng']}
       </MenuItem>
+      <MenuItem value={'tur'}>
+        <Image
+          width="30"
+          height="20"
+          src={images.turFlag}
+          alt="tur"
+          style={{ marginRight: '10px' }}
+        />
+        {webLangs['tur']}
+      </MenuItem>
     </Select>
   );
 };
