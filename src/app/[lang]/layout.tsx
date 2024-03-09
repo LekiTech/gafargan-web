@@ -2,11 +2,11 @@ import './globals.css';
 import * as React from 'react';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { Inter } from 'next/font/google';
-import { Providers } from './Providers';
+import Providers from './Providers';
 import { dir } from 'i18next';
 import Toolbar from '@mui/material/Toolbar';
-import { useTranslation } from '@i18n/index';
-import { DictionaryLang, WebsiteLang } from '../api/types.model';
+import { initTranslations } from '@i18n/index';
+import { DictionaryLang, WebsiteLang } from '../../api/types.model';
 import TopBar from './components/TopBar';
 import { colors } from './colors';
 
@@ -28,7 +28,7 @@ export async function generateMetadata(
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const { t } = await useTranslation(props.params.lang);
+  const { t } = await initTranslations(props.params.lang);
   return {
     title: t('meta.title'),
     description: t('meta.description'),
@@ -50,22 +50,24 @@ export default async function RootLayout(props: RootLayoutProps) {
     params: { lang },
     // searchParams,
   } = props;
-  const { t } = await useTranslation(lang);
+  const { t } = await initTranslations(lang);
   return (
     <html
       lang={lang}
       dir={dir(lang)}
       style={{ scrollBehavior: 'smooth', scrollPaddingTop: '100px' }}
     >
-      <body className={inter.className} style={{ backgroundColor: colors.background }}>
-        <TopBar
-          currentLang={lang as WebsiteLang}
-          webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
-          dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
-          searchLabel={t('search')}
-        />
-        <Toolbar sx={{ p: '10px' }} />
-        <Providers>{children}</Providers>
+      <body className={inter.className} style={{ backgroundColor: colors.background, margin: 0 }}>
+        <Providers locale={lang}>
+          <TopBar
+            currentLang={lang as WebsiteLang}
+            webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
+            dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
+            searchLabel={t('search')}
+          />
+          {/* <Toolbar sx={{ p: '10px' }} /> */}
+          {children}
+        </Providers>
       </body>
     </html>
   );

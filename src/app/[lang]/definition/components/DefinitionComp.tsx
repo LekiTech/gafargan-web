@@ -1,13 +1,16 @@
-import React, { FC } from 'react';
+'use client';
+import React, { FC, useEffect, useState } from 'react';
 import { WebsiteLang, Definition, DefinitionDetails, Example } from '@api/types.model';
 // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
 import { Box, Grid, Stack, Typography } from '@mui/material/index';
-import { useTranslation } from '@i18n/index';
+// import { getTranslation } from '@i18n/index';
 import { createDetailsId } from '../utils';
 import { ExamplesComp } from './ExampleComp';
 import { ParsedTextComp } from '../../components/ParsedTextComp';
 import { colors } from '@/colors';
 import { TagComp } from './TagComp';
+import { TFunction } from 'i18next';
+import { useTranslation } from 'react-i18next';
 
 // const idxToChar = (lang: WebsiteLang, idx: number) => {
 //   return lang === 'rus' || lang === 'lez'
@@ -18,13 +21,12 @@ import { TagComp } from './TagComp';
 type DefinitionCompProps = {
   idx: number;
   lang: WebsiteLang;
-  key: string;
+  // key: string;
   definition: Definition;
 };
 
-const DefinitionComp: FC<DefinitionCompProps> = async ({ idx, lang, key, definition }) => {
-  const { t } = await useTranslation(lang);
-  const { t: tTags } = await useTranslation(lang, 'tags');
+const DefinitionComp: FC<DefinitionCompProps> = ({ idx, lang, definition }) => {
+  const { t } = useTranslation();
   return (
     <Stack
       spacing={2}
@@ -50,8 +52,8 @@ const DefinitionComp: FC<DefinitionCompProps> = async ({ idx, lang, key, definit
       <Stack direction="row" spacing={2}>
         {definition.tags?.map((tag, t_i) => (
           <TagComp
-            key={`exp_det_${key}_tags_${tag}_${t_i}`}
-            label={tTags(tag)}
+            key={`exp_det_${idx}_tags_${tag}_${t_i}`}
+            label={t(tag, { ns: 'tags' })}
             // sx={{ maxWidth: '250px', width: 'wrap-content' }}
           />
         ))}
@@ -68,8 +70,18 @@ const DefinitionsGroup: FC<{
   tags?: string[];
   spelling: string;
   inflection?: string;
-}> = async ({ idx, lang, definitions, examples, spelling, inflection }) => {
-  const { t } = await useTranslation(lang);
+}> = ({ idx, lang, definitions, examples, spelling, inflection }) => {
+  const { t } = useTranslation();
+  // const { t } = useTranslation(lang, { useSuspense: false });
+  // const [t, setT] = useState<TFunction<any, any>>();
+  // useEffect(() => {
+  //   getTranslation(lang).then(({ t }) => {
+  //     setT(t);
+  //   });
+  // });
+  // if (!t) {
+  //   return <div>translations loading...</div>;
+  // }
   return (
     <Grid container spacing={2} sx={{ pb: '25px', pl: '25px' }}>
       <Grid item xs={12}>

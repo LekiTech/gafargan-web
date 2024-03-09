@@ -1,9 +1,10 @@
+'use client';
 import { colors } from '@/colors';
 import { Chip } from '@mui/material';
 import { red } from '@mui/material/colors';
 import { FC } from 'react';
 
-export const TagComp: FC<{ label: string }> = async ({ label }) => {
+export const TagComp: FC<{ label: string }> = ({ label }) => {
   return (
     <Chip
       size="small"

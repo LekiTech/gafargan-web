@@ -8,6 +8,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
+import { copyText } from '../../utils';
 
 type NumbersToLezgiProps = {
   title: string;
@@ -92,11 +93,7 @@ export const NumbersToLezgi: FC<NumbersToLezgiProps> = ({
         </Typography>
       </CardContent>
       <CardActions sx={{ display: 'flex', alignItems: 'end' }}>
-        <IconButton
-          color="primary"
-          aria-label="copy"
-          onClick={() => navigator.clipboard.writeText(result)}
-        >
+        <IconButton color="primary" aria-label="copy" onClick={() => copyText(result)}>
           <ContentCopyIcon />
         </IconButton>
       </CardActions>
@@ -173,7 +170,7 @@ export const LezgiToNumbers: FC<LezgiToNumbersProps> = ({ title, enterTextLabel,
         <IconButton
           color="primary"
           aria-label="copy"
-          onClick={() => navigator.clipboard.writeText(result)}
+          onClick={() => copyText(result.replaceAll(' ', ''))}
         >
           <ContentCopyIcon />
         </IconButton>

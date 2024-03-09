@@ -1,13 +1,9 @@
 import React, { FC } from 'react';
-import * as expressionApi from '@api/expressionApi';
+import * as expressionApi from '../../../api/expressionApi';
 import { ResolvingMetadata, Metadata } from 'next';
-import { DictionaryLang, WebsiteLang } from '../../api/types.model';
-// Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
-import { Box, Stack } from '@mui/material/index';
-import { Sidebar } from './components/Sidebar';
-import ExpressionDetailsComp from './components/ExpressionDetailsComp';
-import { toContents } from './utils';
-import { useTranslation } from '@i18n/index';
+import { DictionaryLang, WebsiteLang } from '../../../api/types.model';
+import { initTranslations } from '@i18n/index';
+import { ExpressionView } from './components/ExpressionView';
 
 function expressionSpellingToLowerCase(spelling: string) {
   return spelling.toLowerCase().replaceAll('i', 'I');
@@ -44,96 +40,14 @@ type ExpressionPageProps = {
 };
 
 const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searchParams }) => {
-  // const {props} = use(getServerSideProps());
-  // const { data } = useSearchExpressionQuery('къил');
-  const { t } = await useTranslation(lang);
-  const data = await //use(
-  expressionApi.search({
+  const { t } = await initTranslations(lang);
+  const data = await expressionApi.search({
     spelling: searchParams.exp,
     expLang: searchParams.fromLang as DictionaryLang,
     defLang: searchParams.toLang as DictionaryLang,
   });
-  if (!data) {
-    return <div>loading...</div>;
-  }
-  const { found: expression, similar } = data;
-  const foundInExamples = expression
-    ? [
-        /* API request */
-      ]
-    : [];
-  const foundInDefinitions = expression
-    ? [
-        /* API request */
-      ]
-    : [];
-  // if (!expression) {
-  //   return <div>not found</div>;
-  // }
-  //);
-  // const dictionary = useSelector((state: any): DictionaryReduxState => state.dictionary);
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-      }}
-    >
-      <Stack
-        direction={'row'}
-        spacing={2}
-        sx={{
-          maxWidth: '1400px',
-        }}
-      >
-        {expression ? (
-          <>
-            <Sidebar
-              contents={expression.details.map((d, i) => toContents(i, expression.spelling, d))}
-              otherExamplesLabel={t('otherExamples')}
-            />
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'left',
-                justifyContent: 'center',
-                width: '100vw',
-                pt: '25px',
-                pl: '25px',
-                pb: '50px',
-              }}
-            >
-              {/* BELOW is implementation for a SINGLE expression detail */}
-              {expression.details.map(async (detail, i) => (
-                <ExpressionDetailsComp
-                  key={`exp_det_${i}`}
-                  idx={i}
-                  lang={lang}
-                  spelling={expression.spelling}
-                  data={detail}
-                  isLast={i === expression.details.length - 1}
-                />
-              ))}
-            </Box>
-          </>
-        ) : (
-          // TODO: add component for each of the following
-          // TODO: add API request for each of the following
-          <Stack direction={'column'} spacing={2}>
-            {similar?.map((s, i) => (
-              <Box key={`similar_${i}`}>{s.spelling}</Box>
-            ))}
-            {foundInExamples.map((s, i) => (
-              <Box key={`foundInExamples_${i}`}>{s}</Box>
-            ))}
-            {foundInDefinitions.map((s, i) => (
-              <Box key={`foundInDefinitions_${i}`}>{s}</Box>
-            ))}
-          </Stack>
-        )}
-      </Stack>
-    </Box>
+    <ExpressionView expression={data} lang={lang} labels={{ otherExamples: t('otherExamples') }} />
   );
 };
 

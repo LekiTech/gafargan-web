@@ -1,9 +1,8 @@
 'use client';
 import React, { FC } from 'react';
 import Typography from '@mui/material/Typography';
-import { useTranslation } from '@i18n/index';
 import { Card, CardContent, Link, Stack } from '@mui/material';
-import { WrittenSource } from '@api/types.model';
+import { WrittenSource } from '../../../api/types.model';
 import WrittenSourceAccordion from './WrittenSourceAccordion';
 
 type WordOfTheDayProps = {
@@ -30,7 +29,7 @@ export const Sources: FC<WordOfTheDayProps> = ({ sources, labels }) => {
         <Typography variant="h5" component="div">
           {sourcesLabel}
         </Typography>
-        <Stack direction="column" sx={{ m: 3 }}>
+        <Stack direction="column" sx={{ m: '25px 0' }}>
           {sources.map((s, i) => (
             <WrittenSourceAccordion key={`written-source-${i}`} source={s} />
           ))}

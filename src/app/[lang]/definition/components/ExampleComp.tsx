@@ -1,3 +1,4 @@
+'use client';
 import React, { FC } from 'react';
 import { Example, WebsiteLang } from '@api/types.model';
 import {
@@ -15,8 +16,9 @@ import {
 } from '@mui/material/index';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { ParsedTextComp } from '../../components/ParsedTextComp';
-import { useTranslation } from '@i18n/index';
+
 import { TagComp } from './TagComp';
+import { useTranslation } from 'react-i18next';
 
 export const ExamplesComp: FC<{
   parentIdx: number;
@@ -24,8 +26,8 @@ export const ExamplesComp: FC<{
   title: string;
   isOtherExamples?: boolean;
   examples?: Example[];
-}> = async ({ parentIdx, lang, title, examples, isOtherExamples }) => {
-  const { t: tTags } = await useTranslation(lang, 'tags');
+}> = ({ parentIdx, lang, title, examples, isOtherExamples }) => {
+  const { t } = useTranslation(lang);
   return examples && examples.length > 0 ? (
     <Accordion
       variant="outlined"
@@ -37,35 +39,33 @@ export const ExamplesComp: FC<{
       </AccordionSummary>
       <AccordionDetails>
         <List sx={{ width: '100%' }}>
-          {examples?.map((ex, i) => {
+          {examples?.flatMap((ex, i) => {
             if (ex.src && ex.trl) {
-              return (
-                <>
-                  <Divider component="li" />
-                  <ListItem key={`${parentIdx}_${i}`}>
-                    <Stack direction="column">
-                      <ListItemText
-                        primary={<ParsedTextComp text={ex.src} />}
-                        secondary={<ParsedTextComp text={ex.trl} />}
-                        // primary={ex.src}
-                        // secondary={ex.trl}
-                      />
-                      {ex.tags && ex.tags.length > 0 && (
-                        <Stack direction="row" spacing={2}>
-                          {ex.tags.map((tag, t_i) => (
-                            <TagComp
-                              key={`example_${parentIdx}_${i}_tags_${tag}_${t_i}`}
-                              label={tTags(tag)}
-                              // size="small"
-                              // sx={{ maxWidth: '250px', fontSize: '12px', width: 'wrap-content' }}
-                            />
-                          ))}
-                        </Stack>
-                      )}
-                    </Stack>
-                  </ListItem>
-                </>
-              );
+              return [
+                <Divider key={`divider_${parentIdx}_${i}`} component="li" />,
+                <ListItem key={`${parentIdx}_${i}`}>
+                  <Stack direction="column">
+                    <ListItemText
+                      primary={<ParsedTextComp text={ex.src} />}
+                      secondary={<ParsedTextComp text={ex.trl} />}
+                      // primary={ex.src}
+                      // secondary={ex.trl}
+                    />
+                    {ex.tags && ex.tags.length > 0 && (
+                      <Stack direction="row" spacing={2}>
+                        {ex.tags.map((tag, t_i) => (
+                          <TagComp
+                            key={`example_${parentIdx}_${i}_tags_${tag}_${t_i}`}
+                            label={t(tag, { ns: 'tags' })}
+                            // size="small"
+                            // sx={{ maxWidth: '250px', fontSize: '12px', width: 'wrap-content' }}
+                          />
+                        ))}
+                      </Stack>
+                    )}
+                  </Stack>
+                </ListItem>,
+              ];
             }
             return (
               <>
@@ -78,7 +78,7 @@ export const ExamplesComp: FC<{
                         {ex.tags.map((tag, t_i) => (
                           <TagComp
                             key={`example_${parentIdx}_${i}_tags_${tag}_${t_i}`}
-                            label={tTags(tag)}
+                            label={t(tag, { ns: 'tags' })}
                             // size="small"
                             // sx={{ maxWidth: '250px', width: 'wrap-content' }}
                           />

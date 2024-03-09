@@ -1,5 +1,4 @@
 'use server';
-import { cache } from 'react';
 import BaseApi from './BaseApi';
 import {
   ExpressionSearchResponseDto,
@@ -18,7 +17,7 @@ class ExpressionApi extends BaseApi {
     super();
   }
 
-  search = cache(async (query: SearchQuery): Promise<ExpressionSearchResponseDto | undefined> => {
+  search = async (query: SearchQuery): Promise<ExpressionSearchResponseDto | undefined> => {
     try {
       const response = await this.get(`${prefix}/search`, {
         params: query,
@@ -27,9 +26,9 @@ class ExpressionApi extends BaseApi {
     } catch (e) {
       console.error(e);
     }
-  });
+  };
 
-  suggestions = cache(async (query: SuggestionsQuery): Promise<SuggestionResponseDto[]> => {
+  suggestions = async (query: SuggestionsQuery): Promise<SuggestionResponseDto[]> => {
     try {
       const response = await this.get(`${prefix}/search/suggestions`, {
         params: query,
@@ -39,13 +38,13 @@ class ExpressionApi extends BaseApi {
       console.error(e);
       return [];
     }
-  });
+  };
 
   /**
    * Get the word of the day.
    * @param currentDate - The current date in the format 'YYYY-MM-DD'.
    */
-  wordOfTheDay = cache(async (currentDate: string): Promise<Expression | undefined> => {
+  wordOfTheDay = async (currentDate: string): Promise<Expression | undefined> => {
     try {
       const response = await this.get(`${prefix}/day`, {
         params: { currentDate },
@@ -54,7 +53,7 @@ class ExpressionApi extends BaseApi {
     } catch (e) {
       console.error(e);
     }
-  });
+  };
 }
 
 const api = new ExpressionApi();

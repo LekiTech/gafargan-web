@@ -12,7 +12,7 @@ import ukFlag from '@/assets/images/flags/uk.png';
 import usFlag from '@/assets/images/flags/us.png';
 import turFlag from '@/assets/images/flags/tur.png';
 
-export default {
+const images = {
   logo,
   cross,
   doubleArrowsRed,
@@ -27,3 +27,5 @@ export default {
   usFlag,
   turFlag,
 };
+
+export default images;

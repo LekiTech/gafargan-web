@@ -1,12 +1,13 @@
+'use client';
 import React, { FC } from 'react';
-import { ExpressionDetails, WebsiteLang } from '../../../api/types.model';
+import { ExpressionDetails, WebsiteLang } from '../../../../api/types.model';
 // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
 import { Box, Chip, Divider, Stack, Typography } from '@mui/material/index';
-import { useTranslation } from '@i18n/index';
 import { expressionFont, lusitanaFont } from '@/fonts';
 import { DefinitionDetailsComp } from './DefinitionComp';
 import { createOtherExamplesId, createSpellingId, expressionSpellingToLowerCase } from '../utils';
 import { ExamplesComp } from './ExampleComp';
+import { useTranslation } from 'react-i18next';
 
 type ExpressionDetailsCompProps = {
   idx: number;
@@ -16,17 +17,18 @@ type ExpressionDetailsCompProps = {
   isLast: boolean;
 };
 
-const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = async ({
+export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
   idx,
   lang,
   spelling,
   data,
   isLast,
 }) => {
-  const { t } = await useTranslation(lang);
-  const { t: tTags } = await useTranslation(lang, 'tags');
+  const { t } = useTranslation(lang);
+  // const { t: tTags } = await useTranslation(lang, 'tags');
   return (
     <Stack
+      key={`ExpressionDetailsComp_${idx}_${spelling}`}
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -73,5 +75,3 @@ const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = async ({
     </Stack>
   );
 };
-
-export default ExpressionDetailsComp;

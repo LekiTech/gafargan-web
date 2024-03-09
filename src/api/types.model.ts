@@ -36,7 +36,7 @@ export type WrittenSource = {
   authors: string;
   publicationYear?: string;
   providedBy?: string;
-  providedByURL?: string;
+  providedByUrl?: string;
   processedBy?: string;
   copyright?: string;
   seeSourceURL?: string;

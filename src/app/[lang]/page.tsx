@@ -1,11 +1,11 @@
 import React, { FC } from 'react';
 import { Box, Grid } from '@mui/material/index';
-import { useTranslation } from '@i18n/index';
+import { initTranslations } from '@i18n/index';
 import { WordOfTheDay } from './components/WordOfTheDay';
 import { LezgiToNumbers, NumbersToLezgi } from './components/NumbersWidget';
 import { Sources } from './components/Sources';
-import * as expressionApi from '@api/expressionApi';
-import * as dictionaryApi from '@api/dictionaryApi';
+import * as expressionApi from '../../api/expressionApi';
+import * as dictionaryApi from '../../api/dictionaryApi';
 
 type HomeProps = {
   params: { lang: string };
@@ -17,7 +17,7 @@ const Home: FC<HomeProps> = async (props) => {
     params: { lang },
     searchParams: { fromLang, toLang },
   } = props;
-  const { t } = await useTranslation(lang);
+  const { t } = await initTranslations(lang);
   const date = new Date();
   const wordOfTheDay = await expressionApi.wordOfTheDay(
     `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`, //19
@@ -25,10 +25,14 @@ const Home: FC<HomeProps> = async (props) => {
   const sources = await dictionaryApi.getSources();
   return (
     <Box
-      sx={{ pt: '150px', pb: '150px', width: '100%', display: 'flex', justifyContent: 'center' }}
+      sx={{
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+      }}
     >
       <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
-        <Grid item xs={4}>
+        <Grid item xs={12} lg={4}>
           <WordOfTheDay
             // TODO: fix Skeleton loading
             expression={wordOfTheDay!}
@@ -39,14 +43,14 @@ const Home: FC<HomeProps> = async (props) => {
             }}
           />
         </Grid>
-        <Grid item xs={4}>
+        <Grid item xs={12} md={6} lg={4}>
           <NumbersToLezgi
             title={t('translateNumbers')}
             translationLabel={t(`translation`)}
             enterNumberLabel={t('enterNumber')}
           />
         </Grid>
-        <Grid item xs={4}>
+        <Grid item xs={12} md={6} lg={4}>
           <LezgiToNumbers
             title={t('translateNumbers')}
             enterTextLabel={t(`translation`)}

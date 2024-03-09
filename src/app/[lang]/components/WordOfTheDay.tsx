@@ -4,7 +4,7 @@ import Typography from '@mui/material/Typography';
 import { FC } from 'react';
 import { Card, CardContent, Link, Chip, Stack } from '@mui/material';
 import { expressionFont } from '@/fonts';
-import { Expression } from '@api/types.model';
+import { Expression } from '../../../api/types.model';
 import { capitalizeFirstLetter, expressionSpellingToLowerCase } from '@/definition/utils';
 import { usePathname } from 'next/navigation';
 import { ParsedTextComp } from './ParsedTextComp';
@@ -39,6 +39,9 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
       >
         <Typography variant="h5" gutterBottom>
           {wordOfTheDay}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {`${expression.details[0]?.writtenSources[0].title} - ${expression.details[0]?.writtenSources[0].authors}`}
         </Typography>
         <Typography variant="h3" component="div" className={expressionFont.className}>
           {capitalizeFirstLetter(expressionSpellingToLowerCase(expression.spelling))}

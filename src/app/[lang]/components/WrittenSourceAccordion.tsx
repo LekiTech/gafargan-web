@@ -1,10 +1,17 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { Accordion, AccordionSummary, AccordionDetails, Typography, Link } from '@mui/material';
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Typography,
+  Link,
+  Box,
+} from '@mui/material';
 import { remark } from 'remark';
 import html from 'remark-html';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { WrittenSource } from '@api/types.model';
+import { WrittenSource } from '../../../api/types.model';
 
 type WrittenSourceProps = {
   source: WrittenSource;
@@ -27,23 +34,39 @@ const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls="panel1a-content"
-        id="panel1a-header"
-        sx={{ display: 'flex', alignItems: 'center' }}
+        // sx={(theme) => ({
+        //   display: 'flex',
+        //   alignItems: 'center',
+        // })}
       >
-        <Typography>📚 {source.title}</Typography>
-        <Typography sx={{ marginLeft: 2, color: 'text.secondary' }}>{source.authors}</Typography>
+        <Box
+          sx={(theme) => ({
+            display: 'flex',
+            alignItems: 'center',
+            flexDirection: 'row',
+            [theme.breakpoints.down('md')]: {
+              flexDirection: 'column',
+            },
+          })}
+        >
+          <Typography>📚 {source.title}</Typography>
+          <Typography sx={{ marginLeft: 2, color: 'text.secondary' }}>{source.authors}</Typography>
+        </Box>
       </AccordionSummary>
       <AccordionDetails>
         {source.publicationYear && (
           <Typography paragraph>Published in {source.publicationYear}</Typography>
         )}
-        {source.providedBy && source.providedByURL ? (
+        {source.providedBy ? (
           <Typography paragraph>
             Provided by{' '}
-            <Link href={source.providedByURL} target="_blank" rel="noopener">
-              {source.providedBy}
-            </Link>
+            {source.providedByUrl ? (
+              <Link href={source.providedByUrl} target="_blank" rel="noopener">
+                {source.providedBy}
+              </Link>
+            ) : (
+              <span>{source.providedBy}</span>
+            )}
           </Typography>
         ) : null}
         {source.processedBy && <Typography paragraph>Processed by {source.processedBy}</Typography>}
@@ -52,18 +75,18 @@ const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
             © {source.copyright}
           </Typography>
         )}
-        {source.description && (
-          <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
-          // <Typography paragraph suppressHydrationWarning>
-          //   <Markdown>{source.description.replaceAll('\\n', '\n\n')}</Markdown>
-          // </Typography>
-        )}
         {source.seeSourceURL && (
           <Typography paragraph>
             <Link href={source.seeSourceURL} target="_blank" rel="noopener">
               See original source
             </Link>
           </Typography>
+        )}
+        {source.description && (
+          <div dangerouslySetInnerHTML={{ __html: contentHtml }} />
+          // <Typography paragraph suppressHydrationWarning>
+          //   <Markdown>{source.description.replaceAll('\\n', '\n\n')}</Markdown>
+          // </Typography>
         )}
       </AccordionDetails>
     </Accordion>

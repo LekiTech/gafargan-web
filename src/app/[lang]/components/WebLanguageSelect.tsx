@@ -2,11 +2,12 @@
 import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
-import { MenuItem, Select } from '@mui/material';
-import { WebsiteLang } from '../../api/types.model';
+import { MenuItem, Select, Typography } from '@mui/material';
+import { WebsiteLang } from '../../../api/types.model';
 import images from '@/store/images';
-import { colors } from '@/colors';
 import Image from 'next/image';
+// import { useMediaQuery } from 'react-responsive';
+import { colors } from '@/colors';
 
 type WebLanguageSelectProps = {
   currentLang: WebsiteLang;
@@ -18,9 +19,16 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  // const isMdBreakpoint = useMediaQuery({
+  //   query: '(min-width: 900px)',
+  // });
+
   const changeWebLang = (lang: WebsiteLang) => {
     const params = searchParams.toString() ? `?${searchParams.toString()}` : '';
-    const path = pathname.replace(`/${currentLang}`, `/${lang}`) + params;
+    const path = pathname.startsWith(`/${currentLang}`)
+      ? pathname.replace(`/${currentLang}`, `/${lang}`) + params
+      : `/${lang}/${params}`;
+    console.log('Lang to switch:', lang, 'newPath:', path);
     router.push(path);
   };
   return (

@@ -3,8 +3,8 @@ import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import { Avatar, Box, Grid, Typography } from '@mui/material';
-import Search from './Search';
-import { DictionaryLang, WebsiteLang } from '../../api/types.model';
+import { Search } from './Search';
+import { DictionaryLang, WebsiteLang } from '../../../api/types.model';
 import images from '@/store/images';
 import { ElevationScroll } from './ElevateScroll';
 import { colors } from '@/colors';
@@ -24,14 +24,19 @@ const TopBar = (props: TopBarProps) => {
   return (
     <ElevationScroll {...props}>
       <AppBar
-        sx={{
+        sx={(theme) => ({
+          position: 'sticky',
           backgroundColor: colors.primary, //'white',
           color: colors.text.light, //'#333',
           borderBottomStyle: 'solid',
           borderBottomWidth: '1px',
           borderBottomColor: colors.primaryTint,
           zIndex: (theme) => theme.zIndex.drawer + 1,
-        }}
+          mb: '150px',
+          [theme.breakpoints.down('lg')]: {
+            mb: '50px',
+          },
+        })}
       >
         <Toolbar
           sx={{
@@ -50,26 +55,38 @@ const TopBar = (props: TopBarProps) => {
               maxWidth: '1400px',
             }}
           >
-            <Grid item xs={12} md={2}>
+            <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
               <Link href={`/${currentLang}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                 <Typography
                   variant="h6"
                   component="div"
                   className={opensansFont.className}
                   // className={lusitanaFont.className}
-                  sx={{
+                  sx={(theme) => ({
                     display: 'flex',
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifySelf: 'start',
+                    [theme.breakpoints.down('lg')]: {
+                      fontSize: '1rem',
+                    },
                     // width: '150px',
                     // color: colors.text.light,
                     // textDecoration: 'none',
-                  }}
+                  })}
                 >
                   <Avatar
                     src={images.logo.src}
-                    sx={{ width: '56px', height: '56px', mr: '10px' }}
+                    sx={(theme) => ({
+                      width: '56px',
+                      height: '56px',
+                      mr: '10px',
+                      [theme.breakpoints.down('lg')]: {
+                        width: '36px',
+                        height: '36px',
+                        mr: '7px',
+                      },
+                    })}
                   />
                   {/* Гафарган */}
                   Gafargan
@@ -80,11 +97,19 @@ const TopBar = (props: TopBarProps) => {
               item
               xs={12}
               sm={8}
-              sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'center' }}
+              order={{ xs: 3, md: 2 }}
+              sx={(theme) => ({
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                [theme.breakpoints.down('md')]: {
+                  mt: '15px',
+                },
+              })}
             >
               <Search searchLabel={searchLabel} langs={dictLangs} />
             </Grid>
-            <Grid item xs={12} md={2}>
+            <Grid item xs={6} md={2} order={{ xs: 2, md: 3 }}>
               <Box
                 sx={{
                   m: '10px',
