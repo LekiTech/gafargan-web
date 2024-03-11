@@ -10,23 +10,15 @@ import { IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum, playLezgiNumberTts } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
 import { copyText } from '../../utils';
-
-type NumbersToLezgiProps = {
-  title: string;
-  enterNumberLabel: string;
-  translationLabel: string;
-};
+import { useTranslation } from 'react-i18next';
 
 function convertToLezgiAndFormat(num: number): string {
   const newResult = numToLezgi(num);
   return newResult.charAt(0).toUpperCase() + newResult.slice(1);
 }
 const defaultNumber = new Date().getFullYear();
-export const NumbersToLezgi: FC<NumbersToLezgiProps> = ({
-  title,
-  translationLabel,
-  enterNumberLabel,
-}) => {
+export const NumbersToLezgi: FC = () => {
+  const { t } = useTranslation();
   const [originalInput, setOriginalInput] = useState(defaultNumber);
   const [result, setResult] = useState(convertToLezgiAndFormat(defaultNumber));
   return (
@@ -41,10 +33,10 @@ export const NumbersToLezgi: FC<NumbersToLezgiProps> = ({
         }}
       >
         <Typography gutterBottom variant="h5">
-          {title}
+          {t('translateNumbers')}
         </Typography>
         <TextField
-          label={enterNumberLabel}
+          label={t('enterNumber')}
           defaultValue={defaultNumber}
           sx={{ width: '100%', mb: '10px' }}
           inputProps={{
@@ -79,7 +71,7 @@ export const NumbersToLezgi: FC<NumbersToLezgiProps> = ({
           }}
         />
         <Typography variant="caption" color="text.secondary">
-          {translationLabel}
+          {t(`translation`)}
         </Typography>
         <Typography
           variant="h6"
@@ -112,11 +104,6 @@ export const NumbersToLezgi: FC<NumbersToLezgiProps> = ({
   );
 };
 
-type LezgiToNumbersProps = {
-  title: string;
-  enterTextLabel: string;
-  numberLabel: string;
-};
 function convertLezgiToNumberAndFormat(lezgiNumeral: string): string {
   try {
     const preprocessed = lezgiNumeral.toLowerCase().replaceAll(/(?<=[кптцчКПТЦЧ])[i1lӏ|!]/g, 'I');
@@ -127,8 +114,9 @@ function convertLezgiToNumberAndFormat(lezgiNumeral: string): string {
   }
 }
 const defaultNumericalText = 'Агъзурни кIуьд вишни къанни цIуд';
-export const LezgiToNumbers: FC<LezgiToNumbersProps> = ({ title, enterTextLabel, numberLabel }) => {
+export const LezgiToNumbers: FC = () => {
   const [result, setResult] = React.useState(convertLezgiToNumberAndFormat(defaultNumericalText));
+  const { t } = useTranslation();
   return (
     <Card sx={{ display: 'flex', minWidth: 275, height: 365, padding: '20px' }}>
       <CardContent
@@ -141,10 +129,10 @@ export const LezgiToNumbers: FC<LezgiToNumbersProps> = ({ title, enterTextLabel,
         }}
       >
         <Typography gutterBottom variant="h5">
-          {title}
+          {t('translateNumbers')}
         </Typography>
         <TextField
-          label={enterTextLabel}
+          label={t(`enterLezgiNumeral`)}
           defaultValue={defaultNumericalText}
           multiline
           sx={{ width: '100%', mb: '10px' }}
@@ -162,7 +150,7 @@ export const LezgiToNumbers: FC<LezgiToNumbersProps> = ({ title, enterTextLabel,
           }}
         />
         <Typography variant="caption" color="text.secondary">
-          {numberLabel}
+          {t(`number`)}
         </Typography>
         <Typography
           variant="h6"

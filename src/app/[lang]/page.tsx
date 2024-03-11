@@ -44,18 +44,10 @@ const Home: FC<HomeProps> = async (props) => {
           />
         </Grid>
         <Grid item xs={12} md={6} lg={4}>
-          <NumbersToLezgi
-            title={t('translateNumbers')}
-            translationLabel={t(`translation`)}
-            enterNumberLabel={t('enterNumber')}
-          />
+          <NumbersToLezgi />
         </Grid>
         <Grid item xs={12} md={6} lg={4}>
-          <LezgiToNumbers
-            title={t('translateNumbers')}
-            enterTextLabel={t(`translation`)}
-            numberLabel={t('enterNumber')}
-          />
+          <LezgiToNumbers />
         </Grid>
         <Grid item xs={12}>
           <Sources
