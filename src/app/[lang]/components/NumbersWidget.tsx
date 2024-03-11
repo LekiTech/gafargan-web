@@ -1,12 +1,13 @@
 'use client';
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 import Card from '@mui/material/Card';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import SpeakNumIcon from '@mui/icons-material/VolumeUp';
 import { IconButton, TextField } from '@mui/material';
-import { numToLezgi, lezgiToNum } from 'lezgi-numbers/lib';
+import { numToLezgi, lezgiToNum, playLezgiNumberTts } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
 import { copyText } from '../../utils';
 
@@ -26,7 +27,8 @@ export const NumbersToLezgi: FC<NumbersToLezgiProps> = ({
   translationLabel,
   enterNumberLabel,
 }) => {
-  const [result, setResult] = React.useState(convertToLezgiAndFormat(defaultNumber));
+  const [originalInput, setOriginalInput] = useState(defaultNumber);
+  const [result, setResult] = useState(convertToLezgiAndFormat(defaultNumber));
   return (
     <Card sx={{ display: 'flex', minWidth: 275, height: 365, padding: '20px' }}>
       <CardContent
@@ -69,6 +71,7 @@ export const NumbersToLezgi: FC<NumbersToLezgiProps> = ({
             if (inputValue < Number.MIN_SAFE_INTEGER) {
               inputValue = Number.MIN_SAFE_INTEGER;
             }
+            setOriginalInput(inputValue);
             const newValue = inputValue.toLocaleString('en-US').replaceAll(',', ' ');
             e.target.value = newValue;
             setResult(convertToLezgiAndFormat(inputValue));
@@ -95,6 +98,14 @@ export const NumbersToLezgi: FC<NumbersToLezgiProps> = ({
       <CardActions sx={{ display: 'flex', alignItems: 'end' }}>
         <IconButton color="primary" aria-label="copy" onClick={() => copyText(result)}>
           <ContentCopyIcon />
+        </IconButton>
+        <IconButton
+          color="primary"
+          onClick={() => {
+            playLezgiNumberTts(originalInput, '/api/res/');
+          }}
+        >
+          <SpeakNumIcon />
         </IconButton>
       </CardActions>
     </Card>
@@ -173,6 +184,18 @@ export const LezgiToNumbers: FC<LezgiToNumbersProps> = ({ title, enterTextLabel,
           onClick={() => copyText(result.replaceAll(' ', ''))}
         >
           <ContentCopyIcon />
+        </IconButton>
+        <IconButton
+          color="primary"
+          onClick={() => {
+            const num = parseInt(result.replaceAll(' ', ''));
+            if (!Number.isInteger(num)) {
+              return;
+            }
+            playLezgiNumberTts(num, '/api/res/');
+          }}
+        >
+          <SpeakNumIcon />
         </IconButton>
       </CardActions>
     </Card>
