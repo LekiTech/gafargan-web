@@ -1,4 +1,5 @@
 import React, { FC } from 'react';
+import { HighlightedText } from '@/components/HighlightedText';
 
 export enum TextType {
   BASIC = 0,
@@ -45,7 +46,16 @@ export function definitionToFormatJson(definition: string) {
   return result;
 }
 
-export const ParsedTextComp: FC<{ text: string }> = ({ text }) => {
+type ParsedTextCompProps = {
+  text: string;
+  highlightOptions?: {
+    stringToHighlight?: string;
+    backgroundColor?: string;
+    color?: string;
+  };
+};
+
+export const ParsedTextComp: FC<ParsedTextCompProps> = ({ text, highlightOptions }) => {
   return text && text.length > 0
     ? definitionToFormatJson(text).map((textObj, i) => {
         const key = `${textObj.text}_${i}_${Math.random()}`;
@@ -60,7 +70,12 @@ export const ParsedTextComp: FC<{ text: string }> = ({ text }) => {
         }
         return (
           <span key={key} style={style}>
-            {textObj.text}
+            <HighlightedText
+              text={textObj.text}
+              stringToHighlight={highlightOptions?.stringToHighlight}
+              color={highlightOptions?.color}
+              backgroundColor={highlightOptions?.backgroundColor}
+            />
           </span>
         );
       })

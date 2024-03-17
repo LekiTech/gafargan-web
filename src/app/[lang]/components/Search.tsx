@@ -15,6 +15,7 @@ import { DictionaryLang } from '@api/types.model';
 import { SuggestionResponseDto } from '@api/types.dto';
 import { DictionaryLangs } from '@api/languages';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { toLowerCaseLezgi } from '../../utils';
 
 function findPairLang(lang: DictionaryLang) {
   return DictionaryPairs.find((pair) => pair.includes(lang))?.filter((pl) => pl !== lang)[0];
@@ -80,8 +81,9 @@ export const Search: FC<{
     from: 'lez' as DictionaryLang,
     to: 'rus' as DictionaryLang,
   });
+  const exp = searchParams.get('exp');
   const [options, setOptions] = React.useState<SuggestionResponseDto[]>([]);
-  const [inputValue, setInputValue] = React.useState<string>('');
+  const [inputValue, setInputValue] = React.useState<string>(exp ? toLowerCaseLezgi(exp) : '');
   const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
 
   useEffect(() => {
@@ -241,7 +243,7 @@ export const Search: FC<{
             if (typeof option === 'string') {
               return option;
             }
-            return option.spelling.toLowerCase();
+            return toLowerCaseLezgi(option.spelling);
           }}
           renderOption={(props, option, state, ownerState) => {
             // @ts-ignore
@@ -268,7 +270,7 @@ export const Search: FC<{
                   }
                 }}
               >
-                {ownerState.getOptionLabel(option.spelling.toLowerCase())}
+                {ownerState.getOptionLabel(toLowerCaseLezgi(option.spelling))}
               </Box>
             );
           }}

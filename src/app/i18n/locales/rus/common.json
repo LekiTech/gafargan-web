@@ -19,6 +19,8 @@
   "dialect": "Диалект",
   "source": "Источник",
   "foundInDefinitions": "Найдено в значениях",
+  "foundInExamples": "Найдено в примерах",
+  "probablyYouMeant": "Возможно вы имели ввиду",
   "noSuggestionsFound": "Подсказки не найдены!",
   "enterSearchWord": "Введите слово для поиска",
   "languages": {

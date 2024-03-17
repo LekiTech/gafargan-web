@@ -5,9 +5,10 @@ import { FC } from 'react';
 import { Card, CardContent, Link, Chip, Stack } from '@mui/material';
 import { expressionFont } from '@/fonts';
 import { Expression } from '../../../api/types.model';
-import { capitalizeFirstLetter, expressionSpellingToLowerCase } from '@/definition/utils';
+import { capitalizeFirstLetter } from '@/definition/utils';
 import { usePathname } from 'next/navigation';
 import { ParsedTextComp } from './ParsedTextComp';
+import { toLowerCaseLezgi } from '../../utils';
 
 type WordOfTheDayProps = {
   expression: Expression;
@@ -44,7 +45,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
           {`${expression.details[0]?.writtenSources[0].title} - ${expression.details[0]?.writtenSources[0].authors}`}
         </Typography>
         <Typography variant="h3" component="div" className={expressionFont.className}>
-          {capitalizeFirstLetter(expressionSpellingToLowerCase(expression.spelling))}
+          {capitalizeFirstLetter(toLowerCaseLezgi(expression.spelling))}
         </Typography>
         {expression.details[0]?.inflection && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: '10px' }}>

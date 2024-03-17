@@ -4,15 +4,13 @@ import { ResolvingMetadata, Metadata } from 'next';
 import { DictionaryLang, WebsiteLang } from '../../../api/types.model';
 import { initTranslations } from '@i18n/index';
 import { ExpressionView } from './components/ExpressionView';
-
-function expressionSpellingToLowerCase(spelling: string) {
-  return spelling.toLowerCase().replaceAll('i', 'I');
-}
+import { toLowerCaseLezgi } from '../../utils';
 
 export async function generateMetadata(
-  { searchParams }: ExpressionPageProps,
+  { params, searchParams }: ExpressionPageProps,
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
+  const { t } = await initTranslations(params.lang);
   // fetch data
   const data = await expressionApi.search({
     spelling: searchParams.exp,
@@ -23,10 +21,16 @@ export async function generateMetadata(
 
   // optionally access and extend (rather than replace) parent metadata
   const previousImages = (await parent).openGraph?.images || [];
-  const spelling = expressionSpellingToLowerCase(data?.found?.spelling || '');
+  const spelling = toLowerCaseLezgi(data?.found?.spelling || '', { capitalize: true });
   return {
-    title: spelling.charAt(0).toUpperCase() + spelling.slice(1),
-    description: data?.found?.details[0].definitionDetails[0]?.definitions[0]?.value,
+    title: `"${spelling}" ${t('languages.' + searchParams.fromLang)} - ${t(
+      'languages.' + searchParams.toLang,
+    )} ${t('translation').toLowerCase()}`, //.charAt(0).toUpperCase() + spelling.slice(1),
+    description:
+      data?.found?.details[0].definitionDetails[0]?.definitions[0]?.value.replaceAll(
+        /\{|}|<[^>]*>/g,
+        '',
+      ) || '',
     // openGraph: {
     //   images: ['/some-specific-page-image.jpg', ...previousImages],
     // },
@@ -46,8 +50,32 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
     expLang: searchParams.fromLang as DictionaryLang,
     defLang: searchParams.toLang as DictionaryLang,
   });
+  // true if found, false if not
+  const isExpressionFound = !!data?.found;
+  const foundInExamples = isExpressionFound
+    ? undefined
+    : await expressionApi.examples({
+        searchString: searchParams.exp,
+        exampleLang: searchParams.fromLang,
+        pageSize: 10,
+        currentPage: 0,
+      });
+  const foundInDefinitions = isExpressionFound
+    ? undefined
+    : await expressionApi.definitions({
+        searchString: searchParams.exp,
+        defLang: searchParams.fromLang,
+        pageSize: 10,
+        currentPage: 0,
+      });
   return (
-    <ExpressionView expression={data} lang={lang} labels={{ otherExamples: t('otherExamples') }} />
+    <ExpressionView
+      foundInExamples={foundInExamples?.items ?? []}
+      foundInDefinitions={foundInDefinitions?.items ?? []}
+      expression={data}
+      lang={lang}
+      labels={{ otherExamples: t('otherExamples') }}
+    />
   );
 };
 

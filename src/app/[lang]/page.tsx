@@ -6,6 +6,7 @@ import { LezgiToNumbers, NumbersToLezgi } from './components/NumbersWidget';
 import { Sources } from './components/Sources';
 import * as expressionApi from '../../api/expressionApi';
 import * as dictionaryApi from '../../api/dictionaryApi';
+import { VerticalSpacing } from './components/VerticalSpacing';
 
 type HomeProps = {
   params: { lang: string };
@@ -28,9 +29,12 @@ const Home: FC<HomeProps> = async (props) => {
       sx={{
         width: '100%',
         display: 'flex',
-        justifyContent: 'center',
+        // justifyContent: 'center',
+        flexDirection: 'column',
+        alignItems: 'center',
       }}
     >
+      <VerticalSpacing />
       <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
         <Grid item xs={12} lg={4}>
           <WordOfTheDay

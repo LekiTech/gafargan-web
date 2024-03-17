@@ -19,6 +19,8 @@
   "dialect": "Dialect",
   "source": "Source",
   "foundInDefinitions": "Found in definitions",
+  "foundInExamples": "Found in examples",
+  "probablyYouMeant": "Probably you meant",
   "noSuggestionsFound": "No suggestions found!",
   "enterSearchWord": "Enter word to search",
   "languages": {

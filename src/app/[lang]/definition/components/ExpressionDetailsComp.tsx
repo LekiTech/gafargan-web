@@ -5,9 +5,10 @@ import { ExpressionDetails, WebsiteLang } from '../../../../api/types.model';
 import { Box, Chip, Divider, Stack, Typography } from '@mui/material/index';
 import { expressionFont, lusitanaFont } from '@/fonts';
 import { DefinitionDetailsComp } from './DefinitionComp';
-import { createOtherExamplesId, createSpellingId, expressionSpellingToLowerCase } from '../utils';
+import { createOtherExamplesId, createSpellingId } from '../utils';
 import { ExamplesComp } from './ExampleComp';
 import { useTranslation } from 'react-i18next';
+import { toLowerCaseLezgi } from '../../../utils';
 
 type ExpressionDetailsCompProps = {
   idx: number;
@@ -41,7 +42,7 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         className={expressionFont.className}
         id={createSpellingId(idx, spelling, data.definitionDetails.length, data.inflection)}
       >
-        {expressionSpellingToLowerCase(spelling)}
+        {toLowerCaseLezgi(spelling)}
       </Typography>
       <Typography variant="h6" color="text.secondary">
         {data.inflection}

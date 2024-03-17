@@ -32,10 +32,6 @@ const TopBar = (props: TopBarProps) => {
           borderBottomWidth: '1px',
           borderBottomColor: colors.primaryTint,
           zIndex: (theme) => theme.zIndex.drawer + 1,
-          mb: '150px',
-          [theme.breakpoints.down('lg')]: {
-            mb: '50px',
-          },
         })}
       >
         <Toolbar

@@ -9,7 +9,7 @@ import SpeakNumIcon from '@mui/icons-material/VolumeUp';
 import { IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum, playLezgiNumberTts } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
-import { copyText } from '../../utils';
+import { copyText, toLowerCaseLezgi } from '../../utils';
 import { useTranslation } from 'react-i18next';
 
 function convertToLezgiAndFormat(num: number): string {
@@ -106,7 +106,7 @@ export const NumbersToLezgi: FC = () => {
 
 function convertLezgiToNumberAndFormat(lezgiNumeral: string): string {
   try {
-    const preprocessed = lezgiNumeral.toLowerCase().replaceAll(/(?<=[кптцчКПТЦЧ])[i1lӏ|!]/g, 'I');
+    const preprocessed = toLowerCaseLezgi(lezgiNumeral);
     const newResult = lezgiToNum(preprocessed);
     return newResult.toLocaleString('en-US').replaceAll(',', ' ');
   } catch (e) {

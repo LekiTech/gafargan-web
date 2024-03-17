@@ -19,6 +19,8 @@
   "dialect": "Нугъат",
   "source": "Чешме",
   "foundInDefinitions": "Гаф гуьгъуьнал алай метлебра гьатнава",
+  "foundInExamples": ">> Найдено в примерах",
+  "probablyYouMeant": ">> Возможно вы имели ввиду",
   "noSuggestionsFound": "Ухшарзавай гафар жагъанач",
   "enterSearchWord": "Жугъурзавай гаф кхьихь",
   "languages": {
