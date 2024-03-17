@@ -67,17 +67,21 @@ export type ExampleResponseDto = {
   raw: string;
   src: string;
   trl: string;
+  srcLangId: string;
+  trlLangId: string;
   tags: string[];
 };
 
 export type ExpressionDefinitionResponseDto = {
   id: string;
   spelling: string;
+  expLangId: string;
   definition: DefinitionResponseDto;
 };
 
 export type DefinitionResponseDto = {
   id: string;
   value: string;
+  defLangId: string;
   tags: string[];
 };

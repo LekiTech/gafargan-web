@@ -7,13 +7,15 @@ export const SpellingListItem: FC<{
   id: string;
   spelling: string;
   showIcon?: boolean;
+  fromLang?: string;
+  toLang?: string;
   sx?: SxProps<Theme>;
-}> = ({ id, spelling, showIcon, sx }) => {
+}> = ({ id, spelling, showIcon, fromLang, toLang, sx }) => {
   const path = usePathname();
   const searchParams = useSearchParams();
-  const href = `${path}?fromLang=${searchParams.get('fromLang')}&toLang=${searchParams.get(
-    'toLang',
-  )}&exp=${spelling}`;
+  const href = `${path}?fromLang=${fromLang ?? searchParams.get('fromLang')}&toLang=${
+    toLang ?? searchParams.get('toLang')
+  }&exp=${spelling}`;
   return (
     <ListSubheader
       component="a"

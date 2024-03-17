@@ -7,6 +7,7 @@ import {
   ListItem,
   ListItemText,
   Stack,
+  Typography,
   // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
 } from '@mui/material/index';
 import { ParsedTextComp } from '../../components/ParsedTextComp';
@@ -31,8 +32,14 @@ export const FoundExamplesList: FC<{
     <List sx={{ width: '100%' }}>
       {examples.flatMap((ex, i) => {
         const topItems = [
-          <Divider key={`${ex.id}_divider_${i}`} component="li" sx={{ mt: '10px' }} />,
-          <SpellingListItem key={`${ex.id}_spelling_${i}`} id={ex.id} spelling={ex.spelling} />,
+          <Divider key={`${ex.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,
+          <SpellingListItem
+            key={`${ex.id}_spelling_${i}`}
+            id={ex.id}
+            spelling={ex.spelling}
+            fromLang={ex.example.srcLangId}
+            toLang={ex.example.trlLangId}
+          />,
         ];
         if (ex.example.src && ex.example.trl) {
           return [
@@ -63,6 +70,10 @@ export const FoundExamplesList: FC<{
                     ))}
                   </Stack>
                 )}
+                <Typography variant="caption" color="text.secondary" sx={{ mt: '10px' }}>
+                  {t(`languages.${ex.example.srcLangId}`, { ns: 'common' })} →{' '}
+                  {t(`languages.${ex.example.trlLangId}`, { ns: 'common' })}
+                </Typography>
               </Stack>
             </ListItem>,
           ];

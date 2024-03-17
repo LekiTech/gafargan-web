@@ -7,6 +7,7 @@ import {
   ListItem,
   ListItemText,
   Stack,
+  Typography,
   // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
 } from '@mui/material/index';
 import { ParsedTextComp } from '../../components/ParsedTextComp';
@@ -28,7 +29,13 @@ export const FoundDefinitionsList: FC<{
       {definitions.flatMap((def, i) => {
         return [
           <Divider key={`${def.id}_divider_${i}`} component="li" sx={{ mt: '10px' }} />,
-          <SpellingListItem key={`${def.id}_spelling_${i}`} id={def.id} spelling={def.spelling} />,
+          <SpellingListItem
+            key={`${def.id}_spelling_${i}`}
+            id={def.id}
+            spelling={def.spelling}
+            fromLang={def.expLangId}
+            toLang={def.definition.defLangId}
+          />,
           <ListItem key={`${def.id}_item_${i}`} sx={{ pt: 0 }}>
             <Stack direction="column">
               <ListItemText
@@ -49,6 +56,10 @@ export const FoundDefinitionsList: FC<{
                   ))}
                 </Stack>
               )}
+              <Typography variant="caption" color="text.secondary" sx={{ mt: '10px' }}>
+                {t(`languages.${def.expLangId}`, { ns: 'common' })} →{' '}
+                {t(`languages.${def.definition.defLangId}`, { ns: 'common' })}
+              </Typography>
             </Stack>
           </ListItem>,
         ];
