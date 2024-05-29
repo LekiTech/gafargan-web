@@ -54,7 +54,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         mb: '50px',
       }}
     >
-      {foundExpression && foundExpression.details ? (
+      {foundExpression && foundExpression?.details ? (
         <Stack
           direction={'row'}
           spacing={2}
@@ -63,7 +63,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
           }}
         >
           <Sidebar
-            contents={foundExpression.details.map((d, i) =>
+            contents={foundExpression?.details?.map((d, i) =>
               toContents(i, foundExpression.spelling, d),
             )}
             otherExamplesLabel={labels.otherExamples}
@@ -80,14 +80,14 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               pb: '50px',
             }}
           >
-            {foundExpression.details.map((detail, i) => (
+            {foundExpression?.details?.map((detail, i) => (
               <ExpressionDetailsComp
                 key={`exp_det_${i}`}
                 idx={i}
                 lang={lang}
                 spelling={foundExpression.spelling}
                 data={detail}
-                isLast={i === foundExpression.details.length - 1}
+                isLast={i === foundExpression?.details?.length - 1}
               />
             ))}
           </Box>

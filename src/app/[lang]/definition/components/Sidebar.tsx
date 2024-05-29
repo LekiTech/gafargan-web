@@ -33,8 +33,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
     const eventListener = () => {
       for (let i = 0; i < contents.length; i++) {
         const step = contents[i];
-        for (let j = 0; j < step.details.length; j++) {
-          const detail = step.details[j];
+        for (let j = 0; j < step?.details.length; j++) {
+          const detail = step?.details[j];
           const detailBoundingRect = document
             .getElementById(detail.detailsId)
             ?.getBoundingClientRect();
@@ -129,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
               <StepContent>
                 {/* <Typography>{step.description}</Typography> */}
                 <List sx={{ width: '100%' }}>
-                  {step.details.map((d, stepDetailsIdx) => (
+                  {step?.details?.map((d, stepDetailsIdx) => (
                     <ListItem
                       key={`step-${d.detailsId}`}
                       sx={{ pt: 0, pb: 0, '&.MuiListItem-root': { pl: 0 } }}

@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, Suspense } from 'react';
 import { Box, Grid } from '@mui/material/index';
 import { initTranslations } from '@i18n/index';
 import { WordOfTheDay } from './components/WordOfTheDay';
@@ -34,32 +34,34 @@ const Home: FC<HomeProps> = async (props) => {
         alignItems: 'center',
       }}
     >
-      <VerticalSpacing />
-      <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
-        <Grid item xs={12} lg={4}>
-          <WordOfTheDay
-            // TODO: fix Skeleton loading
-            expression={wordOfTheDay!}
-            labels={{
-              wordOfTheDay: t('wordOfTheDay'),
-              examples: t('examples'),
-              learnMore: t('learnMore'),
-            }}
-          />
+      <Suspense>
+        <VerticalSpacing />
+        <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
+          <Grid item xs={12} lg={4}>
+            <WordOfTheDay
+              // TODO: fix Skeleton loading
+              expression={wordOfTheDay!}
+              labels={{
+                wordOfTheDay: t('wordOfTheDay'),
+                examples: t('examples'),
+                learnMore: t('learnMore'),
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <NumbersToLezgi />
+          </Grid>
+          <Grid item xs={12} md={6} lg={4}>
+            <LezgiToNumbers />
+          </Grid>
+          <Grid item xs={12}>
+            <Sources
+              labels={{ sources: t('sources'), learnMore: t('learnMore') }}
+              sources={sources}
+            />
+          </Grid>
         </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <NumbersToLezgi />
-        </Grid>
-        <Grid item xs={12} md={6} lg={4}>
-          <LezgiToNumbers />
-        </Grid>
-        <Grid item xs={12}>
-          <Sources
-            labels={{ sources: t('sources'), learnMore: t('learnMore') }}
-            sources={sources}
-          />
-        </Grid>
-      </Grid>
+      </Suspense>
     </Box>
   );
 };
