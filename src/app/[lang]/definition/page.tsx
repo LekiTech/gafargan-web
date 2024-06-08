@@ -45,10 +45,12 @@ type ExpressionPageProps = {
 
 const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searchParams }) => {
   const { t } = await initTranslations(lang);
+  const fromLang = searchParams.fromLang as DictionaryLang;
+  const toLang = searchParams.toLang as DictionaryLang;
   const data = await expressionApi.search({
     spelling: searchParams.exp,
-    expLang: searchParams.fromLang as DictionaryLang,
-    defLang: searchParams.toLang as DictionaryLang,
+    expLang: fromLang,
+    defLang: toLang,
   });
   // true if found, false if not
   const isExpressionFound = !!data?.found;
@@ -56,17 +58,21 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
     ? undefined
     : await expressionApi.examples({
         searchString: searchParams.exp,
-        exampleLang: searchParams.fromLang,
+        lang1: fromLang,
+        lang2: toLang,
         pageSize: 10,
         currentPage: 0,
+        // tags: ['сущ.'],
       });
   const foundInDefinitions = isExpressionFound
     ? undefined
     : await expressionApi.definitions({
         searchString: searchParams.exp,
-        defLang: searchParams.fromLang,
+        expLang: fromLang,
+        defLang: toLang,
         pageSize: 10,
         currentPage: 0,
+        // tags: ['сущ.'],
       });
   return (
     <ExpressionView

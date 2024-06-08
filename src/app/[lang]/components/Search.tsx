@@ -1,21 +1,20 @@
 'use client';
-import React, { FC, memo, useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Box, Button, IconButton, MenuItem, Select, Stack, TextField } from '@mui/material';
-import Autocomplete, {
-  AutocompleteRenderInputParams,
-  autocompleteClasses,
-} from '@mui/material/Autocomplete';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
 import SearchIcon from '@mui/icons-material/Search';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
 import * as expressionApi from '@api/expressionApi';
 import { DictionaryPairs } from '@/store/constants';
 import { colors } from '@/colors';
-import { DictionaryLang } from '@api/types.model';
+import { DictionaryLang, WebsiteLang } from '@api/types.model';
 import { SuggestionResponseDto } from '@api/types.dto';
 import { DictionaryLangs } from '@api/languages';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toLowerCaseLezgi } from '../../utils';
+import { useTranslation } from 'react-i18next';
 
 function findPairLang(lang: DictionaryLang) {
   return DictionaryPairs.find((pair) => pair.includes(lang))?.filter((pl) => pl !== lang)[0];
@@ -66,14 +65,33 @@ const changeDictLang = (args: {
   return;
 };
 
-const roundingRadius = '100px';
+const roundingRadius = 28;
+const roundingRadiusPx = `${roundingRadius}px`;
 
 export const Search: FC<{
-  langs: Record<DictionaryLang, string>;
+  lang: WebsiteLang;
+  // langs: Record<DictionaryLang, string>;
   // fromLang: { code: WebsiteLang; name: string };
   // toLang: { code: WebsiteLang; name: string };
-  searchLabel: string;
-}> = ({ langs, searchLabel }) => {
+  // searchLabel: string;
+  // }> = ({ langs, searchLabel }) => {
+}> = ({ lang }) => {
+  // const { t } = useTranslation(lang);
+  // const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
+  //   DictionaryLang,
+  //   string
+  // >;
+  // const searchLabel = t('search', { ns: 'common' });
+  // const toolsLabel = t('tools', { ns: 'common' });
+  const langs = {
+    lez: 'Lezgi',
+    rus: 'Russian',
+    eng: 'English',
+    tur: 'Turkish',
+  } as unknown as Record<DictionaryLang, string>;
+  const searchLabel = 'search';
+  const toolsLabel = 'tools';
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -82,9 +100,15 @@ export const Search: FC<{
     to: 'rus' as DictionaryLang,
   });
   const exp = searchParams.get('exp');
-  const [options, setOptions] = React.useState<SuggestionResponseDto[]>([]);
-  const [inputValue, setInputValue] = React.useState<string>(exp ? toLowerCaseLezgi(exp) : '');
+  const [options, setOptions] = useState<SuggestionResponseDto[]>([]);
+  const [inputValue, setInputValue] = useState<string>(exp ? toLowerCaseLezgi(exp) : '');
   const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
+
+  // useEffect(() => {
+  //   setLangs(
+  //     t('languages', { ns: 'common', returnObjects: true }) as Record<DictionaryLang, string>,
+  //   );
+  // }, [t]);
 
   useEffect(() => {
     setSearchLang({
@@ -102,95 +126,26 @@ export const Search: FC<{
 
   return (
     <Stack
+      direction="column"
       // direction={isLgBreakpoint ? 'row' : 'column-reverse'}
       spacing={2}
-      sx={(theme) => ({
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'row',
-        [theme.breakpoints.down('lg')]: {
-          flexDirection: 'column-reverse',
-        },
-      })}
+      sx={{ flex: 1 }}
+      // sx={(theme) => ({
+      //   alignItems: 'center',
+      //   justifyContent: 'center',
+      //   // flexDirection: 'row',
+      //   // [theme.breakpoints.down('lg')]: {
+      //   //   flexDirection: 'column-reverse',
+      //   // },
+      // })}
     >
       {/* {fromLang.name} */}
-      <Stack direction="row" spacing={0} sx={{ justifyContent: 'center', alignItems: 'center' }}>
-        <Select
-          variant="standard"
-          value={searchLang.from}
-          disableUnderline={true}
-          sx={{
-            color: colors.text.light,
-            '.MuiSelect-icon': { color: colors.text.light },
-          }}
-          onChange={(e) => {
-            changeDictLang({
-              lang: e.target.value as DictionaryLang,
-              isFrom: true,
-              searchParams,
-              router,
-              pathname,
-            });
-          }}
-          // defaultValue={fromLang.code}
-        >
-          {DictionaryLangs.map((lang) => (
-            <MenuItem key={lang.toString()} value={lang}>
-              {langs[lang]}
-            </MenuItem>
-          ))}
-        </Select>
-        <IconButton
-          aria-label="switch"
-          sx={{ color: colors.text.light }}
-          onClick={() => {
-            changeDictLang({
-              lang: searchLang.to,
-              isFrom: true,
-              otherLang: searchLang.from,
-              searchParams,
-              router,
-              pathname,
-            });
-          }}
-        >
-          <SwitchIcon />
-        </IconButton>
-        {/* {toLang.name} */}
-        <Select
-          variant="standard"
-          value={searchLang.to}
-          disableUnderline={true}
-          sx={{
-            color: colors.text.light,
-            '& .MuiSelect-icon': { color: colors.text.light },
-          }}
-          onChange={(e) => {
-            changeDictLang({
-              lang: e.target.value as DictionaryLang,
-              isFrom: false,
-              searchParams,
-              router,
-              pathname,
-            });
-          }}
-        >
-          {/* <MenuItem value={toLang.code}>{toLang.name}</MenuItem> */}
-          {DictionaryPairs.filter((pair) => pair.includes(searchLang.from)).map((pair) => {
-            const lang = pair.filter((pl) => pl !== searchLang.from)[0];
-            return (
-              <MenuItem key={pair.toString()} value={lang}>
-                {langs[lang as DictionaryLang]}
-              </MenuItem>
-            );
-          })}
-        </Select>
-      </Stack>
       <Stack direction="row" spacing={0} sx={{ mt: '0 !important' }}>
         <Autocomplete
           id="free-solo-search"
           sx={(theme) => ({
-            minWidth: 400,
+            minWidth: 500, //400,
+            width: '100%',
             [theme.breakpoints.down('md')]: {
               minWidth: '70vw',
             },
@@ -232,8 +187,10 @@ export const Search: FC<{
                 placeholder: searchLabel,
                 type: 'search',
                 style: {
-                  borderStartStartRadius: roundingRadius,
-                  borderEndStartRadius: roundingRadius,
+                  borderStartStartRadius: roundingRadiusPx,
+                  borderEndStartRadius: roundingRadiusPx,
+                  borderEndEndRadius: 0,
+                  borderStartEndRadius: 0,
                   backgroundColor: '#fff',
                 },
               }}
@@ -278,8 +235,10 @@ export const Search: FC<{
         <Button
           variant="contained"
           sx={{
-            borderEndEndRadius: roundingRadius,
-            borderStartEndRadius: roundingRadius,
+            borderEndEndRadius: roundingRadiusPx,
+            borderStartEndRadius: roundingRadiusPx,
+            borderStartStartRadius: 0,
+            borderEndStartRadius: 0,
             backgroundColor: colors.secondary,
             ':hover': {
               backgroundColor: colors.secondaryTint,
@@ -292,6 +251,99 @@ export const Search: FC<{
           }}
         >
           <SearchIcon fontSize="large" />
+        </Button>
+      </Stack>
+      <Stack
+        direction="row"
+        sx={{ justifyContent: 'space-between', p: `0 ${roundingRadius * 0.75}px` }}
+      >
+        <Stack direction="row" spacing={0} sx={{ justifyContent: 'center', alignItems: 'center' }}>
+          <Select
+            variant="standard"
+            value={searchLang.from}
+            disableUnderline={true}
+            sx={{
+              color: colors.text.light,
+              '.MuiSelect-icon': { color: colors.text.light },
+            }}
+            onChange={(e) => {
+              changeDictLang({
+                lang: e.target.value as DictionaryLang,
+                isFrom: true,
+                searchParams,
+                router,
+                pathname,
+              });
+            }}
+            // defaultValue={fromLang.code}
+          >
+            {DictionaryLangs.map((lang) => (
+              <MenuItem key={lang.toString()} value={lang}>
+                {langs[lang]}
+              </MenuItem>
+            ))}
+          </Select>
+          <IconButton
+            aria-label="switch"
+            sx={{ color: colors.text.light }}
+            onClick={() => {
+              changeDictLang({
+                lang: searchLang.to,
+                isFrom: true,
+                otherLang: searchLang.from,
+                searchParams,
+                router,
+                pathname,
+              });
+            }}
+          >
+            <SwitchIcon />
+          </IconButton>
+          {/* {toLang.name} */}
+          <Select
+            variant="standard"
+            value={searchLang.to}
+            disableUnderline={true}
+            sx={{
+              color: colors.text.light,
+              '& .MuiSelect-icon': { color: colors.text.light },
+            }}
+            onChange={(e) => {
+              changeDictLang({
+                lang: e.target.value as DictionaryLang,
+                isFrom: false,
+                searchParams,
+                router,
+                pathname,
+              });
+            }}
+          >
+            {/* <MenuItem value={toLang.code}>{toLang.name}</MenuItem> */}
+            {DictionaryPairs.filter((pair) => pair.includes(searchLang.from)).map((pair) => {
+              const lang = pair.filter((pl) => pl !== searchLang.from)[0];
+              return (
+                <MenuItem key={pair.toString()} value={lang}>
+                  {langs[lang as DictionaryLang]}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </Stack>
+        <Button
+          component="label"
+          variant="text"
+          endIcon={<KeyboardArrowDownIcon />}
+          sx={{
+            textTransform: 'none',
+            color: colors.text.light,
+            '& .MuiButton-text': {
+              textTransform: 'none',
+              color: colors.text.light,
+            },
+          }}
+        >
+          {/* {t('tools', { ns: 'common' })} */}
+          {toolsLabel}
         </Button>
       </Stack>
     </Stack>

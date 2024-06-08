@@ -61,9 +61,9 @@ export default async function RootLayout(props: RootLayoutProps) {
         <Providers locale={lang}>
           <TopBar
             currentLang={lang as WebsiteLang}
-            webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
-            dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
-            searchLabel={t('search')}
+            // webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
+            // dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
+            // searchLabel={t('search')}
           />
           {/* <Toolbar sx={{ p: '10px' }} /> */}
           {children}

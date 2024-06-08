@@ -10,18 +10,22 @@ import { ElevationScroll } from './ElevateScroll';
 import { colors } from '@/colors';
 import WebLanguageSelect from './WebLanguageSelect';
 import Link from 'next/link';
+import { useTranslation } from 'react-i18next';
 import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
-  webLangs: Record<WebsiteLang, string>;
-  dictLangs: Record<DictionaryLang, string>;
-  searchLabel: string;
+  // webLangs: Record<WebsiteLang, string>;
+  // dictLangs: Record<DictionaryLang, string>;
+  // searchLabel: string;
 };
 
 const TopBar = (props: TopBarProps) => {
-  const { currentLang, webLangs, dictLangs, searchLabel } = props;
+  const { currentLang } = props;
+  console.log('>>>>>>>>>>>>>> TopBar rendering');
+  const { t } = useTranslation();
   return (
+    // <div> top bar </div>
     <ElevationScroll {...props}>
       <AppBar
         sx={(theme) => ({
@@ -51,7 +55,7 @@ const TopBar = (props: TopBarProps) => {
               maxWidth: '1400px',
             }}
           >
-            <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
+            <Grid item xs={6} md={2} sx={{ mt: '10px', display: 'flex', alignItems: 'flex-start' }}>
               <Link href={`/${currentLang}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                 <Typography
                   variant="h6"
@@ -98,12 +102,14 @@ const TopBar = (props: TopBarProps) => {
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'center',
+                mt: '10px',
                 [theme.breakpoints.down('md')]: {
                   mt: '15px',
                 },
               })}
             >
-              <Search searchLabel={searchLabel} langs={dictLangs} />
+              {/* <Search searchLabel={searchLabel} langs={dictLangs} /> */}
+              <Search lang={currentLang} />
             </Grid>
             <Grid item xs={6} md={2} order={{ xs: 2, md: 3 }}>
               <Box
@@ -115,7 +121,10 @@ const TopBar = (props: TopBarProps) => {
                   alignItems: 'center',
                 }}
               >
-                <WebLanguageSelect currentLang={currentLang} webLangs={webLangs} />
+                <WebLanguageSelect
+                  currentLang={currentLang}
+                  webLangs={{ lez: 'Lezgi', rus: 'Russian', eng: 'English', tur: 'Turkish' }} //{t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
+                />
               </Box>
             </Grid>
           </Grid>

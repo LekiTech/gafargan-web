@@ -62,8 +62,11 @@ export async function initTranslations(
     defaultNS: namespaces[0],
     fallbackNS: namespaces[0],
     ns: namespaces,
+    debug: true,
     // preload: resources ? [] : i18nConfig.locales,
   });
+
+  console.log('namespaces', namespaces, locale);
 
   return {
     i18n: i18nInstance,

@@ -1,12 +1,28 @@
 'use server';
 import { DictionaryLang, Expression } from './types.model';
 
+// === GENERAL ===
 export type PaginatedResponse<T> = {
   totalItems: number;
   totalPages: number;
   currentPage: number;
   pageSize: number;
   items: T[];
+};
+
+// === QUERIES ===
+
+export type SuggestionsQuery = {
+  spelling: string;
+  expLang: DictionaryLang;
+  defLang: DictionaryLang;
+  size: number;
+};
+
+export type GetByIdQuery = {
+  id: string;
+  defLang: DictionaryLang;
+  similarCount?: number;
 };
 
 export type SearchQuery = {
@@ -16,27 +32,37 @@ export type SearchQuery = {
   similarCount?: number;
 };
 
-export type SuggestionsQuery = {
-  spelling: string;
-  expLang: DictionaryLang;
-  defLang: DictionaryLang;
-  size: number;
-};
-
 export type ExamplesQuery = {
   searchString: string;
-  exampleLang: string;
+  lang1: DictionaryLang;
+  lang2: DictionaryLang;
   pageSize: number;
   currentPage: number;
-  tag?: string;
+  tags?: string[];
 };
 
 export type DefinitionsQuery = {
   searchString: string;
-  defLang: string;
+  expLang: DictionaryLang;
+  defLang: DictionaryLang;
   pageSize: number;
   currentPage: number;
-  tag?: string;
+  tags?: string[];
+};
+
+export type ListQuery = {
+  expLang: DictionaryLang;
+  defLang: DictionaryLang;
+  pageSize: number;
+  currentPage: number;
+};
+
+export type TagsQuery = {
+  tags: string[];
+  expLang: DictionaryLang;
+  defLang: DictionaryLang;
+  pageSize: number;
+  currentPage: number;
 };
 
 // RESPONSES
