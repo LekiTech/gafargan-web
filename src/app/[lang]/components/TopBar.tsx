@@ -11,6 +11,7 @@ import { colors } from '@/colors';
 import WebLanguageSelect from './WebLanguageSelect';
 import Link from 'next/link';
 import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
+import { log } from 'console';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
@@ -21,6 +22,7 @@ type TopBarProps = {
 
 const TopBar = (props: TopBarProps) => {
   const { currentLang, webLangs, dictLangs, searchLabel } = props;
+
   return (
     <ElevationScroll {...props}>
       <AppBar

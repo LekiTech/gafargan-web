@@ -42,7 +42,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
           {wordOfTheDay}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          {`${expression?.details[0]?.writtenSources[0].title} - ${expression?.details[0]?.writtenSources[0].authors}`}
+          {`${expression?.details[0]?.writtenSources?.[0].title} - ${expression?.details?.[0]?.writtenSources?.[0].authors}`}
         </Typography>
         <Typography variant="h3" component="div" className={expressionFont.className}>
           {capitalizeFirstLetter(toLowerCaseLezgi(expression?.spelling))}
