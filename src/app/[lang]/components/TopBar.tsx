@@ -21,6 +21,7 @@ type TopBarProps = {
 
 const TopBar = (props: TopBarProps) => {
   const { currentLang, webLangs, dictLangs, searchLabel } = props;
+
   return (
     <ElevationScroll {...props}>
       <AppBar

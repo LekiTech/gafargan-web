@@ -1,7 +1,7 @@
 'use client';
-import React, { FC, memo, useEffect, useState } from 'react';
+import React, { FC, SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Box, Button, IconButton, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { Backdrop, Box, Button, CircularProgress, IconButton, MenuItem, Select, Stack, TextField } from '@mui/material';
 import Autocomplete, {
   AutocompleteRenderInputParams,
   autocompleteClasses,
@@ -16,6 +16,8 @@ import { SuggestionResponseDto } from '@api/types.dto';
 import { DictionaryLangs } from '@api/languages';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toLowerCaseLezgi } from '../../utils';
+import { useDebounceFn } from '../../use/useDebounceFn';
+import BaseLoader from '../../../ui/BaseLoader';
 
 function findPairLang(lang: DictionaryLang) {
   return DictionaryPairs.find((pair) => pair.includes(lang))?.filter((pl) => pl !== lang)[0];
@@ -85,6 +87,8 @@ export const Search: FC<{
   const [options, setOptions] = React.useState<SuggestionResponseDto[]>([]);
   const [inputValue, setInputValue] = React.useState<string>(exp ? toLowerCaseLezgi(exp) : '');
   const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [prevSearch, setPrevSearch] = useState('')
 
   useEffect(() => {
     setSearchLang({
@@ -95,10 +99,47 @@ export const Search: FC<{
 
   useEffect(() => {
     if (shouldPerformSearch) {
+      if (!searchParams.toString() || searchParams.toString() !== prevSearch || exp !== inputValue) {
+        setIsLoading(true);
+      }
       goToDefinition(inputValue, pathname, searchLang, router);
       setShouldPerformSearch(false);
     }
   }, [inputValue, pathname, router, searchLang, shouldPerformSearch]);
+
+  useEffect(() => {
+    setIsLoading(false);
+    setPrevSearch(searchParams.toString())
+  }, [pathname, searchParams])
+
+  // Получение списка подсказок по дебаунс
+  const debounceSetOptions = useCallback(useDebounceFn(async (value: string) => {
+    setOptions(
+      await expressionApi.suggestions({
+        spelling: value,
+        expLang: searchLang.from,
+        defLang: searchLang.to,
+        size: 10,
+      })
+    );
+  }, 500), [])
+
+  const handleInputSearchValue = (e: SyntheticEvent<Element, Event>, value: string) => {    
+    e.preventDefault();
+    setInputValue(value);
+    debounceSetOptions(value);
+  }
+
+  const handleChangeSearchValue = (e: SyntheticEvent<Element, Event>) => {
+    e.preventDefault();
+    // check below if 'v' is a string
+    // if (typeof v === 'string') {
+    //   goToDefinition(v, pathname, searchLang, router);
+    //   return;
+    // }
+    // goToDefinition(v.spelling, pathname, searchLang, router);
+    setShouldPerformSearch(true);
+  }
 
   return (
     <Stack
@@ -113,6 +154,8 @@ export const Search: FC<{
         },
       })}
     >
+
+      <BaseLoader  isLoading={isLoading} setIsLoading={setIsLoading}/>
       {/* {fromLang.name} */}
       <Stack direction="row" spacing={0} sx={{ justifyContent: 'center', alignItems: 'center' }}>
         <Select
@@ -199,29 +242,9 @@ export const Search: FC<{
           disableClearable={true}
           inputValue={inputValue}
           // On `Enter` key press
-          onChange={(e, v, r) => {
-            e.preventDefault();
-            // check below if 'v' is a string
-            // if (typeof v === 'string') {
-            //   goToDefinition(v, pathname, searchLang, router);
-            //   return;
-            // }
-            // goToDefinition(v.spelling, pathname, searchLang, router);
-            setShouldPerformSearch(true);
-          }}
+          onChange={handleChangeSearchValue}
           // On input change, visible to user text change
-          onInputChange={async (e, v, r) => {
-            e.preventDefault();
-            setInputValue(v);
-            setOptions(
-              await expressionApi.suggestions({
-                spelling: v,
-                expLang: searchLang.from,
-                defLang: searchLang.to,
-                size: 10,
-              }),
-            );
-          }}
+          onInputChange={handleInputSearchValue}
           options={options}
           renderInput={(params) => (
             <TextField
