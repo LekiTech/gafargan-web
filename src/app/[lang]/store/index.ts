@@ -1,12 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 // import { expressionApi } from '@/store/expression';
+import { HeaderReducer } from '@/store/slices/header.slice';
 
 export const store = configureStore({
   devTools: true,
   reducer: {
     // Add the generated reducer as a specific top-level slice
     // [expressionApi.reducerPath]: expressionApi.reducer,
+    header: HeaderReducer
   },
   // Adding the api middleware enables caching, invalidation, polling,
   // and other useful features of `rtk-query`.

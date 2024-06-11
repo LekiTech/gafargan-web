@@ -1,5 +1,5 @@
 'use client';
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import {
   ExpressionDefinitionResponseDto,
   ExpressionExampleResponseDto,
@@ -14,6 +14,9 @@ import { FoundExamplesList } from './FoundExamplesList';
 import { SpellingListItem } from './SpellingListItem';
 import { FoundDefinitionsList } from './FoundDefinitionsList';
 import { useTranslation } from 'react-i18next';
+import { useViewport } from '../../../use/useViewport';
+import { EBreakpoints } from '../../../utils/BreakPoints';
+import { IExpressionPageContentStyles } from '@/definition/types';
 
 type ExpressionViewProps = {
   lang: WebsiteLang;
@@ -34,6 +37,16 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
 }) => {
   const { t } = useTranslation(lang);
 
+  const { viewport } = useViewport()
+
+  const pageStyles = useMemo<IExpressionPageContentStyles>(() => ({
+    contentDirection: viewport.isGreaterThan(EBreakpoints.XXL) ? 'row' : 'column',
+    mainContentLeftPadding: viewport.isGreaterThan(EBreakpoints.XXL) ? '25px' : '0',
+    contentWidth: viewport.isGreaterThan(EBreakpoints.XXL) ? '100%' : '99%',
+    contentTopMargin: viewport.isGreaterThan(EBreakpoints.XXL) ? '50px' : '0',
+  }), [viewport])
+
+
   if (!expression) {
     return (
       <Box>
@@ -50,15 +63,16 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         width: '100%',
         display: 'flex',
         justifyContent: 'center',
-        mt: '50px',
+        mt: pageStyles.contentTopMargin,
         mb: '50px',
       }}
     >
       {foundExpression && foundExpression?.details ? (
         <Stack
-          direction={'row'}
+          direction={pageStyles.contentDirection}
           spacing={2}
           sx={{
+            width: '100%',
             maxWidth: '1400px',
           }}
         >
@@ -74,9 +88,9 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               flexDirection: 'column',
               alignItems: 'left',
               justifyContent: 'center',
-              width: '100vw',
+              width: pageStyles.contentWidth,
               pt: '25px',
-              pl: '25px',
+              pl: pageStyles.mainContentLeftPadding,
               pb: '50px',
             }}
           >

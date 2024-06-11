@@ -11,6 +11,10 @@ import { colors } from '@/colors';
 import WebLanguageSelect from './WebLanguageSelect';
 import Link from 'next/link';
 import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
+import { useEffect, useRef } from 'react';
+import { useActions } from '@/store/actions';
+import { stringPxToNumber } from '../../utils/stringPxToNumber';
+import { useViewport } from '../../use/useViewport';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
@@ -21,107 +25,122 @@ type TopBarProps = {
 
 const TopBar = (props: TopBarProps) => {
   const { currentLang, webLangs, dictLangs, searchLabel } = props;
+
+  const $header = useRef();
+  const { setHeaderHeight } = useActions()
+  const viewport = useViewport();
+
+  useEffect(() => {
+    if (!$header.current) return;
+    setHeaderHeight(stringPxToNumber(window.getComputedStyle($header.current)?.height))
+  }, [viewport]);
+
   return (
-    <ElevationScroll {...props}>
-      <AppBar
-        sx={(theme) => ({
-          position: 'sticky',
-          backgroundColor: colors.primary, //'white',
-          color: colors.text.light, //'#333',
-          borderBottomStyle: 'solid',
-          borderBottomWidth: '1px',
-          borderBottomColor: colors.primaryTint,
-          zIndex: (theme) => theme.zIndex.drawer + 1,
-        })}
-      >
-        <Toolbar
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            p: '10px',
-          }}
+    <div
+      ref={$header}
+    >
+      <ElevationScroll {...props}>
+        <AppBar
+          sx={(theme) => ({
+            position: 'sticky',
+            backgroundColor: colors.primary, //'white',
+            color: colors.text.light, //'#333',
+            borderBottomStyle: 'solid',
+            borderBottomWidth: '1px',
+            borderBottomColor: colors.primaryTint,
+            zIndex: (theme) => theme.zIndex.drawer + 1,
+          })}
         >
-          <Grid
-            container
+          <Toolbar
             sx={{
               display: 'flex',
-              flexDirection: 'row',
               justifyContent: 'center',
-              maxWidth: '1400px',
+              alignItems: 'center',
+              p: '10px',
             }}
           >
-            <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
-              <Link href={`/${currentLang}`} style={{ color: 'inherit', textDecoration: 'none' }}>
-                <Typography
-                  variant="h6"
-                  component="div"
-                  className={opensansFont.className}
-                  // className={lusitanaFont.className}
-                  sx={(theme) => ({
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifySelf: 'start',
-                    [theme.breakpoints.down('lg')]: {
-                      fontSize: '1rem',
-                    },
-                    // width: '150px',
-                    // color: colors.text.light,
-                    // textDecoration: 'none',
-                  })}
-                >
-                  <Avatar
-                    src={images.logo.src}
-                    sx={(theme) => ({
-                      width: '56px',
-                      height: '56px',
-                      mr: '10px',
-                      [theme.breakpoints.down('lg')]: {
-                        width: '36px',
-                        height: '36px',
-                        mr: '7px',
-                      },
-                    })}
-                  />
-                  {/* Гафарган */}
-                  Gafargan
-                </Typography>
-              </Link>
-            </Grid>
             <Grid
-              item
-              xs={12}
-              sm={8}
-              order={{ xs: 3, md: 2 }}
-              sx={(theme) => ({
+              container
+              sx={{
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'center',
-                [theme.breakpoints.down('md')]: {
-                  mt: '15px',
-                },
-              })}
+                maxWidth: '1400px',
+              }}
             >
-              <Search searchLabel={searchLabel} langs={dictLangs} />
-            </Grid>
-            <Grid item xs={6} md={2} order={{ xs: 2, md: 3 }}>
-              <Box
-                sx={{
-                  m: '10px',
+              <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Link href={`/${currentLang}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                  <Typography
+                    variant="h6"
+                    component="div"
+                    className={opensansFont.className}
+                    // className={lusitanaFont.className}
+                    sx={(theme) => ({
+                      display: 'flex',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifySelf: 'start',
+                      [theme.breakpoints.down('lg')]: {
+                        fontSize: '1rem',
+                      },
+                      // width: '150px',
+                      // color: colors.text.light,
+                      // textDecoration: 'none',
+                    })}
+                  >
+                    <Avatar
+                      src={images.logo.src}
+                      sx={(theme) => ({
+                        width: '56px',
+                        height: '56px',
+                        mr: '10px',
+                        [theme.breakpoints.down('lg')]: {
+                          width: '36px',
+                          height: '36px',
+                          mr: '7px',
+                        },
+                      })}
+                    />
+                    {/* Гафарган */}
+                    Gafargan
+                  </Typography>
+                </Link>
+              </Grid>
+              <Grid
+                item
+                xs={12}
+                sm={8}
+                order={{ xs: 3, md: 2 }}
+                sx={(theme) => ({
                   display: 'flex',
                   flexDirection: 'row',
-                  justifyContent: 'end',
-                  alignItems: 'center',
-                }}
+                  justifyContent: 'center',
+                  [theme.breakpoints.down('md')]: {
+                    mt: '15px',
+                  },
+                })}
               >
-                <WebLanguageSelect currentLang={currentLang} webLangs={webLangs} />
-              </Box>
+                <Search searchLabel={searchLabel} langs={dictLangs} />
+              </Grid>
+              <Grid item xs={6} md={2} order={{ xs: 2, md: 3 }}>
+                <Box
+                  sx={{
+                    m: '10px',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'end',
+                    alignItems: 'center',
+                  }}
+                >
+                  <WebLanguageSelect currentLang={currentLang} webLangs={webLangs} />
+                </Box>
+              </Grid>
             </Grid>
-          </Grid>
-        </Toolbar>
-      </AppBar>
-    </ElevationScroll>
+          </Toolbar>
+        </AppBar>
+      </ElevationScroll>
+    </div>
+
   );
 };
 

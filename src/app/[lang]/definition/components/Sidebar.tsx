@@ -1,22 +1,26 @@
 'use client';
-import * as React from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Typography from '@mui/material/Typography';
 import {
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
   List,
   ListItem,
-  ListItemText,
   ListItemButton,
+  ListItemText,
+  Select,
+  SelectChangeEvent,
+  Step,
+  StepContent,
+  StepLabel,
+  Stepper,
 } from '@mui/material';
-import { red, grey, green } from '@mui/material/colors';
+import { green, grey } from '@mui/material/colors';
 import { colors } from '@/colors';
 import Link from 'next/link';
 import { Contents } from '../types';
+import { FC, useEffect, useState } from 'react';
+import { useViewport } from '../../../use/useViewport';
+import { EBreakpoints } from '../../../utils/BreakPoints';
 
 type SidebarProps = {
   contents: Contents[];
@@ -25,12 +29,25 @@ type SidebarProps = {
 
 const drawerWidth = 300;
 
-export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
-  const [activeStep, setActiveStep] = React.useState(0);
-  const [activeStepDetailId, setActiveStepDetailId] = React.useState('');
+export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
 
-  React.useEffect(() => {
+  const { viewport } = useViewport();
+
+  const [activeStep, setActiveStep] = useState(0);
+  const [activeStepDetailId, setActiveStepDetailId] = useState('');
+  // вынес в отдельный стейт, не использую {activeStepDetailId} т.к. в select не показываем otherExamples
+  const [activeStepDetailIdForSelect, setActiveStepDetailIdForSelect] = useState('')
+
+
+  useEffect(() => {
     const eventListener = () => {
+      console.log(window.scrollY);
+      if (window.scrollY < 230) {
+        setActiveStep(0);
+        setActiveStepDetailId(contents[0].details[0].detailsId);
+        setActiveStepDetailIdForSelect(contents[0].details[0].detailsId);
+        return;
+      }
       for (let i = 0; i < contents.length; i++) {
         const step = contents[i];
         for (let j = 0; j < step?.details.length; j++) {
@@ -42,13 +59,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
             detailBoundingRect?.top &&
             detailBoundingRect?.bottom &&
             detailBoundingRect.top < window.innerHeight &&
-            detailBoundingRect.bottom > 50
+            detailBoundingRect.bottom > 10
           ) {
             setActiveStep(i);
             setActiveStepDetailId(detail.detailsId);
+            setActiveStepDetailIdForSelect(detail.detailsId);
             break;
           }
         }
+        if (viewport.isLessThan(EBreakpoints.XXL)) continue;
         const boundingRect = document.getElementById(step.spellingId)?.getBoundingClientRect();
         if (
           boundingRect?.top &&
@@ -77,8 +96,44 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
     return () => document.removeEventListener('scroll', eventListener);
   }, [contents]);
 
+  const handleChangeSelect = (event: SelectChangeEvent) => {
+    const element = document.getElementById(event.target?.value);
+    if (!element) return;
+    element.scrollIntoView({ block: "center", behavior: "smooth" })
+  };
+
+
   const getBackgroundColor = (detailsId: string) =>
     activeStepDetailId === detailsId ? green[50] : 'inherit';
+
+  if (viewport.isLessThan(EBreakpoints.XXL)) {
+    return (
+      <Select
+        id="word-select"
+        value={activeStepDetailIdForSelect}
+        native
+        sx={{
+          borderRadius: 0,
+          position: 'sticky',
+          top: 0,
+          background: '#0f3b2e',
+          color: '#fff',
+          zIndex: 2,
+        }}
+        onChange={handleChangeSelect}
+      >
+        {
+          contents.map((c) => c.details.map((d) =>
+            (<option
+              key={d.detailsId}
+              value={d.detailsId}
+              style={{background: '#0f3b2e'}}
+            > {d.preview}</option>))
+          )
+        }
+      </Select>
+    )
+  }
   return (
     <Drawer
       sx={{

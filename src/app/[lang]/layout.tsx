@@ -51,6 +51,7 @@ export default async function RootLayout(props: RootLayoutProps) {
     // searchParams,
   } = props;
   const { t } = await initTranslations(lang);
+
   return (
     <html
       lang={lang}

@@ -29,7 +29,11 @@ type ProviderProps = {
 //   return <Provider store={store}>{children}</Provider>;
 // };
 const Providers: FC<ProviderProps> = ({ children, locale }) => {
-  return <TranslationsProvider locale={locale}>{children}</TranslationsProvider>;
+  return (
+    <Provider store={store}>
+      <TranslationsProvider locale={locale}>{children}</TranslationsProvider>
+    </Provider>
+  )
 };
 
 export default Providers;
