@@ -14,3 +14,10 @@ export type Contents = {
   otherExamplesId: string;
   otherExamplesCount: number;
 };
+
+export interface IExpressionPageContentStyles {
+  contentDirection: 'row' | 'column'
+  mainContentLeftPadding: string;
+  contentWidth: string;
+  contentTopMargin: string;
+}

@@ -189,7 +189,6 @@ export const Search: FC<{
             // minWidth: 400,
             // [theme.breakpoints.down('md')]: {
             width: '100%',
-
             // },
           })}
           freeSolo={true}

@@ -12,8 +12,10 @@ import WebLanguageSelect from './WebLanguageSelect';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
-// import { HideOnScroll } from './HideScroll';
-
+import { useEffect, useRef } from 'react';
+import { useActions } from '@/store/actions';
+import { stringPxToNumber } from '../../utils/stringPxToNumber';
+import { useViewport } from '../../use/useViewport';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
@@ -28,15 +30,27 @@ const TopBar = (props: TopBarProps) => {
     threshold: 10,
   });
   const theme = useTheme();
+  const $header = useRef();
+  const { setHeaderHeight } = useActions()
+  const viewport = useViewport();
+
+  useEffect(() => {
+    if (!$header.current) return;
+    setHeaderHeight(stringPxToNumber(window.getComputedStyle($header.current)?.height))
+  }, [viewport]);
+
   return (
     // <div> top bar </div>
-    <Box sx={{
-      mb: '170px',
-      [theme.breakpoints.down('md')]: {
-        // mb: trigger ? '100px' : '200px'
-        mb: '200px'
-      }
-    }}>
+    <Box
+      ref={$header}
+      sx={{
+        mb: '170px',
+        [theme.breakpoints.down('md')]: {
+          // mb: trigger ? '100px' : '200px'
+          mb: '200px'
+        }
+      }}
+    >
       <ElevationScroll {...props}>
         <AppBar
           sx={(theme) => ({
@@ -67,6 +81,7 @@ const TopBar = (props: TopBarProps) => {
               }}
             >
               <Grid item xs={6} md={2} sx={{ mt: '10px', display: 'flex', alignItems: 'flex-start' }}>
+                {/* <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}> */}
                 <Link href={`/${currentLang}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                   <Typography
                     variant="h6"
@@ -144,12 +159,13 @@ const TopBar = (props: TopBarProps) => {
                     currentLang={currentLang}
                     webLangs={{ lez: 'Lezgi', rus: 'Russian', eng: 'English', tur: 'Turkish' }} //{t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
                   />
-                </Box>
-              </Grid>
-            </Grid>
-          </Toolbar>
-        </AppBar>
-      </ElevationScroll>
+                  {/* <WebLanguageSelect currentLang={currentLang} webLangs={webLangs} /> */}
+                </Box >
+              </Grid >
+            </Grid >
+          </Toolbar >
+        </AppBar >
+      </ElevationScroll >
     </Box >
   );
 };

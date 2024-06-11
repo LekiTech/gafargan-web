@@ -1,5 +1,5 @@
 'use client';
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import {
   ExpressionDefinitionResponseDto,
   ExpressionExampleResponseDto,
@@ -14,6 +14,9 @@ import { FoundExamplesList, FoundExamplesListMobile } from './FoundExamplesList'
 import { SpellingListItem } from './SpellingListItem';
 import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinitionsList';
 import { useTranslation } from 'react-i18next';
+// import { useViewport } from '../../../use/useViewport';
+// import { EBreakpoints } from '../../../utils/BreakPoints';
+// import { IExpressionPageContentStyles } from '@/definition/types';
 
 type ExpressionViewProps = {
   lang: WebsiteLang;
@@ -35,6 +38,16 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   const { t } = useTranslation(lang);
   const theme = useTheme();
   const isSmallerThanMd = useMediaQuery(theme.breakpoints.down('md'));
+
+  // NOTE: Part below didn't work as intended after merging, holding on previous version
+  // const { viewport } = useViewport()
+  // const pageStyles = useMemo<IExpressionPageContentStyles>(() => ({
+  //   contentDirection: viewport.isGreaterThan(EBreakpoints.XXL) ? 'row' : 'column',
+  //   mainContentLeftPadding: viewport.isGreaterThan(EBreakpoints.XXL) ? '25px' : '0',
+  //   contentWidth: viewport.isGreaterThan(EBreakpoints.XXL) ? '100%' : '99%',
+  //   contentTopMargin: viewport.isGreaterThan(EBreakpoints.XXL) ? '50px' : '0',
+  // }), [viewport])
+
 
   if (!expression) {
     return (

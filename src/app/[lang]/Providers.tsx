@@ -5,6 +5,8 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { I18nextProvider } from 'react-i18next';
 import { initTranslations } from '../i18n';  // Adjust the path as necessary
 import { createInstance, i18n as I18nInstance } from 'i18next';
+import { Provider } from 'react-redux';
+import store from '@/store';
 
 type TranslationProviderProps = {
   children: React.ReactNode;
@@ -39,7 +41,11 @@ type ProviderProps = {
 } & TranslationProviderProps;
 
 const Providers: FC<ProviderProps> = ({ children, locale }) => {
-  return <TranslationsProvider locale={locale}>{children}</TranslationsProvider>;
+  return (
+    <Provider store={store}>
+      <TranslationsProvider locale={locale}>{children}</TranslationsProvider>
+    </Provider>
+  )
 };
 
 export default Providers;
