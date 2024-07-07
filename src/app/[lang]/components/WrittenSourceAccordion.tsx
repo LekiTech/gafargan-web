@@ -12,6 +12,7 @@ import { remark } from 'remark';
 import html from 'remark-html';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { WrittenSource } from '../../../api/types.model';
+import { useTranslation } from 'react-i18next';
 
 type WrittenSourceProps = {
   source: WrittenSource;
@@ -19,6 +20,7 @@ type WrittenSourceProps = {
 
 const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
   const [contentHtml, setContentHtml] = useState('');
+  const { t } = useTranslation();
   useEffect(() => {
     if (source.description) {
       const preprocessedDescription = source.description.replaceAll('\\n', '\n\n');
@@ -34,10 +36,10 @@ const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        // sx={(theme) => ({
-        //   display: 'flex',
-        //   alignItems: 'center',
-        // })}
+      // sx={(theme) => ({
+      //   display: 'flex',
+      //   alignItems: 'center',
+      // })}
       >
         <Box
           sx={(theme) => ({
@@ -46,20 +48,21 @@ const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
             flexDirection: 'row',
             [theme.breakpoints.down('md')]: {
               flexDirection: 'column',
+              alignItems: 'flex-start',
             },
           })}
         >
           <Typography>📚 {source.title}</Typography>
-          <Typography sx={{ marginLeft: 2, color: 'text.secondary' }}>{source.authors}</Typography>
+          <Typography sx={(theme) => ({ ml: 2, [theme.breakpoints.down('md')]: { ml: 3 }, color: 'text.secondary' })}>{source.authors}</Typography>
         </Box>
       </AccordionSummary>
       <AccordionDetails>
         {source.publicationYear && (
-          <Typography paragraph>Published in {source.publicationYear}</Typography>
+          <Typography paragraph>{t('publishedIn')}: {source.publicationYear}</Typography>
         )}
         {source.providedBy ? (
           <Typography paragraph>
-            Provided by{' '}
+            {t('providedBy') + ': '}
             {source.providedByUrl ? (
               <Link href={source.providedByUrl} target="_blank" rel="noopener">
                 {source.providedBy}
@@ -69,7 +72,7 @@ const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
             )}
           </Typography>
         ) : null}
-        {source.processedBy && <Typography paragraph>Processed by {source.processedBy}</Typography>}
+        {source.processedBy && <Typography paragraph>{t('processedBy')}: {source.processedBy}</Typography>}
         {source.copyright && (
           <Typography paragraph color="text.secondary">
             © {source.copyright}
