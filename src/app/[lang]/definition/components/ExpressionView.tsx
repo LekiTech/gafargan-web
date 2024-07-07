@@ -65,7 +65,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         <Stack
           direction={'row'}
           spacing={2}
-          sx={{ maxWidth: '1400px', }}
+          sx={{ maxWidth: '1400px', alignItems: 'baseline' }}
         >
           <Sidebar
             contents={foundExpression?.details?.map((d, i) =>
