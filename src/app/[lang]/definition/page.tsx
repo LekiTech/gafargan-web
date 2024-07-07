@@ -16,7 +16,7 @@ export async function generateMetadata(
     spelling: searchParams.exp,
     expLang: searchParams.fromLang as DictionaryLang,
     defLang: searchParams.toLang as DictionaryLang,
-    similarCount: 0,
+    similarCount: 1,
   });
 
   // optionally access and extend (rather than replace) parent metadata

@@ -81,21 +81,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
     activeStepDetailId === detailsId ? green[50] : 'inherit';
   return (
     <Drawer
-      sx={{
+      sx={(theme) => ({
+        [theme.breakpoints.down('md')]: {
+          display: 'none',
+        },
+        display: 'block',
         width: drawerWidth,
+        height: 'calc(100% - 150px)',
         // flexShrink: 0,
         '& .MuiDrawer-paper': {
+          ml: '24px',
           backgroundColor: colors.background,
           width: drawerWidth,
           boxSizing: 'border-box',
           position: 'sticky',
-          top: '100px',
-          height: '100%',
+          top: '150px',
+          height: 'calc(100% - 150px)',
           maxHeight: 'calc(100vh - 100px)',
         },
-      }}
+      })}
       variant="permanent"
-      // anchor="left"
+    // anchor="left"
     >
       {/* <Toolbar sx={{ p: '10px' }} />
       <Divider /> */}

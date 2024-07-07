@@ -6,7 +6,7 @@ import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SpeakNumIcon from '@mui/icons-material/VolumeUp';
-import { IconButton, TextField } from '@mui/material';
+import { Box, IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum, playLezgiNumberTts } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
 import { copyText, toLowerCaseLezgi } from '../../utils';
@@ -70,22 +70,24 @@ export const NumbersToLezgi: FC = () => {
             e.target.selectionStart = e.target.selectionEnd = newValue.length - endOffset;
           }}
         />
-        <Typography variant="caption" color="text.secondary">
-          {t(`translation`)}
-        </Typography>
-        <Typography
-          variant="h6"
-          sx={{
-            fontSize: '1.1rem',
-            borderLeftWidth: '2px',
-            borderLeftStyle: 'solid',
-            borderLeftColor: 'grey.300',
-            paddingLeft: '10px',
-          }}
-          className={expressionFont.className}
-        >
-          {result}
-        </Typography>
+        <Box>
+          <Typography variant="caption" color="text.secondary">
+            {t(`translation`)}
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              fontSize: '1.1rem',
+              borderLeftWidth: '2px',
+              borderLeftStyle: 'solid',
+              borderLeftColor: 'grey.300',
+              paddingLeft: '10px',
+            }}
+            className={expressionFont.className}
+          >
+            {result}
+          </Typography>
+        </Box>
       </CardContent>
       <CardActions sx={{ display: 'flex', alignItems: 'end' }}>
         <IconButton color="primary" aria-label="copy" onClick={() => copyText(result)}>
@@ -149,21 +151,23 @@ export const LezgiToNumbers: FC = () => {
             setResult(convertLezgiToNumberAndFormat(inputValue));
           }}
         />
-        <Typography variant="caption" color="text.secondary">
-          {t(`number`)}
-        </Typography>
-        <Typography
-          variant="h6"
-          sx={{
-            borderLeftWidth: '2px',
-            borderLeftStyle: 'solid',
-            borderLeftColor: 'grey.300',
-            paddingLeft: '10px',
-          }}
-          className={expressionFont.className}
-        >
-          {result}
-        </Typography>
+        <Box>
+          <Typography variant="caption" color="text.secondary">
+            {t(`number`)}
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              borderLeftWidth: '2px',
+              borderLeftStyle: 'solid',
+              borderLeftColor: 'grey.300',
+              paddingLeft: '10px',
+            }}
+            className={expressionFont.className}
+          >
+            {result}
+          </Typography>
+        </Box>
       </CardContent>
       <CardActions sx={{ display: 'flex', alignItems: 'end' }}>
         <IconButton

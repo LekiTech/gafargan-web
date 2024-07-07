@@ -24,7 +24,12 @@ export const ExamplesComp: FC<{
   return examples && examples.length > 0 ? (
     <Accordion
       variant="outlined"
-      sx={{ backgroundColor: 'inherit', width: isOtherExamples ? '100%' : '500px' }}
+      sx={(theme) => ({
+        backgroundColor: 'inherit',
+        width: isOtherExamples ? 'calc(100% - 24px)' : 'unset',
+        maxWidth: isOtherExamples ? '750px' : '500px',
+        mr: '24px'
+      })}
       TransitionProps={{ timeout: 200 }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>

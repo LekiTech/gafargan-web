@@ -6,13 +6,13 @@ import {
   ExpressionSearchResponseDto,
 } from '@api/types.dto';
 import { WebsiteLang } from '@api/types.model';
-import { Box, Grid, List, Paper, Skeleton, Stack, Typography } from '@mui/material';
+import { Box, Grid, List, ListItem, Paper, Skeleton, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { Sidebar } from './Sidebar';
 import { toContents } from '../utils';
 import { ExpressionDetailsComp } from './ExpressionDetailsComp';
-import { FoundExamplesList } from './FoundExamplesList';
+import { FoundExamplesList, FoundExamplesListMobile } from './FoundExamplesList';
 import { SpellingListItem } from './SpellingListItem';
-import { FoundDefinitionsList } from './FoundDefinitionsList';
+import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinitionsList';
 import { useTranslation } from 'react-i18next';
 
 type ExpressionViewProps = {
@@ -33,6 +33,8 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   labels,
 }) => {
   const { t } = useTranslation(lang);
+  const theme = useTheme();
+  const isSmallerThanMd = useMediaQuery(theme.breakpoints.down('md'));
 
   if (!expression) {
     return (
@@ -46,21 +48,24 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   const { found: foundExpression, similar: similarExpressions } = expression;
   return (
     <Box
-      sx={{
-        width: '100%',
+      sx={(theme) => ({
+        width: '100vw',
         display: 'flex',
         justifyContent: 'center',
-        mt: '50px',
+        mt: '20px',
         mb: '50px',
-      }}
+        // pb: '150px',
+        // mt: '100px',
+        [theme.breakpoints.down('md')]: {
+          width: '100vw',
+        },
+      })}
     >
       {foundExpression && foundExpression?.details ? (
         <Stack
           direction={'row'}
           spacing={2}
-          sx={{
-            maxWidth: '1400px',
-          }}
+          sx={{ maxWidth: '1400px', }}
         >
           <Sidebar
             contents={foundExpression?.details?.map((d, i) =>
@@ -69,16 +74,27 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
             otherExamplesLabel={labels.otherExamples}
           />
           <Box
-            sx={{
+            sx={(theme) => ({
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'left',
               justifyContent: 'center',
-              width: '100vw',
+              // width: '100%',
+              width: '65vw',
+              maxWidth: '100%',
+              boxSizing: 'border-box',
               pt: '25px',
               pl: '25px',
               pb: '50px',
-            }}
+              [theme.breakpoints.down('md')]: {
+                width: '100vw',
+                // pl: 0,
+                // ml: 0,
+                '&.MuiBox-root': {
+                  ml: '0'
+                }
+              },
+            })}
           >
             {foundExpression?.details?.map((detail, i) => (
               <ExpressionDetailsComp
@@ -119,34 +135,36 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                   display: 'flex',
                   flexDirection: 'row',
                   p: 0,
-                  overflow: 'scroll',
+                  overflow: 'auto',
+                  maxWidth: '100vw',
                 }}
               >
                 {similarExpressions?.map((s, i) => (
-                  <SpellingListItem
-                    key={`similar_${i}`}
-                    id={s.id}
-                    spelling={s.spelling}
-                    showIcon={false}
-                    sx={{ color: '#bb1614', fontWeight: 600, pl: 0 }}
-                  />
+                  <ListItem key={`similar_${i}`} sx={{ pt: 0, mb: '10px', pl: 0, ml: 0 }}>
+                    <SpellingListItem
+                      id={s.id}
+                      spelling={s.spelling}
+                      showIcon={false}
+                      sx={{ minWidth: 'max-content', color: '#bb1614', fontWeight: 600, pl: 0 }}
+                    />
+                  </ListItem>
                 ))}
               </List>
             </Stack>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: '20px' }}>
+            <Paper elevation={3} sx={(theme) => ({ p: '20px', [theme.breakpoints.down('md')]: { pb: 0 } })}>
               <Stack direction="column">
                 <Typography variant="h6">{t('foundInExamples')}</Typography>
-                <FoundExamplesList lang={lang} examples={foundInExamples} />
+                {isSmallerThanMd ? <FoundExamplesListMobile lang={lang} examples={foundInExamples} /> : <FoundExamplesList lang={lang} examples={foundInExamples} />}
               </Stack>
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: '20px' }}>
+            <Paper elevation={3} sx={(theme) => ({ p: '20px', [theme.breakpoints.down('md')]: { pb: 0 } })}>
               <Stack direction="column">
                 <Typography variant="h6">{t('foundInDefinitions')}</Typography>
-                <FoundDefinitionsList lang={lang} definitions={foundInDefinitions} />
+                {isSmallerThanMd ? <FoundDefinitionsListMobile lang={lang} definitions={foundInDefinitions} /> : <FoundDefinitionsList lang={lang} definitions={foundInDefinitions} />}
               </Stack>
             </Paper>
           </Grid>

@@ -266,12 +266,15 @@ export const Search: FC<{
             e.preventDefault();
             // goToDefinition(inputValue, pathname, searchLang, router);
             setShouldPerformSearch(true);
+            //@ts-ignore
+            document?.activeElement?.blur();
           }}
         >
           <SearchIcon fontSize="large" />
         </Button>
       </Stack>
-      <Stack direction="row" spacing={0} sx={{ pl: '20px', pr: '20px', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Stack direction="row" spacing={0} sx={{ pl: '20px', pr: '20px', justifyContent: 'center', alignItems: 'center' }}>
+        {/* <Stack direction="row" spacing={0} sx={{ pl: '20px', pr: '20px', justifyContent: 'space-between', alignItems: 'center' }}> */}
         <Stack direction="row" spacing={0} sx={{ justifyContent: 'center', alignItems: 'center' }}>
           <Select
             variant="standard"
@@ -344,7 +347,7 @@ export const Search: FC<{
             })}
           </Select>
         </Stack>
-        <Button
+        {/* <Button
           component="label"
           variant="text"
           endIcon={<KeyboardArrowDownIcon />}
@@ -357,9 +360,8 @@ export const Search: FC<{
             },
           }}
         >
-          {/* {t('tools', { ns: 'common' })} */}
           {toolsLabel}
-        </Button>
+        </Button> */}
       </Stack>
     </Stack>
   );

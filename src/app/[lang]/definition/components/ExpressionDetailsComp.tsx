@@ -41,6 +41,11 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         variant="h2"
         className={expressionFont.className}
         id={createSpellingId(idx, spelling, data.definitionDetails.length, data.inflection)}
+        sx={(theme) => ({
+          [theme.breakpoints.down('md')]: {
+            width: '90vw', wordWrap: "break-word", fontSize: '2.5rem'
+          }
+        })}
       >
         {toLowerCaseLezgi(spelling)}
       </Typography>
