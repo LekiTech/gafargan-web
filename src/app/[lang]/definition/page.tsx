@@ -57,23 +57,23 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
   const foundInExamples = isExpressionFound
     ? undefined
     : await expressionApi.examples({
-        searchString: searchParams.exp,
-        lang1: fromLang,
-        lang2: toLang,
-        pageSize: 10,
-        currentPage: 0,
-        // tags: ['сущ.'],
-      });
+      searchString: searchParams.exp,
+      lang1: fromLang,
+      lang2: toLang,
+      pageSize: 10,
+      currentPage: 0,
+      // tags: ['сущ.'],
+    });
   const foundInDefinitions = isExpressionFound
     ? undefined
     : await expressionApi.definitions({
-        searchString: searchParams.exp,
-        expLang: fromLang,
-        defLang: toLang,
-        pageSize: 10,
-        currentPage: 0,
-        // tags: ['сущ.'],
-      });
+      searchString: searchParams.exp,
+      expLang: fromLang,
+      defLang: toLang,
+      pageSize: 10,
+      currentPage: 0,
+      // tags: ['сущ.'],
+    });
   return (
     <ExpressionView
       foundInExamples={foundInExamples?.items ?? []}

@@ -22,8 +22,7 @@ type TopBarProps = {
 
 const TopBar = (props: TopBarProps) => {
   const { currentLang } = props;
-  console.log('>>>>>>>>>>>>>> TopBar rendering');
-  const { t } = useTranslation();
+
   return (
     // <div> top bar </div>
     <ElevationScroll {...props}>
@@ -96,7 +95,8 @@ const TopBar = (props: TopBarProps) => {
             <Grid
               item
               xs={12}
-              sm={8}
+              md={8}
+              // sm={8}
               order={{ xs: 3, md: 2 }}
               sx={(theme) => ({
                 display: 'flex',

@@ -1,11 +1,14 @@
 'use client';
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Box, Button, IconButton, MenuItem, Select, Stack, TextField } from '@mui/material';
+import { Backdrop, Box, Button, CircularProgress, IconButton, MenuItem, Select, Stack, TextField } from '@mui/material';
+import Autocomplete, {
+  AutocompleteRenderInputParams,
+  autocompleteClasses,
+} from '@mui/material/Autocomplete';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
-import SearchIcon from '@mui/icons-material/Search';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
+import SearchIcon from '@mui/icons-material/Search';
 import * as expressionApi from '@api/expressionApi';
 import { DictionaryPairs } from '@/store/constants';
 import { colors } from '@/colors';
@@ -14,6 +17,8 @@ import { SuggestionResponseDto } from '@api/types.dto';
 import { DictionaryLangs } from '@api/languages';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toLowerCaseLezgi } from '../../utils';
+import { useDebounceFn } from '../../use/useDebounceFn';
+import BaseLoader from '../../../ui/BaseLoader';
 import { useTranslation } from 'react-i18next';
 
 function findPairLang(lang: DictionaryLang) {
@@ -76,21 +81,21 @@ export const Search: FC<{
   // searchLabel: string;
   // }> = ({ langs, searchLabel }) => {
 }> = ({ lang }) => {
-  // const { t } = useTranslation(lang);
-  // const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
-  //   DictionaryLang,
-  //   string
-  // >;
-  // const searchLabel = t('search', { ns: 'common' });
-  // const toolsLabel = t('tools', { ns: 'common' });
-  const langs = {
-    lez: 'Lezgi',
-    rus: 'Russian',
-    eng: 'English',
-    tur: 'Turkish',
-  } as unknown as Record<DictionaryLang, string>;
-  const searchLabel = 'search';
-  const toolsLabel = 'tools';
+  const { t } = useTranslation(lang);
+  const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
+    DictionaryLang,
+    string
+  >;
+  const searchLabel = t('search', { ns: 'common' });
+  const toolsLabel = t('tools', { ns: 'common' });
+  // const langs = {
+  //   lez: 'Lezgi',
+  //   rus: 'Russian',
+  //   eng: 'English',
+  //   tur: 'Turkish',
+  // } as unknown as Record<DictionaryLang, string>;
+  // const searchLabel = 'search';
+  // const toolsLabel = 'tools';
 
   const router = useRouter();
   const pathname = usePathname();
@@ -103,12 +108,8 @@ export const Search: FC<{
   const [options, setOptions] = useState<SuggestionResponseDto[]>([]);
   const [inputValue, setInputValue] = useState<string>(exp ? toLowerCaseLezgi(exp) : '');
   const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
-
-  // useEffect(() => {
-  //   setLangs(
-  //     t('languages', { ns: 'common', returnObjects: true }) as Record<DictionaryLang, string>,
-  //   );
-  // }, [t]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [prevSearch, setPrevSearch] = useState('')
 
   useEffect(() => {
     setSearchLang({
@@ -119,10 +120,47 @@ export const Search: FC<{
 
   useEffect(() => {
     if (shouldPerformSearch) {
+      if (!searchParams.toString() || searchParams.toString() !== prevSearch || exp !== inputValue) {
+        setIsLoading(true);
+      }
       goToDefinition(inputValue, pathname, searchLang, router);
       setShouldPerformSearch(false);
     }
   }, [inputValue, pathname, router, searchLang, shouldPerformSearch]);
+
+  useEffect(() => {
+    setIsLoading(false);
+    setPrevSearch(searchParams.toString())
+  }, [pathname, searchParams])
+
+  // Получение списка подсказок по дебаунс
+  const debounceSetOptions = useCallback(useDebounceFn(async (value: string) => {
+    setOptions(
+      await expressionApi.suggestions({
+        spelling: value,
+        expLang: searchLang.from,
+        defLang: searchLang.to,
+        size: 10,
+      })
+    );
+  }, 500), [])
+
+  const handleInputSearchValue = (e: SyntheticEvent<Element, Event>, value: string) => {
+    e.preventDefault();
+    setInputValue(value);
+    debounceSetOptions(value);
+  }
+
+  const handleChangeSearchValue = (e: SyntheticEvent<Element, Event>) => {
+    e.preventDefault();
+    // check below if 'v' is a string
+    // if (typeof v === 'string') {
+    //   goToDefinition(v, pathname, searchLang, router);
+    //   return;
+    // }
+    // goToDefinition(v.spelling, pathname, searchLang, router);
+    setShouldPerformSearch(true);
+  }
 
   return (
     <Stack
@@ -130,53 +168,35 @@ export const Search: FC<{
       // direction={isLgBreakpoint ? 'row' : 'column-reverse'}
       spacing={2}
       sx={{ flex: 1 }}
-      // sx={(theme) => ({
-      //   alignItems: 'center',
-      //   justifyContent: 'center',
-      //   // flexDirection: 'row',
-      //   // [theme.breakpoints.down('lg')]: {
-      //   //   flexDirection: 'column-reverse',
-      //   // },
-      // })}
+    // sx={(theme) => ({
+    //   alignItems: 'center',
+    //   justifyContent: 'center',
+    //   // flexDirection: 'row',
+    //   // [theme.breakpoints.down('lg')]: {
+    //   //   flexDirection: 'column-reverse',
+    //   // },
+    // })}
     >
+
+      <BaseLoader isLoading={isLoading} setIsLoading={setIsLoading} />
       {/* {fromLang.name} */}
-      <Stack direction="row" spacing={0} sx={{ mt: '0 !important' }}>
+      <Stack direction="row" spacing={0} sx={{ mt: '0 !important', width: '100%', }}>
         <Autocomplete
           id="free-solo-search"
           sx={(theme) => ({
-            minWidth: 500, //400,
+            // minWidth: 400,
+            // [theme.breakpoints.down('md')]: {
             width: '100%',
-            [theme.breakpoints.down('md')]: {
-              minWidth: '70vw',
-            },
+
+            // },
           })}
           freeSolo={true}
           disableClearable={true}
           inputValue={inputValue}
           // On `Enter` key press
-          onChange={(e, v, r) => {
-            e.preventDefault();
-            // check below if 'v' is a string
-            // if (typeof v === 'string') {
-            //   goToDefinition(v, pathname, searchLang, router);
-            //   return;
-            // }
-            // goToDefinition(v.spelling, pathname, searchLang, router);
-            setShouldPerformSearch(true);
-          }}
+          onChange={handleChangeSearchValue}
           // On input change, visible to user text change
-          onInputChange={async (e, v, r) => {
-            e.preventDefault();
-            setInputValue(v);
-            setOptions(
-              await expressionApi.suggestions({
-                spelling: v,
-                expLang: searchLang.from,
-                defLang: searchLang.to,
-                size: 10,
-              }),
-            );
-          }}
+          onInputChange={handleInputSearchValue}
           options={options}
           renderInput={(params) => (
             <TextField
@@ -187,10 +207,8 @@ export const Search: FC<{
                 placeholder: searchLabel,
                 type: 'search',
                 style: {
-                  borderStartStartRadius: roundingRadiusPx,
-                  borderEndStartRadius: roundingRadiusPx,
-                  borderEndEndRadius: 0,
-                  borderStartEndRadius: 0,
+                  borderStartStartRadius: roundingRadius,
+                  borderEndStartRadius: roundingRadius,
                   backgroundColor: '#fff',
                 },
               }}
@@ -253,10 +271,7 @@ export const Search: FC<{
           <SearchIcon fontSize="large" />
         </Button>
       </Stack>
-      <Stack
-        direction="row"
-        sx={{ justifyContent: 'space-between', p: `0 ${roundingRadius * 0.75}px` }}
-      >
+      <Stack direction="row" spacing={0} sx={{ pl: '20px', pr: '20px', justifyContent: 'space-between', alignItems: 'center' }}>
         <Stack direction="row" spacing={0} sx={{ justifyContent: 'center', alignItems: 'center' }}>
           <Select
             variant="standard"
@@ -275,7 +290,7 @@ export const Search: FC<{
                 pathname,
               });
             }}
-            // defaultValue={fromLang.code}
+          // defaultValue={fromLang.code}
           >
             {DictionaryLangs.map((lang) => (
               <MenuItem key={lang.toString()} value={lang}>

@@ -25,7 +25,7 @@ const DEFAULT_DEFINITION_LANG = 'rus';
 export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
   const pathname = usePathname();
   const { wordOfTheDay, examples, learnMore } = labels;
-  const firstDefinition = expression.details[0]?.definitionDetails[0];
+  const firstDefinition = expression?.details[0]?.definitionDetails[0];
   return (
     <Card sx={{ minWidth: 275, height: 365, padding: '20px' }}>
       <CardContent
@@ -42,14 +42,14 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
           {wordOfTheDay}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          {`${expression.details[0]?.writtenSources[0].title} - ${expression.details[0]?.writtenSources[0].authors}`}
+          {`${expression?.details[0]?.writtenSources?.[0].title} - ${expression?.details?.[0]?.writtenSources?.[0].authors}`}
         </Typography>
         <Typography variant="h3" component="div" className={expressionFont.className}>
-          {capitalizeFirstLetter(toLowerCaseLezgi(expression.spelling))}
+          {capitalizeFirstLetter(toLowerCaseLezgi(expression?.spelling))}
         </Typography>
-        {expression.details[0]?.inflection && (
+        {expression?.details[0]?.inflection && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: '10px' }}>
-            {expression.details[0]?.inflection}
+            {expression?.details[0]?.inflection}
           </Typography>
         )}
         {(firstDefinition?.tags || firstDefinition?.definitions) && (
@@ -110,7 +110,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
         )}
         <Typography sx={{ m: 1.5, textAlign: 'end', cursor: 'pointer' }} variant="body2">
           <Link
-            href={`${pathname}/definition?fromLang=${DEFAULT_EXPRESSION_LANG}&toLang=${DEFAULT_DEFINITION_LANG}&exp=${expression.spelling}`}
+            href={`${pathname}/definition?fromLang=${DEFAULT_EXPRESSION_LANG}&toLang=${DEFAULT_DEFINITION_LANG}&exp=${expression?.spelling}`}
           >
             {learnMore}
           </Link>
