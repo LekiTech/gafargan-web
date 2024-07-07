@@ -28,8 +28,6 @@ const TopBar = (props: TopBarProps) => {
     threshold: 10,
   });
   const theme = useTheme();
-  const isSmallerThanMd = useMediaQuery(theme.breakpoints.down('md'));
-  console.log('TopBar trigger:', trigger);
   return (
     // <div> top bar </div>
     <Box sx={{

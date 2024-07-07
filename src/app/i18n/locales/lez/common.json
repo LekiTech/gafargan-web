@@ -1,8 +1,8 @@
 {
   "sources": "Чешмеяр",
-  "publishedIn": ">> Опубликовано в",
-  "providedBy": ">> Предоставил",
-  "processedBy": ">> Обработал",
+  "publishedIn": "Акъуднавай чка",
+  "providedBy": "Ихтиярдиз вуганва",
+  "processedBy": "Гъилив авунвайди",
   "login": "Гьахьун",
   "search": "Жагъурун",
   "tools": "Алатар",
@@ -23,8 +23,8 @@
   "dialect": "Нугъат",
   "source": "Чешме",
   "foundInDefinitions": "Гаф гуьгъуьнал алай метлебра гьатнава",
-  "foundInExamples": ">> Найдено в примерах",
-  "probablyYouMeant": ">> Возможно вы имели ввиду",
+  "foundInExamples": "Меселайра жагъана",
+  "probablyYouMeant": "И мукьва тир гафариз килиг",
   "noSuggestionsFound": "Ухшарзавай гафар жагъанач",
   "enterSearchWord": "Жугъурзавай гаф кхьихь",
   "languages": {

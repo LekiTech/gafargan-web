@@ -31,7 +31,6 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
     const path = pathname.startsWith(`/${currentLang}`)
       ? pathname.replace(`/${currentLang}`, `/${lang}`) + params
       : `/${lang}/${params}`;
-    console.log('Lang to switch:', lang, 'newPath:', path);
     router.push(path);
   };
   return (
