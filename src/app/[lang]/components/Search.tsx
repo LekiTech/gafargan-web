@@ -49,8 +49,9 @@ const changeDictLang = (args: {
   searchParams: ReadonlyURLSearchParams;
   router: AppRouterInstance;
   pathname: string;
+  setIsLoading: (isLoading: boolean) => void;
 }) => {
-  const { lang, isFrom, searchParams, router, pathname } = args;
+  const { lang, isFrom, searchParams, router, pathname, setIsLoading } = args;
   const otherLang = args.otherLang ?? findPairLang(lang);
   if (otherLang == undefined) {
     console.error(`Did not find pair language for '${lang}'`);
@@ -66,6 +67,7 @@ const changeDictLang = (args: {
     }
   });
   const otherParams = otherParamsArray.length > 0 ? '&' + otherParamsArray.join('&') : '';
+  setIsLoading(true);
   router.push(pathname + langsParams + otherParams);
   return;
 };
@@ -134,12 +136,12 @@ export const Search: FC<{
   }, [pathname, searchParams])
 
   // Получение списка подсказок по дебаунс
-  const debounceSetOptions = useCallback(useDebounceFn(async (value: string) => {
+  const debounceSetOptions = useCallback(useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
     setOptions(
       await expressionApi.suggestions({
         spelling: value,
-        expLang: searchLang.from,
-        defLang: searchLang.to,
+        expLang,
+        defLang,
         size: 10,
       })
     );
@@ -148,7 +150,7 @@ export const Search: FC<{
   const handleInputSearchValue = (e: SyntheticEvent<Element, Event>, value: string) => {
     e.preventDefault();
     setInputValue(value);
-    debounceSetOptions(value);
+    debounceSetOptions(value, searchLang.from, searchLang.to);
   }
 
   const handleChangeSearchValue = (e: SyntheticEvent<Element, Event>) => {
@@ -291,6 +293,7 @@ export const Search: FC<{
                 searchParams,
                 router,
                 pathname,
+                setIsLoading
               });
             }}
           // defaultValue={fromLang.code}
@@ -312,6 +315,7 @@ export const Search: FC<{
                 searchParams,
                 router,
                 pathname,
+                setIsLoading
               });
             }}
           >
@@ -333,6 +337,7 @@ export const Search: FC<{
                 searchParams,
                 router,
                 pathname,
+                setIsLoading
               });
             }}
           >
