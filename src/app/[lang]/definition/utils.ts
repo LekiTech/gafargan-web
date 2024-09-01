@@ -19,13 +19,14 @@ export function createDetailsId(
   definitionsCount: number,
   inflection?: string,
   examplesCount?: number,
+  spellingId: string
 ) {
   const detailsId = `${idx}-details-${spelling}-${inflection}-${definitionsCount}-${
     examplesCount ?? 0
   }`
     .replaceAll(' ', '_')
     .replaceAll('undefined', '');
-  return detailsId;
+  return `${spellingId}-${detailsId}`;
 }
 
 export function createOtherExamplesId(idx: number) {

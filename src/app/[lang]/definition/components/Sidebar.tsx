@@ -21,6 +21,7 @@ import { Contents } from '../types';
 import { FC, useEffect, useState } from 'react';
 import { useViewport } from '../../../use/useViewport';
 import { EBreakpoints } from '../../../utils/BreakPoints';
+import { sidebarScrollWatch } from '@/helpers/sidebarScrollWatch';
 
 type SidebarProps = {
   contents: Contents[];
@@ -39,66 +40,24 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
   const [activeStepDetailIdForSelect, setActiveStepDetailIdForSelect] = useState('')
 
 
+  // Только для десктопа. Реализация фокуса на элементе сайдбара при скролле
   useEffect(() => {
     const eventListener = () => {
-      console.log(window.scrollY);
-      if (window.scrollY < 230) {
-        setActiveStep(0);
-        setActiveStepDetailId(contents[0].details[0].detailsId);
-        setActiveStepDetailIdForSelect(contents[0].details[0].detailsId);
-        return;
-      }
-      for (let i = 0; i < contents.length; i++) {
-        const step = contents[i];
-        for (let j = 0; j < step?.details.length; j++) {
-          const detail = step?.details[j];
-          const detailBoundingRect = document
-            .getElementById(detail.detailsId)
-            ?.getBoundingClientRect();
-          if (
-            detailBoundingRect?.top &&
-            detailBoundingRect?.bottom &&
-            detailBoundingRect.top < window.innerHeight &&
-            detailBoundingRect.bottom > 10
-          ) {
-            setActiveStep(i);
-            setActiveStepDetailId(detail.detailsId);
-            setActiveStepDetailIdForSelect(detail.detailsId);
-            break;
-          }
-        }
-        if (viewport.isLessThan(EBreakpoints.XXL)) continue;
-        const boundingRect = document.getElementById(step.spellingId)?.getBoundingClientRect();
-        if (
-          boundingRect?.top &&
-          boundingRect?.bottom &&
-          boundingRect.top < window.innerHeight &&
-          boundingRect.bottom > 0
-        ) {
-          setActiveStep(i);
-          break;
-        }
-        const exampleBoundingRect = document
-          .getElementById(step.otherExamplesId)
-          ?.getBoundingClientRect();
-        if (
-          exampleBoundingRect?.top &&
-          exampleBoundingRect?.bottom &&
-          exampleBoundingRect.top < window.innerHeight &&
-          exampleBoundingRect.bottom > 0
-        ) {
-          setActiveStepDetailId(step.otherExamplesId);
-          break;
-        }
-      }
-    };
+      const { activeStep, activeStepDetailID } = sidebarScrollWatch(contents)
+      setActiveStep(activeStep);
+      setActiveStepDetailId(activeStepDetailID)
+    }
+
+    if (viewport.isLessThan(EBreakpoints.XXL)) return;
     document.addEventListener('scroll', eventListener);
     return () => document.removeEventListener('scroll', eventListener);
   }, [contents]);
 
+
   const handleChangeSelect = (event: SelectChangeEvent) => {
     const element = document.getElementById(event.target?.value);
     if (!element) return;
+    setActiveStepDetailIdForSelect(event.target?.value);
     element.scrollIntoView({ block: "center", behavior: "smooth" })
   };
 
@@ -126,7 +85,7 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
           contents.map((c) => c.details.map((d) =>
             (<option
               key={d.detailsId}
-              value={d.detailsId}
+              value={`${c.spellingId}${d.detailsId.replaceAll('undefined', '')}`}
               style={{background: '#0f3b2e'}}
             > {d.preview}</option>))
           )

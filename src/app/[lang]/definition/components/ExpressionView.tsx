@@ -139,7 +139,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                 {similarExpressions?.map((s, i) => (
                   <SpellingListItem
                     key={`similar_${i}`}
-                    id={s.id}
+                    id={s.id + '213213'}
                     spelling={s.spelling}
                     showIcon={false}
                     sx={{ color: '#bb1614', fontWeight: 600, pl: 0 }}

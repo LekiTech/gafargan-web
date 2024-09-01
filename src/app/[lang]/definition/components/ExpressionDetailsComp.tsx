@@ -27,6 +27,7 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
 }) => {
   const { t } = useTranslation(lang);
   // const { t: tTags } = await useTranslation(lang, 'tags');
+  const spellingId = createSpellingId(idx, spelling, data.definitionDetails.length, data.inflection)
   return (
     <Stack
       key={`ExpressionDetailsComp_${idx}_${spelling}`}
@@ -40,7 +41,7 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
       <Typography
         variant="h2"
         className={expressionFont.className}
-        id={createSpellingId(idx, spelling, data.definitionDetails.length, data.inflection)}
+        id={spellingId}
       >
         {toLowerCaseLezgi(spelling)}
       </Typography>
@@ -58,6 +59,7 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
           lang={lang}
           spelling={spelling}
           inflection={data.inflection}
+          spellingId={spellingId}
         />
       ))}
       {data.examples && data.examples.length > 0 && (
