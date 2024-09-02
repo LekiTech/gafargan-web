@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { ListItemIcon, ListSubheader, SxProps, Theme } from '@mui/material';
+import { Box, ListItemIcon, ListSubheader, SxProps, Theme } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 export const SpellingListItem: FC<{
@@ -13,11 +13,10 @@ export const SpellingListItem: FC<{
 }> = ({ id, spelling, showIcon, fromLang, toLang, sx }) => {
   const path = usePathname();
   const searchParams = useSearchParams();
-  const href = `${path}?fromLang=${fromLang ?? searchParams.get('fromLang')}&toLang=${
-    toLang ?? searchParams.get('toLang')
-  }&exp=${spelling}`;
+  const href = `${path}?fromLang=${fromLang ?? searchParams.get('fromLang')}&toLang=${toLang ?? searchParams.get('toLang')
+    }&exp=${spelling}`;
   return (
-    <ListSubheader
+    <Box
       component="a"
       href={href}
       target="_blank"
@@ -27,6 +26,11 @@ export const SpellingListItem: FC<{
         height: '25px',
         mt: '10px',
         backgroundColor: 'inherit',
+        color: 'inherit',
+        textDecoration: 'inherit',
+        font: 'inherit',
+        fontFamily: 'inherit',
+        fontSize: 'inherit',
         width: 'fit-content',
         ...sx,
       }}
@@ -37,6 +41,6 @@ export const SpellingListItem: FC<{
           <OpenInNewIcon fontSize="small" sx={{ ml: '10px' }} />
         </ListItemIcon>
       )}
-    </ListSubheader>
+    </Box>
   );
 };

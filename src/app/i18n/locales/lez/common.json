@@ -1,7 +1,11 @@
 {
   "sources": "Чешмеяр",
+  "publishedIn": "Акъуднавай чка",
+  "providedBy": "Ихтиярдиз вуганва",
+  "processedBy": "Гъилив авунвайди",
   "login": "Гьахьун",
   "search": "Жагъурун",
+  "tools": "Алатар",
   "dictionaries": "Гафарганар",
   "dictionary": "Гафарган",
   "explanatoryDictionary": "Тедбири гафарган",
@@ -19,8 +23,8 @@
   "dialect": "Нугъат",
   "source": "Чешме",
   "foundInDefinitions": "Гаф гуьгъуьнал алай метлебра гьатнава",
-  "foundInExamples": ">> Найдено в примерах",
-  "probablyYouMeant": ">> Возможно вы имели ввиду",
+  "foundInExamples": "Меселайра жагъана",
+  "probablyYouMeant": "И мукьва тир гафариз килиг",
   "noSuggestionsFound": "Ухшарзавай гафар жагъанач",
   "enterSearchWord": "Жугъурзавай гаф кхьихь",
   "languages": {

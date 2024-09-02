@@ -14,9 +14,9 @@ import { opensansFont } from '@/fonts';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
-  webLangs: Record<WebsiteLang, string>;
-  dictLangs: Record<DictionaryLang, string>;
-  searchLabel: string;
+  // webLangs: Record<WebsiteLang, string>;
+  // dictLangs: Record<DictionaryLang, string>;
+  // searchLabel: string;
 };
 
 const TopBar = (props: TopBarProps) => {

@@ -20,13 +20,18 @@ export const ExamplesComp: FC<{
   const { viewport } = useViewport();
 
   const accordionWidth = useMemo(() => {
-    return isOtherExamples || viewport.isLessThan(EBreakpoints.XXL) ? '100%' : '500px'
+    return isOtherExamples || viewport.isLessThan(EBreakpoints.XXL) ? 'calc(100% - 24px)' : 'unset'
   }, [isOtherExamples, viewport]);
 
   return examples && examples.length > 0 ? (
     <Accordion
       variant="outlined"
-      sx={{ backgroundColor: 'inherit', width: accordionWidth }}
+      sx={(theme) => ({
+        backgroundColor: 'inherit',
+        width: accordionWidth,
+        maxWidth: isOtherExamples ? '750px' : '500px',
+        mr: '24px'
+      })}
       TransitionProps={{ timeout: 200 }}
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>

@@ -1,7 +1,11 @@
 {
   "sources": "Источники",
+  "publishedIn": "Опубликовано в",
+  "providedBy": "Предоставил",
+  "processedBy": "Обработал",
   "login": "Войти",
   "search": "Поиск",
+  "tools": "Ещё",
   "dictionaries": "Словари",
   "dictionary": "Словарь",
   "explanatoryDictionary": "Толковый словарь",

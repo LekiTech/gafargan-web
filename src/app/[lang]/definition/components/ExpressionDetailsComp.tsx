@@ -46,8 +46,12 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
       <Typography
         variant="h2"
         className={expressionFont.className}
-        fontSize={viewport.isLessThan(EBreakpoints.MD) ? '2.5rem' : '3.75rem'}
         id={spellingId}
+        sx={(theme) => ({
+          [theme.breakpoints.down('md')]: {
+            width: '90vw', wordWrap: "break-word", fontSize: '2.5rem'
+          }
+        })}
       >
         {toLowerCaseLezgi(spelling)}
       </Typography>

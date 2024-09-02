@@ -1,7 +1,11 @@
 {
   "sources": "Sources",
+  "publishedIn": "Published in",
+  "providedBy": "Provided by",
+  "processedBy": "Processed by",
   "login": "Login",
   "search": "Search",
+  "tools": "Tools",
   "dictionaries": "Dictionaries",
   "dictionary": "Dictionary",
   "explanatoryDictionary": "Explanatory dictionary",

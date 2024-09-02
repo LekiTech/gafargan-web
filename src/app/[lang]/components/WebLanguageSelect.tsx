@@ -8,6 +8,7 @@ import images from '@/store/images';
 import Image from 'next/image';
 // import { useMediaQuery } from 'react-responsive';
 import { colors } from '@/colors';
+import { useTranslation } from 'react-i18next';
 
 type WebLanguageSelectProps = {
   currentLang: WebsiteLang;
@@ -19,6 +20,8 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
+  const getLangLabel = (lang: WebsiteLang) => t(`languages.${lang}`);
   // const isMdBreakpoint = useMediaQuery({
   //   query: '(min-width: 900px)',
   // });
@@ -28,7 +31,6 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
     const path = pathname.startsWith(`/${currentLang}`)
       ? pathname.replace(`/${currentLang}`, `/${lang}`) + params
       : `/${lang}/${params}`;
-    console.log('Lang to switch:', lang, 'newPath:', path);
     router.push(path);
   };
   return (
@@ -55,7 +57,7 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
           alt="lez"
           style={{ marginRight: '10px' }}
         />
-        {webLangs['lez']}
+        {getLangLabel('lez')}
       </MenuItem>
       <MenuItem value={'rus'}>
         <Image
@@ -65,7 +67,7 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
           alt="rus"
           style={{ marginRight: '10px' }}
         />
-        {webLangs['rus']}
+        {getLangLabel('rus')}
       </MenuItem>
       <MenuItem value={'eng'}>
         <Image
@@ -75,7 +77,7 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
           alt="eng"
           style={{ marginRight: '10px' }}
         />
-        {webLangs['eng']}
+        {getLangLabel('eng')}
       </MenuItem>
       <MenuItem value={'tur'}>
         <Image
@@ -85,7 +87,7 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
           alt="tur"
           style={{ marginRight: '10px' }}
         />
-        {webLangs['tur']}
+        {getLangLabel('tur')}
       </MenuItem>
     </Select>
   );

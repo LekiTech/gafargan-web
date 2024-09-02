@@ -50,21 +50,20 @@ export default async function RootLayout(props: RootLayoutProps) {
     params: { lang },
     // searchParams,
   } = props;
-  const { t } = await initTranslations(lang);
-
+  // const { t } = await initTranslations(lang);
   return (
     <html
       lang={lang}
       dir={dir(lang)}
       style={{ scrollBehavior: 'smooth', scrollPaddingTop: '100px' }}
     >
-      <body className={inter.className} style={{ backgroundColor: colors.background, margin: 0 }}>
+      <body className={inter.className} style={{ backgroundColor: colors.background, margin: 0, overflowX: 'hidden' }}>
         <Providers locale={lang}>
           <TopBar
             currentLang={lang as WebsiteLang}
-            webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
-            dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
-            searchLabel={t('search')}
+          // webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
+          // dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
+          // searchLabel={t('search')}
           />
           {/* <Toolbar sx={{ p: '10px' }} /> */}
           {children}
