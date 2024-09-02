@@ -45,7 +45,7 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
 
   const [elementForScroll, setElementForScroll] = useState<HTMLElement>();
 
-
+ // Отвечает за установку активного элемента навигации при скролле (докрутили до опр. слова, в навигации слово выделилось)
   useLayoutEffect(() => {
     const eventListener = () => {
       if (isScrolling) return;
@@ -54,18 +54,21 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
       setActiveStepDetailId(activeStepDetailID)
       setActiveStepDetailIdForSelect(detailIdForSelect);
     }
-
-    // if (viewport.isLessThan(EBreakpoints.XXL)) return;
     document.addEventListener('scroll', eventListener);
     return () => document.removeEventListener('scroll', eventListener);
   }, [contents, isScrolling]);
 
+
+  // Отвечает за изменение состояния после скролла до элемента в моб. версии при выборе значения в селекте
   useEffect(() => {
-    window.addEventListener('scrollend', () => {
+    const handleScrolling = () => {
       setIsScrolling(false)
-    },);
+    }
+    window.addEventListener('scrollend', handleScrolling);
+    return () => window.removeEventListener('scrollend', handleScrolling);
   }, []);
 
+  // При изменении isScrolling на след. тик выполняет нужную логику
   useLayoutEffect(() => {
     if (!elementForScroll || !isScrolling) return;
     elementForScroll.scrollIntoView({ block: "center", behavior: "smooth" })

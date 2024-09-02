@@ -10,11 +10,7 @@ import { ElevationScroll } from './ElevateScroll';
 import { colors } from '@/colors';
 import WebLanguageSelect from './WebLanguageSelect';
 import Link from 'next/link';
-import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
-import { useEffect, useRef } from 'react';
-import { useActions } from '@/store/actions';
-import { stringPxToNumber } from '../../utils/stringPxToNumber';
-import { useViewport } from '../../use/useViewport';
+import { opensansFont } from '@/fonts';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
