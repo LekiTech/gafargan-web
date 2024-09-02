@@ -10,12 +10,7 @@ import { ElevationScroll } from './ElevateScroll';
 import { colors } from '@/colors';
 import WebLanguageSelect from './WebLanguageSelect';
 import Link from 'next/link';
-import { useTranslation } from 'react-i18next';
-import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
-import { useEffect, useRef } from 'react';
-import { useActions } from '@/store/actions';
-import { stringPxToNumber } from '../../utils/stringPxToNumber';
-import { useViewport } from '../../use/useViewport';
+import { opensansFont } from '@/fonts';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
@@ -30,19 +25,10 @@ const TopBar = (props: TopBarProps) => {
     threshold: 10,
   });
   const theme = useTheme();
-  const $header = useRef();
-  const { setHeaderHeight } = useActions()
-  const viewport = useViewport();
-
-  useEffect(() => {
-    if (!$header.current) return;
-    setHeaderHeight(stringPxToNumber(window.getComputedStyle($header.current)?.height))
-  }, [viewport]);
 
   return (
     // <div> top bar </div>
     <Box
-      ref={$header}
       sx={{
         mb: '170px',
         [theme.breakpoints.down('md')]: {

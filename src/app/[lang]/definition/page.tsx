@@ -12,6 +12,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { t } = await initTranslations(params.lang);
   // fetch data
+
   const data = await expressionApi.search({
     spelling: searchParams.exp,
     expLang: searchParams.fromLang as DictionaryLang,
@@ -19,11 +20,12 @@ export async function generateMetadata(
     similarCount: 1,
   });
 
+
   // optionally access and extend (rather than replace) parent metadata
   const previousImages = (await parent).openGraph?.images || [];
   const spelling = toLowerCaseLezgi(data?.found?.spelling || '', { capitalize: true });
   return {
-    title: `"${spelling}" ${t('languages.' + searchParams.fromLang)} - ${t(
+    title: `${spelling && `"${spelling}"`} ${t('languages.' + searchParams.fromLang)} - ${t(
       'languages.' + searchParams.toLang,
     )} ${t('translation').toLowerCase()}`, //.charAt(0).toUpperCase() + spelling.slice(1),
     description:
@@ -52,6 +54,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
     expLang: fromLang,
     defLang: toLang,
   });
+
   // true if found, false if not
   const isExpressionFound = !!data?.found;
   const foundInExamples = isExpressionFound
