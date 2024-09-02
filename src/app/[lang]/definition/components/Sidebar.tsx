@@ -18,10 +18,11 @@ import { green, grey } from '@mui/material/colors';
 import { colors } from '@/colors';
 import Link from 'next/link';
 import { Contents } from '../types';
-import { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useLayoutEffect, useState } from 'react';
 import { useViewport } from '../../../use/useViewport';
 import { EBreakpoints } from '../../../utils/BreakPoints';
 import { sidebarScrollWatch } from '@/helpers/sidebarScrollWatch';
+import { cleanText } from '../../../utils/cleanText';
 
 type SidebarProps = {
   contents: Contents[];
@@ -36,29 +37,51 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
 
   const [activeStep, setActiveStep] = useState(0);
   const [activeStepDetailId, setActiveStepDetailId] = useState('');
+
   // вынес в отдельный стейт, не использую {activeStepDetailId} т.к. в select не показываем otherExamples
   const [activeStepDetailIdForSelect, setActiveStepDetailIdForSelect] = useState('')
 
+  const [isScrolling, setIsScrolling] = useState(false);
 
-  // Только для десктопа. Реализация фокуса на элементе сайдбара при скролле
-  useEffect(() => {
+  const [elementForScroll, setElementForScroll] = useState<HTMLElement>();
+
+
+  useLayoutEffect(() => {
     const eventListener = () => {
-      const { activeStep, activeStepDetailID } = sidebarScrollWatch(contents)
+      if (isScrolling) return;
+      const { activeStep, activeStepDetailID, detailIdForSelect } = sidebarScrollWatch(contents, viewport)
       setActiveStep(activeStep);
       setActiveStepDetailId(activeStepDetailID)
+      setActiveStepDetailIdForSelect(detailIdForSelect);
     }
 
-    if (viewport.isLessThan(EBreakpoints.XXL)) return;
+    // if (viewport.isLessThan(EBreakpoints.XXL)) return;
     document.addEventListener('scroll', eventListener);
     return () => document.removeEventListener('scroll', eventListener);
-  }, [contents]);
+  }, [contents, isScrolling]);
+
+  useEffect(() => {
+    window.addEventListener('scrollend', () => {
+      setIsScrolling(false)
+    },);
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!elementForScroll || !isScrolling) return;
+    elementForScroll.scrollIntoView({ block: "center", behavior: "smooth" })
+  }, [isScrolling]);
 
 
-  const handleChangeSelect = (event: SelectChangeEvent) => {
+  const handleChangeSelect = async (event: SelectChangeEvent) => {
     const element = document.getElementById(event.target?.value);
     if (!element) return;
     setActiveStepDetailIdForSelect(event.target?.value);
-    element.scrollIntoView({ block: "center", behavior: "smooth" })
+    setElementForScroll(element)
+    if (isScrolling) {
+      setIsScrolling(false)
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    setIsScrolling(true)
   };
 
 
@@ -85,7 +108,7 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
           contents.map((c) => c.details.map((d) =>
             (<option
               key={d.detailsId}
-              value={`${c.spellingId}${d.detailsId.replaceAll('undefined', '')}`}
+              value={cleanText(d.detailsId)}
               style={{background: '#0f3b2e'}}
             > {d.preview}</option>))
           )
@@ -150,7 +173,7 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
                     >
                       <ListItemButton
                         component="a"
-                        href={`#${d.detailsId}`}
+                        href={`#${step.spellingId}${cleanText(d.detailsId)}`}
                         sx={{
                           backgroundColor: getBackgroundColor(d.detailsId),
 

@@ -26,19 +26,8 @@ type TopBarProps = {
 const TopBar = (props: TopBarProps) => {
   const { currentLang, webLangs, dictLangs, searchLabel } = props;
 
-  const $header = useRef();
-  const { setHeaderHeight } = useActions()
-  const viewport = useViewport();
-
-  useEffect(() => {
-    if (!$header.current) return;
-    setHeaderHeight(stringPxToNumber(window.getComputedStyle($header.current)?.height))
-  }, [viewport]);
-
   return (
-    <div
-      ref={$header}
-    >
+    <div>
       <ElevationScroll {...props}>
         <AppBar
           sx={(theme) => ({

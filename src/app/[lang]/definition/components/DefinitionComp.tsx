@@ -87,7 +87,7 @@ const DefinitionsGroup: FC<{
     <Grid container spacing={2} sx={{ pb: '25px', pl: '25px' }}>
       <Grid item xs={12}>
         <Stack
-          id={createDetailsId(idx, spelling, definitions.length, inflection, examples?.length, spellingId)}
+          id={createDetailsId(idx, spelling, definitions.length, spellingId, inflection, examples?.length)}
           spacing={0}
           sx={{ width: '100%' }}
         >

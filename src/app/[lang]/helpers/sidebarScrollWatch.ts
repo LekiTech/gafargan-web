@@ -1,15 +1,22 @@
 import { Contents } from '@/definition/types';
+import { EBreakpoints } from '../../utils/BreakPoints';
+import { useViewport } from '../../use/useViewport';
+import { Viewport } from '../../services/Viewport';
+import { cleanText } from '../../utils/cleanText';
 
-export const sidebarScrollWatch = (contents: Contents[]) => {
+export const sidebarScrollWatch = (contents: Contents[], viewport: Viewport) => {
   let activeStep = 0;
   let activeStepDetailID = '';
+  let detailIdForSelect = '';
 
   if (window.scrollY < 230) {
+    const content = contents[0]
     activeStep = 0;
-    activeStepDetailID = contents[0].details[0].detailsId;
+    activeStepDetailID = detailIdForSelect = cleanText(content.details[0].detailsId);
     return {
       activeStep,
-      activeStepDetailID
+      activeStepDetailID,
+      detailIdForSelect
     }
   }
   for (let i = 0; i < contents.length; i++) {
@@ -26,7 +33,7 @@ export const sidebarScrollWatch = (contents: Contents[]) => {
         detailBoundingRect.bottom > 10
       ) {
         activeStep = i;
-        activeStepDetailID = detail.detailsId;
+        activeStepDetailID = detailIdForSelect = cleanText(detail?.detailsId);
         break;
       }
     }
@@ -38,6 +45,7 @@ export const sidebarScrollWatch = (contents: Contents[]) => {
       boundingRect.bottom > 0
     ) {
       activeStep = i;
+      detailIdForSelect = cleanText(step.details[0].detailsId);
       break;
     }
     const exampleBoundingRect = document
@@ -56,6 +64,7 @@ export const sidebarScrollWatch = (contents: Contents[]) => {
 
   return {
     activeStep,
-    activeStepDetailID
+    activeStepDetailID,
+    detailIdForSelect
   }
 };
