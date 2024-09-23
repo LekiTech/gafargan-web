@@ -104,7 +104,8 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                 // pl: 0,
                 // ml: 0,
                 '&.MuiBox-root': {
-                  ml: '0'
+                  ml: '0',
+                  mt: '50px',
                 }
               },
             })}

@@ -49,7 +49,7 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
 
   const [elementForScroll, setElementForScroll] = useState<HTMLElement>();
 
- // Отвечает за установку активного элемента навигации при скролле (докрутили до опр. слова, в навигации слово выделилось)
+  // Отвечает за установку активного элемента навигации при скролле (докрутили до опр. слова, в навигации слово выделилось)
   useLayoutEffect(() => {
     const eventListener = () => {
       if (isScrolling) return;
@@ -194,7 +194,7 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
                     >
                       <ListItemButton
                         component="a"
-                        href={`#${step.spellingId}${cleanText(d.detailsId)}`}
+                        href={`#${cleanText(d.detailsId)}`}
                         sx={{
                           backgroundColor: getBackgroundColor(d.detailsId),
 
