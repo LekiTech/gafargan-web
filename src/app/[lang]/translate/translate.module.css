@@ -1,0 +1,143 @@
+.textField {
+    background-color: rgb(245, 245, 245);
+    width: 100%;
+    min-height: 180px;
+    height: -webkit-fill-available;
+}
+
+.css-dpjnhs-MuiInputBase-root-MuiOutlinedInput-root.Mui-disabled {
+    border: transparent;
+}
+
+.swapBtn {
+    background: unset;
+    border: unset;
+    cursor: pointer;
+    color: #0F3B2E;
+    transition: all .4s;
+}
+
+
+.swapBtn:hover {
+    color: #237e62;
+}
+
+.sendInp {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.closeBtn {
+    position: absolute;
+    top: 18px;
+    right: 8px;
+    background: unset;
+    border: unset;
+    cursor: pointer;
+    transition: all .2s;
+
+}
+
+.classicBtn svg {
+    font-size: 19px;
+}
+
+
+.classicBtn {
+    background: unset;
+    border: unset;
+    cursor: pointer;
+    color: #0F3B2E;
+    transition: all .2s;
+}
+
+.classicBtn:hover svg {
+    color: #237e62;
+}
+
+
+.actions {
+    position: absolute;
+    bottom: 8px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.suggestTransBtn {
+    background: unset;
+    border: unset;
+    cursor: pointer;
+    color: #1976d2;
+    transition: all .2s;
+    text-decoration: underline;
+    font-size: 12px;
+    padding-right: 20px;
+    transition: all .4s;
+}
+
+.suggestTransBtn:hover {
+    color: #0a447e;
+}
+
+.userTranslate {
+    margin: 60px 0;
+}
+
+.userTranslateTtile {
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+}
+
+.userTranslateTtile h5 {
+    width: 50%;
+    font-size: 18px;
+    font-weight: 600;
+    color: #0F3B2E;
+}
+
+.sendBtn svg {
+    color: white;
+}
+
+.sendBtn {
+    background-color: #0F3B2E;
+    border-radius: 8px;
+    padding: 10px;
+    height: 100%;
+    transition: all .3s;
+}
+
+.sendBtn:hover {
+    background-color: #237e62;
+
+}
+
+.suggestForm {
+    background-color: #e7e7e7;
+    border-radius: 8px;
+    padding: 10px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.fieldsWrapp {
+    display: flex;
+    gap: 10px;
+}
+
+@media (max-width: 647px) {
+    .fieldsWrapp {
+        flex-wrap: wrap;
+    }
+}

@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
 // import { HideOnScroll } from './HideScroll';
-
+import { usePathname } from 'next/navigation'
 
 type TopBarProps = {
   currentLang: WebsiteLang;
@@ -28,6 +28,10 @@ const TopBar = (props: TopBarProps) => {
     threshold: 10,
   });
   const theme = useTheme();
+  const pathname = usePathname();
+  const pathSplit = pathname.split('/');
+  const pageName = pathSplit[pathSplit.length - 1];
+
   return (
     // <div> top bar </div>
     <Box sx={{
@@ -62,7 +66,7 @@ const TopBar = (props: TopBarProps) => {
               sx={{
                 display: 'flex',
                 flexDirection: 'row',
-                justifyContent: 'center',
+                justifyContent: pageName == 'translate' ? 'space-between' : 'center',
                 maxWidth: '1400px',
               }}
             >
@@ -104,32 +108,34 @@ const TopBar = (props: TopBarProps) => {
                   </Typography>
                 </Link>
               </Grid>
-              <Grid
-                item
-                xs={12}
-                md={8}
-                // sm={8}
-                order={{ xs: 3, md: 2 }}
-                sx={(theme) => ({
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  mt: '10px',
-                  [theme.breakpoints.down('md')]: {
-                    mt: '15px',
-                    // transform: trigger ? 'translateY(-50%)' : 'translateY(0)',
-                    display: trigger ? 'none' : 'flex',
-                    // zIndex: trigger ? -9999 : 'unset',
-                    // transition: 'visibility 0s, opacity 0.5s linear',
-                    // transition: theme.transitions.create('transform', {
-                    //   easing: theme.transitions.easing.sharp,
-                    //   duration: theme.transitions.duration.leavingScreen,
-                    // }),
-                  },
-                })}
-              >
-                <Search lang={currentLang} />
-              </Grid>
+              {pageName !== 'translate' &&
+                <Grid
+                  item
+                  xs={12}
+                  md={8}
+                  // sm={8}
+                  order={{ xs: 3, md: 2 }}
+                  sx={(theme) => ({
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    mt: '10px',
+                    [theme.breakpoints.down('md')]: {
+                      mt: '15px',
+                      // transform: trigger ? 'translateY(-50%)' : 'translateY(0)',
+                      display: trigger ? 'none' : 'flex',
+                      // zIndex: trigger ? -9999 : 'unset',
+                      // transition: 'visibility 0s, opacity 0.5s linear',
+                      // transition: theme.transitions.create('transform', {
+                      //   easing: theme.transitions.easing.sharp,
+                      //   duration: theme.transitions.duration.leavingScreen,
+                      // }),
+                    },
+                  })}
+                >
+                  <Search lang={currentLang} />
+                </Grid>
+              }
               <Grid item xs={6} md={2} order={{ xs: 2, md: 3 }}>
                 <Box
                   sx={{
