@@ -10,7 +10,10 @@ import { ElevationScroll } from './ElevateScroll';
 import { colors } from '@/colors';
 import WebLanguageSelect from './WebLanguageSelect';
 import Link from 'next/link';
-import { opensansFont } from '@/fonts';
+import { useTranslation } from 'react-i18next';
+import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
+// import { HideOnScroll } from './HideScroll';
+import { usePathname } from 'next/navigation'
 
 type TopBarProps = {
   currentLang: WebsiteLang;
@@ -25,6 +28,9 @@ const TopBar = (props: TopBarProps) => {
     threshold: 10,
   });
   const theme = useTheme();
+  const pathname = usePathname();
+  const pathSplit = pathname.split('/');
+  const pageName = pathSplit[pathSplit.length - 1];
 
   return (
     // <div> top bar </div>
@@ -62,7 +68,7 @@ const TopBar = (props: TopBarProps) => {
               sx={{
                 display: 'flex',
                 flexDirection: 'row',
-                justifyContent: 'center',
+                justifyContent: pageName == 'translate' ? 'space-between' : 'center',
                 maxWidth: '1400px',
               }}
             >
@@ -105,7 +111,7 @@ const TopBar = (props: TopBarProps) => {
                   </Typography>
                 </Link>
               </Grid>
-              <Grid
+              {pageName !== 'translate' && <Grid
                 item
                 xs={12}
                 md={8}
@@ -122,7 +128,7 @@ const TopBar = (props: TopBarProps) => {
                 })}
               >
                 <Search lang={currentLang} />
-              </Grid>
+              </Grid>}
               <Grid item xs={6} md={2} order={{ xs: 2, md: 3 }}>
                 <Box
                   sx={{
