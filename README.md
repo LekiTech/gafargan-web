@@ -1,4 +1,92 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Contributing Guide
+
+Thank you for your interest in contributing to our project! To maintain an organized workflow, please follow the steps below when submitting your code.
+
+### How to Submit Code
+
+1. Fork the Repository (if you haven't already)
+
+   Click the Fork button at the top-right corner of the repository page to create a copy under your GitHub account.
+
+2. Clone Your Fork
+
+   Clone the repository to your local machine:
+
+   ```bash
+   git clone https://github.com/your-username/your-repo.git
+   cd your-repo
+   ```
+
+3. Set Upstream to Original Repository
+
+   This allows you to keep your fork up-to-date with the original repository.
+
+   ```bash
+   git remote add upstream https://github.com/LekiTech/gafargan-web.git
+   ```
+
+4. Create a New Branch from develop
+
+   First, ensure you have the latest develop branch:
+
+   ```bash
+   git checkout develop
+   git pull upstream develop
+   ```
+
+   Then, create a new branch for your work:
+
+   ```bash
+   # For a new feature
+   git checkout -b feature/your-feature-name
+
+   # For a bug fix
+   git checkout -b bugfix/your-bugfix-name
+   ```
+
+5. Work on Your Branch
+
+   Make your code changes on your new branch.
+
+6. Regularly Merge Updates from develop
+
+   Keep your branch updated to avoid merge conflicts:
+
+   ```bash
+   git checkout develop
+   git pull upstream develop
+   git checkout feature/your-feature-name
+   git merge develop
+   ```
+
+   Resolve any conflicts if they arise.
+
+7. Commit and Push Your Changes
+
+   ```bash
+   git add .
+   git commit -m "Brief description of your changes"
+   git push origin feature/your-feature-name
+   ```
+
+8. Open a Pull Request
+
+   - Navigate to your fork on GitHub.
+   - Click on Compare & pull request.
+   - Ensure the base fork is the original repository and the base branch is develop.
+   - Provide a clear and descriptive title and description for your pull request.
+
+9. Add admin as a Reviewer
+
+   In the pull request, add admin to the Reviewers section to notify them of your submission.
+
+10. Additional Guidelines
+    - Ensure your code follows the project's coding standards.
+    - Write clear and descriptive commit messages.
+    - Update or add documentation as necessary.
+    - Test your changes.
+
+---
 
 ## Getting Started
 
