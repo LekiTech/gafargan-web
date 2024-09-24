@@ -95,7 +95,7 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
   const getBackgroundColor = (detailsId: string) =>
     activeStepDetailId === detailsId ? green[50] : 'inherit';
 
-  if (viewport.isLessThan(EBreakpoints.XXL)) {
+  if (viewport.isLessThan(EBreakpoints.MD)) {
     return (
       <Select
         id="word-select"

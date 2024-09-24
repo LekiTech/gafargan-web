@@ -2,7 +2,7 @@
 import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import { Avatar, Box, Collapse, Grid, Slide, Typography, useMediaQuery, useScrollTrigger, useTheme } from '@mui/material';
+import { Avatar, Box, Grid, Typography, useScrollTrigger, useTheme } from '@mui/material';
 import { Search } from './Search';
 import { DictionaryLang, WebsiteLang } from '../../../api/types.model';
 import images from '@/store/images';
@@ -109,7 +109,6 @@ const TopBar = (props: TopBarProps) => {
                 item
                 xs={12}
                 md={8}
-                // sm={8}
                 order={{ xs: 3, md: 2 }}
                 sx={(theme) => ({
                   display: 'flex',
@@ -118,14 +117,7 @@ const TopBar = (props: TopBarProps) => {
                   mt: '10px',
                   [theme.breakpoints.down('md')]: {
                     mt: '15px',
-                    // transform: trigger ? 'translateY(-50%)' : 'translateY(0)',
                     display: trigger ? 'none' : 'flex',
-                    // zIndex: trigger ? -9999 : 'unset',
-                    // transition: 'visibility 0s, opacity 0.5s linear',
-                    // transition: theme.transitions.create('transform', {
-                    //   easing: theme.transitions.easing.sharp,
-                    //   duration: theme.transitions.duration.leavingScreen,
-                    // }),
                   },
                 })}
               >

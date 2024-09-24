@@ -67,18 +67,19 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         justifyContent: 'center',
         mt: '20px',
         mb: '50px',
-        // pb: '150px',
-        // mt: '100px',
-        [theme.breakpoints.down('md')]: {
-          width: '100vw',
-        },
       })}
     >
       {foundExpression && foundExpression?.details ? (
         <Stack
           direction={'row'}
           spacing={2}
-          sx={{ maxWidth: '1400px', alignItems: 'baseline' }}
+          sx={(theme) => ({
+            maxWidth: '1400px',
+            alignItems: 'baseline',
+            [theme.breakpoints.down('md')]: {
+              width: '100%',
+            },
+          })}
         >
           <Sidebar
             contents={foundExpression?.details?.map((d, i) =>
@@ -92,7 +93,6 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               flexDirection: 'column',
               alignItems: 'left',
               justifyContent: 'center',
-              // width: '100%',
               width: '65vw',
               maxWidth: '100%',
               boxSizing: 'border-box',
@@ -100,9 +100,6 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               pl: '25px',
               pb: '50px',
               [theme.breakpoints.down('md')]: {
-                width: '100vw',
-                // pl: 0,
-                // ml: 0,
                 '&.MuiBox-root': {
                   ml: '0',
                   mt: '50px',
