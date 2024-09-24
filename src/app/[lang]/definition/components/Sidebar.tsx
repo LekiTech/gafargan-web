@@ -1,22 +1,29 @@
 'use client';
-import * as React from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Typography from '@mui/material/Typography';
 import {
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
   List,
   ListItem,
-  ListItemText,
   ListItemButton,
+  ListItemText,
+  Select,
+  SelectChangeEvent,
+  Step,
+  StepContent,
+  StepLabel,
+  Stepper,
+  useScrollTrigger,
 } from '@mui/material';
-import { red, grey, green } from '@mui/material/colors';
+import { green, grey } from '@mui/material/colors';
 import { colors } from '@/colors';
 import Link from 'next/link';
 import { Contents } from '../types';
+import { FC, useEffect, useLayoutEffect, useState } from 'react';
+import { useViewport } from '../../../use/useViewport';
+import { EBreakpoints } from '../../../utils/BreakPoints';
+import { sidebarScrollWatch } from '@/helpers/sidebarScrollWatch';
+import { cleanText } from '../../../utils/cleanText';
 
 type SidebarProps = {
   contents: Contents[];
@@ -25,60 +32,104 @@ type SidebarProps = {
 
 const drawerWidth = 300;
 
-export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
-  const [activeStep, setActiveStep] = React.useState(0);
-  const [activeStepDetailId, setActiveStepDetailId] = React.useState('');
+export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
 
-  React.useEffect(() => {
+  const { viewport } = useViewport();
+
+  const [activeStep, setActiveStep] = useState(0);
+  const [activeStepDetailId, setActiveStepDetailId] = useState('');
+
+  // вынес в отдельный стейт, не использую {activeStepDetailId} т.к. в select не показываем otherExamples
+  const [activeStepDetailIdForSelect, setActiveStepDetailIdForSelect] = useState('')
+
+  const trigger = useScrollTrigger({
+    threshold: 10,
+  });
+  const [isScrolling, setIsScrolling] = useState(false);
+
+  const [elementForScroll, setElementForScroll] = useState<HTMLElement>();
+
+  // Отвечает за установку активного элемента навигации при скролле (докрутили до опр. слова, в навигации слово выделилось)
+  useLayoutEffect(() => {
     const eventListener = () => {
-      for (let i = 0; i < contents.length; i++) {
-        const step = contents[i];
-        for (let j = 0; j < step?.details.length; j++) {
-          const detail = step?.details[j];
-          const detailBoundingRect = document
-            .getElementById(detail.detailsId)
-            ?.getBoundingClientRect();
-          if (
-            detailBoundingRect?.top &&
-            detailBoundingRect?.bottom &&
-            detailBoundingRect.top < window.innerHeight &&
-            detailBoundingRect.bottom > 50
-          ) {
-            setActiveStep(i);
-            setActiveStepDetailId(detail.detailsId);
-            break;
-          }
-        }
-        const boundingRect = document.getElementById(step.spellingId)?.getBoundingClientRect();
-        if (
-          boundingRect?.top &&
-          boundingRect?.bottom &&
-          boundingRect.top < window.innerHeight &&
-          boundingRect.bottom > 0
-        ) {
-          setActiveStep(i);
-          break;
-        }
-        const exampleBoundingRect = document
-          .getElementById(step.otherExamplesId)
-          ?.getBoundingClientRect();
-        if (
-          exampleBoundingRect?.top &&
-          exampleBoundingRect?.bottom &&
-          exampleBoundingRect.top < window.innerHeight &&
-          exampleBoundingRect.bottom > 0
-        ) {
-          setActiveStepDetailId(step.otherExamplesId);
-          break;
-        }
-      }
-    };
+      if (isScrolling) return;
+      const { activeStep, activeStepDetailID, detailIdForSelect } = sidebarScrollWatch(contents, viewport)
+      setActiveStep(activeStep);
+      setActiveStepDetailId(activeStepDetailID)
+      setActiveStepDetailIdForSelect(detailIdForSelect);
+    }
     document.addEventListener('scroll', eventListener);
     return () => document.removeEventListener('scroll', eventListener);
-  }, [contents]);
+  }, [contents, isScrolling]);
+
+
+  // Отвечает за изменение состояния после скролла до элемента в моб. версии при выборе значения в селекте
+  useEffect(() => {
+    const handleScrolling = () => {
+      setIsScrolling(false)
+    }
+    window.addEventListener('scrollend', handleScrolling);
+    return () => window.removeEventListener('scrollend', handleScrolling);
+  }, []);
+
+  // При изменении isScrolling на след. тик выполняет нужную логику
+  useLayoutEffect(() => {
+    if (!elementForScroll || !isScrolling) return;
+    elementForScroll.scrollIntoView({ block: "center", behavior: "smooth" })
+  }, [isScrolling]);
+
+
+  const handleChangeSelect = async (event: SelectChangeEvent) => {
+    const element = document.getElementById(event.target?.value);
+    if (!element) return;
+    setActiveStepDetailIdForSelect(event.target?.value);
+    setElementForScroll(element)
+    if (isScrolling) {
+      setIsScrolling(false)
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    setIsScrolling(true)
+  };
+
 
   const getBackgroundColor = (detailsId: string) =>
     activeStepDetailId === detailsId ? green[50] : 'inherit';
+
+  if (viewport.isLessThan(EBreakpoints.MD)) {
+    return (
+      <Select
+        id="word-select"
+        value={activeStepDetailIdForSelect}
+        native
+        sx={{
+          position: 'fixed',
+          borderRadius: 0,
+          top: trigger ? '75px' : '200px',
+          width: '100%',
+          background: '#0f3b2e',
+          color: '#fff',
+          zIndex: 2,
+          '& .MuiOutlinedInput-notchedOutline': {
+            border: 'none',
+          },
+          '& .MuiSelect-icon': {
+            backgroundColor: '#fff',
+          },
+        }}
+        onChange={handleChangeSelect}
+      >
+        {
+          contents.map((c) => c.details.map((d) =>
+          (<option
+            key={d.detailsId}
+            value={cleanText(d.detailsId)}
+            style={{ background: '#0f3b2e' }}
+          > {d.preview}</option>))
+          )
+        }
+      </Select>
+    )
+  }
   return (
     <Drawer
       sx={(theme) => ({
@@ -143,7 +194,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ contents, otherExamplesLabel }
                     >
                       <ListItemButton
                         component="a"
-                        href={`#${d.detailsId}`}
+                        href={`#${cleanText(d.detailsId)}`}
                         sx={{
                           backgroundColor: getBackgroundColor(d.detailsId),
 

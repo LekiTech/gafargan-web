@@ -9,8 +9,8 @@ import SpeakNumIcon from '@mui/icons-material/VolumeUp';
 import { Box, IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum, playLezgiNumberTts } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
-import { copyText, toLowerCaseLezgi } from '../../utils';
 import { useTranslation } from 'react-i18next';
+import { copyText, toLowerCaseLezgi } from '../../utils'
 
 function convertToLezgiAndFormat(num: number): string {
   const newResult = numToLezgi(num);

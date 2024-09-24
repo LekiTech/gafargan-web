@@ -1,5 +1,5 @@
 'use client';
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import {
   ExpressionDefinitionResponseDto,
   ExpressionExampleResponseDto,
@@ -14,6 +14,9 @@ import { FoundExamplesList, FoundExamplesListMobile } from './FoundExamplesList'
 import { SpellingListItem } from './SpellingListItem';
 import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinitionsList';
 import { useTranslation } from 'react-i18next';
+// import { useViewport } from '../../../use/useViewport';
+// import { EBreakpoints } from '../../../utils/BreakPoints';
+// import { IExpressionPageContentStyles } from '@/definition/types';
 
 type ExpressionViewProps = {
   lang: WebsiteLang;
@@ -36,6 +39,16 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   const theme = useTheme();
   const isSmallerThanMd = useMediaQuery(theme.breakpoints.down('md'));
 
+  // NOTE: Part below didn't work as intended after merging, holding on previous version
+  // const { viewport } = useViewport()
+  // const pageStyles = useMemo<IExpressionPageContentStyles>(() => ({
+  //   contentDirection: viewport.isGreaterThan(EBreakpoints.XXL) ? 'row' : 'column',
+  //   mainContentLeftPadding: viewport.isGreaterThan(EBreakpoints.XXL) ? '25px' : '0',
+  //   contentWidth: viewport.isGreaterThan(EBreakpoints.XXL) ? '100%' : '99%',
+  //   contentTopMargin: viewport.isGreaterThan(EBreakpoints.XXL) ? '50px' : '0',
+  // }), [viewport])
+
+
   if (!expression) {
     return (
       <Box>
@@ -54,18 +67,19 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         justifyContent: 'center',
         mt: '20px',
         mb: '50px',
-        // pb: '150px',
-        // mt: '100px',
-        [theme.breakpoints.down('md')]: {
-          width: '100vw',
-        },
       })}
     >
       {foundExpression && foundExpression?.details ? (
         <Stack
           direction={'row'}
           spacing={2}
-          sx={{ maxWidth: '1400px', alignItems: 'baseline' }}
+          sx={(theme) => ({
+            maxWidth: '1400px',
+            alignItems: 'baseline',
+            [theme.breakpoints.down('md')]: {
+              width: '100%',
+            },
+          })}
         >
           <Sidebar
             contents={foundExpression?.details?.map((d, i) =>
@@ -79,7 +93,6 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               flexDirection: 'column',
               alignItems: 'left',
               justifyContent: 'center',
-              // width: '100%',
               width: '65vw',
               maxWidth: '100%',
               boxSizing: 'border-box',
@@ -87,11 +100,9 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               pl: '25px',
               pb: '50px',
               [theme.breakpoints.down('md')]: {
-                width: '100vw',
-                // pl: 0,
-                // ml: 0,
                 '&.MuiBox-root': {
-                  ml: '0'
+                  ml: '0',
+                  mt: '50px',
                 }
               },
             })}

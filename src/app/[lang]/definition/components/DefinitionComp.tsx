@@ -70,7 +70,8 @@ const DefinitionsGroup: FC<{
   tags?: string[];
   spelling: string;
   inflection?: string;
-}> = ({ idx, lang, definitions, examples, spelling, inflection }) => {
+  spellingId: string
+}> = ({ idx, lang, definitions, examples, spelling, inflection, spellingId }) => {
   const { t } = useTranslation();
   // const { t } = useTranslation(lang, { useSuspense: false });
   // const [t, setT] = useState<TFunction<any, any>>();
@@ -86,7 +87,7 @@ const DefinitionsGroup: FC<{
     <Grid container spacing={2} sx={{ pb: '25px', pl: '25px' }}>
       <Grid item xs={12}>
         <Stack
-          id={createDetailsId(idx, spelling, definitions.length, inflection, examples?.length)}
+          id={createDetailsId(idx, spelling, definitions.length, spellingId, inflection, examples?.length)}
           spacing={0}
           sx={{ width: '100%' }}
         >
@@ -134,7 +135,8 @@ export const DefinitionDetailsComp: FC<{
   lang: WebsiteLang;
   spelling: string;
   inflection?: string;
-}> = ({ idx, definitionDetails, lang, spelling, inflection }) => {
+  spellingId: string
+}> = ({ idx, definitionDetails, lang, spelling, inflection, spellingId }) => {
   return (
     <Stack direction="row" key={`exp_det_${idx}`} sx={{ position: 'relative' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -161,6 +163,7 @@ export const DefinitionDetailsComp: FC<{
         tags={definitionDetails.tags}
         spelling={spelling}
         inflection={inflection}
+        spellingId={spellingId}
       />
     </Stack>
   );

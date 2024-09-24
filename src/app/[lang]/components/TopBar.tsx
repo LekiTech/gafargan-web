@@ -2,7 +2,7 @@
 import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import { Avatar, Box, Collapse, Grid, Slide, Typography, useMediaQuery, useScrollTrigger, useTheme } from '@mui/material';
+import { Avatar, Box, Grid, Typography, useScrollTrigger, useTheme } from '@mui/material';
 import { Search } from './Search';
 import { DictionaryLang, WebsiteLang } from '../../../api/types.model';
 import images from '@/store/images';
@@ -34,13 +34,15 @@ const TopBar = (props: TopBarProps) => {
 
   return (
     // <div> top bar </div>
-    <Box sx={{
-      mb: '170px',
-      [theme.breakpoints.down('md')]: {
-        // mb: trigger ? '100px' : '200px'
-        mb: '200px'
-      }
-    }}>
+    <Box
+      sx={{
+        mb: '170px',
+        [theme.breakpoints.down('md')]: {
+          // mb: trigger ? '100px' : '200px'
+          mb: '200px'
+        }
+      }}
+    >
       <ElevationScroll {...props}>
         <AppBar
           sx={(theme) => ({
@@ -71,6 +73,7 @@ const TopBar = (props: TopBarProps) => {
               }}
             >
               <Grid item xs={6} md={2} sx={{ mt: '10px', display: 'flex', alignItems: 'flex-start' }}>
+                {/* <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}> */}
                 <Link href={`/${currentLang}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                   <Typography
                     variant="h6"
@@ -108,34 +111,24 @@ const TopBar = (props: TopBarProps) => {
                   </Typography>
                 </Link>
               </Grid>
-              {pageName !== 'translate' &&
-                <Grid
-                  item
-                  xs={12}
-                  md={8}
-                  // sm={8}
-                  order={{ xs: 3, md: 2 }}
-                  sx={(theme) => ({
-                    display: 'flex',
-                    flexDirection: 'row',
-                    justifyContent: 'center',
-                    mt: '10px',
-                    [theme.breakpoints.down('md')]: {
-                      mt: '15px',
-                      // transform: trigger ? 'translateY(-50%)' : 'translateY(0)',
-                      display: trigger ? 'none' : 'flex',
-                      // zIndex: trigger ? -9999 : 'unset',
-                      // transition: 'visibility 0s, opacity 0.5s linear',
-                      // transition: theme.transitions.create('transform', {
-                      //   easing: theme.transitions.easing.sharp,
-                      //   duration: theme.transitions.duration.leavingScreen,
-                      // }),
-                    },
-                  })}
-                >
-                  <Search lang={currentLang} />
-                </Grid>
-              }
+              {pageName !== 'translate' && <Grid
+                item
+                xs={12}
+                md={8}
+                order={{ xs: 3, md: 2 }}
+                sx={(theme) => ({
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  mt: '10px',
+                  [theme.breakpoints.down('md')]: {
+                    mt: '15px',
+                    display: trigger ? 'none' : 'flex',
+                  },
+                })}
+              >
+                <Search lang={currentLang} />
+              </Grid>}
               <Grid item xs={6} md={2} order={{ xs: 2, md: 3 }}>
                 <Box
                   sx={{
@@ -150,12 +143,13 @@ const TopBar = (props: TopBarProps) => {
                     currentLang={currentLang}
                     webLangs={{ lez: 'Lezgi', rus: 'Russian', eng: 'English', tur: 'Turkish' }} //{t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
                   />
-                </Box>
-              </Grid>
-            </Grid>
-          </Toolbar>
-        </AppBar>
-      </ElevationScroll>
+                  {/* <WebLanguageSelect currentLang={currentLang} webLangs={webLangs} /> */}
+                </Box >
+              </Grid >
+            </Grid >
+          </Toolbar >
+        </AppBar >
+      </ElevationScroll >
     </Box >
   );
 };

@@ -1,17 +1,13 @@
 'use client';
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 import { Example, WebsiteLang } from '@api/types.model';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Typography,
-  // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
-} from '@mui/material/index';
+import { Accordion, AccordionDetails, AccordionSummary, Typography } from '@mui/material/index';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { useTranslation } from 'react-i18next';
 import { ExamplesList } from './ExamplesList';
+import { useViewport } from '../../../use/useViewport';
+import { EBreakpoints } from '../../../utils/BreakPoints';
 
 export const ExamplesComp: FC<{
   parentIdx: number;
@@ -21,12 +17,19 @@ export const ExamplesComp: FC<{
   examples?: Example[];
 }> = ({ parentIdx, lang, title, examples, isOtherExamples }) => {
   const { t } = useTranslation(lang);
+  const { viewport } = useViewport();
+
+  const accordionWidth = useMemo(() => {
+    return isOtherExamples || viewport.isLessThan(EBreakpoints.XXL) ? '100%' : '500px'
+  }, [isOtherExamples, viewport]);
+
   return examples && examples.length > 0 ? (
     <Accordion
       variant="outlined"
       sx={(theme) => ({
         backgroundColor: 'inherit',
-        width: isOtherExamples ? 'calc(100% - 24px)' : 'unset',
+        // width: isOtherExamples ? 'calc(100% - 24px)' : 'unset',
+        width: accordionWidth,
         maxWidth: isOtherExamples ? '750px' : '500px',
         mr: '24px'
       })}

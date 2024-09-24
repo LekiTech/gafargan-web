@@ -1,5 +1,6 @@
 import { ExpressionDetails } from '../../../api/types.model';
 import { Contents } from './types';
+import { cleanText } from '../../utils/cleanText';
 
 export function createSpellingId(
   idx: number,
@@ -9,14 +10,14 @@ export function createSpellingId(
 ) {
   const spellingId = `${idx}-spelling-${spelling}-${inflection}-${definitionDetailsLength}`
     .replaceAll(' ', '_')
-    .replaceAll('undefined', '');
-  return spellingId;
+  return cleanText(spellingId);
 }
 
 export function createDetailsId(
   idx: number,
   spelling: string,
   definitionsCount: number,
+  spellingId: string,
   inflection?: string,
   examplesCount?: number,
 ) {
@@ -24,8 +25,7 @@ export function createDetailsId(
     examplesCount ?? 0
   }`
     .replaceAll(' ', '_')
-    .replaceAll('undefined', '');
-  return detailsId;
+  return `${spellingId}-${cleanText(detailsId)}`;
 }
 
 export function createOtherExamplesId(idx: number) {
@@ -38,13 +38,14 @@ export function toContents(
   expressionDetails: ExpressionDetails,
 ): Contents {
   const otherExamplesCount = expressionDetails.examples?.length ?? 0;
+  const spellingId = createSpellingId(
+    idx,
+    spelling,
+    expressionDetails.definitionDetails.length,
+    expressionDetails.inflection,
+  )
   return {
-    spellingId: createSpellingId(
-      idx,
-      spelling,
-      expressionDetails.definitionDetails.length,
-      expressionDetails.inflection,
-    ),
+    spellingId,
     spelling,
     inflection: expressionDetails.inflection,
     details: expressionDetails.definitionDetails
@@ -59,6 +60,7 @@ export function toContents(
             i,
             spelling,
             dd.definitions.length,
+            spellingId,
             expressionDetails.inflection,
             dd.examples?.length,
           ),

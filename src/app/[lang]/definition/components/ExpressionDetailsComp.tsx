@@ -2,13 +2,15 @@
 import React, { FC } from 'react';
 import { ExpressionDetails, WebsiteLang } from '../../../../api/types.model';
 // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
-import { Box, Chip, Divider, Stack, Typography } from '@mui/material/index';
-import { expressionFont, lusitanaFont } from '@/fonts';
+import { Divider, Stack, Typography } from '@mui/material/index';
+import { expressionFont } from '@/fonts';
 import { DefinitionDetailsComp } from './DefinitionComp';
 import { createOtherExamplesId, createSpellingId } from '../utils';
 import { ExamplesComp } from './ExampleComp';
 import { useTranslation } from 'react-i18next';
 import { toLowerCaseLezgi } from '../../../utils';
+import { useViewport } from '../../../use/useViewport';
+import { EBreakpoints } from '../../../utils/BreakPoints';
 
 type ExpressionDetailsCompProps = {
   idx: number;
@@ -27,6 +29,9 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
 }) => {
   const { t } = useTranslation(lang);
   // const { t: tTags } = await useTranslation(lang, 'tags');
+  const spellingId = createSpellingId(idx, spelling, data.definitionDetails.length, data.inflection)
+
+  const { viewport } = useViewport();
   return (
     <Stack
       key={`ExpressionDetailsComp_${idx}_${spelling}`}
@@ -35,12 +40,14 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         flexDirection: 'column',
         alignItems: 'left',
         justifyContent: 'center',
+        padding: viewport.isLessThan(EBreakpoints.XXL) ? '0 10px' : 0
       }}
     >
       <Typography
         variant="h2"
         className={expressionFont.className}
-        id={createSpellingId(idx, spelling, data.definitionDetails.length, data.inflection)}
+        fontSize={viewport.isLessThan(EBreakpoints.MD) ? '2.5rem' : '3.75rem'}
+        id={spellingId}
         sx={(theme) => ({
           [theme.breakpoints.down('md')]: {
             width: '90vw', wordWrap: "break-word", fontSize: '2.5rem'
@@ -63,6 +70,7 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
           lang={lang}
           spelling={spelling}
           inflection={data.inflection}
+          spellingId={spellingId}
         />
       ))}
       {data.examples && data.examples.length > 0 && (

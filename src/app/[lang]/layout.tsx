@@ -2,13 +2,13 @@ import './globals.css';
 import * as React from 'react';
 import type { Metadata, ResolvingMetadata } from 'next';
 import { Inter } from 'next/font/google';
+import Providers from './Providers';
 import { dir } from 'i18next';
 import Toolbar from '@mui/material/Toolbar';
+import { initTranslations } from '@i18n/index';
 import { DictionaryLang, WebsiteLang } from '../../api/types.model';
 import TopBar from './components/TopBar';
 import { colors } from './colors';
-import { initTranslations } from '@i18n/index';
-import Providers from './Providers';
 
 const languages = ['eng', 'rus', 'lez'];
 
@@ -57,7 +57,7 @@ export default async function RootLayout(props: RootLayoutProps) {
       dir={dir(lang)}
       style={{ scrollBehavior: 'smooth', scrollPaddingTop: '100px' }}
     >
-      <body className={inter.className} style={{ backgroundColor: colors.background, margin: 0 }}>
+      <body className={inter.className} style={{ backgroundColor: colors.background, margin: 0, overflowX: 'hidden' }}>
         <Providers locale={lang}>
           <TopBar
             currentLang={lang as WebsiteLang}

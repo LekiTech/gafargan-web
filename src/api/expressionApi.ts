@@ -25,6 +25,7 @@ class ExpressionApi extends BaseApi {
   }
 
   search = cache(async (query: SearchQuery): Promise<ExpressionSearchResponseDto | undefined> => {
+
     try {
       const response = await this.get(`${prefix}/search`, {
         params: query,
