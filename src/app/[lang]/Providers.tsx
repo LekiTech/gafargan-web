@@ -7,6 +7,7 @@ import { initTranslations } from '../i18n';  // Adjust the path as necessary
 import { createInstance, i18n as I18nInstance } from 'i18next';
 import { Provider } from 'react-redux';
 import store from '@/store';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 type TranslationProviderProps = {
   children: React.ReactNode;
@@ -36,15 +37,19 @@ const TranslationsProvider: FC<TranslationProviderProps> = ({ children, locale }
   return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>;
 };
 
+const queryClient = new QueryClient()
+
 type ProviderProps = {
   children: React.ReactNode;
 } & TranslationProviderProps;
 
 const Providers: FC<ProviderProps> = ({ children, locale }) => {
   return (
-    <Provider store={store}>
-      <TranslationsProvider locale={locale}>{children}</TranslationsProvider>
-    </Provider>
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
+        <TranslationsProvider locale={locale}>{children}</TranslationsProvider>
+      </Provider>
+    </QueryClientProvider>
   )
 };
 
