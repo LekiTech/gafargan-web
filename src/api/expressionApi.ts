@@ -14,6 +14,7 @@ import {
   SuggestionsQuery,
 } from './types.dto';
 import { Expression } from './types.model';
+import { filterWordsOfTheDay } from './wordsOfTheDay';
 // import sampleExpression from './qhil.json';
 // import { Expression } from './types.model';
 // /v2/expressions/search/suggestions
@@ -25,7 +26,6 @@ class ExpressionApi extends BaseApi {
   }
 
   search = cache(async (query: SearchQuery): Promise<ExpressionSearchResponseDto | undefined> => {
-
     try {
       const response = await this.get(`${prefix}/search`, {
         params: query,
@@ -80,18 +80,36 @@ class ExpressionApi extends BaseApi {
 
   /**
    * Get the word of the day.
-   * @param currentDate - The current date in the format 'YYYY-MM-DD'.
    */
-  wordOfTheDay = cache(async (currentDate: string): Promise<Expression | undefined> => {
+  wordOfTheDay = cache(async (): Promise<ExpressionSearchResponseDto | undefined> => {
     try {
-      const response = await this.get(`${prefix}/day`, {
-        params: { currentDate },
+      const dayOfTheYear = getDayOfTheYear();
+      const wordIndex = filterWordsOfTheDay.length <= dayOfTheYear ? 0 : dayOfTheYear;
+      const searchQuery: SearchQuery = {
+        spelling: filterWordsOfTheDay[wordIndex],
+        expLang: 'lez',
+        defLang: 'rus',
+      };
+      const response = await this.get(`${prefix}/search`, {
+        params: searchQuery,
       });
       return response.data;
     } catch (e) {
       console.error(e);
     }
   });
+}
+
+function getDayOfTheYear(): number {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff =
+    now.getTime() -
+    start.getTime() +
+    (start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const day = Math.floor(diff / oneDay);
+  return day;
 }
 
 const api = new ExpressionApi();

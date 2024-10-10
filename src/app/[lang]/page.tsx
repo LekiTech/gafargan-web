@@ -19,10 +19,7 @@ const Home: FC<HomeProps> = async (props) => {
     searchParams: { fromLang, toLang },
   } = props;
   const { t } = await initTranslations(lang);
-  const date = new Date();
-  const wordOfTheDay = await expressionApi.wordOfTheDay(
-    `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`, //19
-  );
+  const wordOfTheDay = await expressionApi.wordOfTheDay();
   const sources = await dictionaryApi.getSources();
   return (
     <Box
@@ -40,7 +37,7 @@ const Home: FC<HomeProps> = async (props) => {
           <Grid item xs={12} lg={4}>
             <WordOfTheDay
               // TODO: fix Skeleton loading
-              expression={wordOfTheDay!}
+              expression={wordOfTheDay?.found!}
               labels={{
                 wordOfTheDay: t('wordOfTheDay'),
                 examples: t('examples'),
