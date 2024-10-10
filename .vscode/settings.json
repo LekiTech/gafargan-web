@@ -36,10 +36,8 @@
       //other styling properties goes here ...
     }
   ],
-  "cSpell.words": [
-    "gafargan"
-  ],
+  "cSpell.words": ["gafargan"],
   "[typescriptreact]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features"
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
