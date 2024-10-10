@@ -27,7 +27,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
   const { wordOfTheDay, examples, learnMore } = labels;
   const firstDefinition = expression?.details[0]?.definitionDetails[0];
   return (
-    <Card sx={{ minWidth: 275, height: 365, padding: '20px' }}>
+    <Card sx={{ minWidth: 275, flexGrow: 1, padding: '20px' }}>
       <CardContent
         sx={{
           width: '100%',

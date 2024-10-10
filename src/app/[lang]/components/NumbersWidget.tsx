@@ -22,7 +22,7 @@ export const NumbersToLezgi: FC = () => {
   const [originalInput, setOriginalInput] = useState(defaultNumber);
   const [result, setResult] = useState(convertToLezgiAndFormat(defaultNumber));
   return (
-    <Card sx={{ display: 'flex', minWidth: 275, height: 365, padding: '20px' }}>
+    <Card sx={{ display: 'flex', minWidth: 275, flexGrow: 1, padding: '20px' }}>
       <CardContent
         sx={{
           flex: 2,
@@ -120,7 +120,7 @@ export const LezgiToNumbers: FC = () => {
   const [result, setResult] = React.useState(convertLezgiToNumberAndFormat(defaultNumericalText));
   const { t } = useTranslation();
   return (
-    <Card sx={{ display: 'flex', minWidth: 275, height: 365, padding: '20px' }}>
+    <Card sx={{ display: 'flex', minWidth: 275, flexGrow: 1, padding: '20px' }}>
       <CardContent
         sx={{
           flex: 2,

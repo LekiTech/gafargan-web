@@ -34,7 +34,7 @@ const Home: FC<HomeProps> = async (props) => {
       <Suspense>
         <VerticalSpacing />
         <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
-          <Grid item xs={12} lg={4}>
+          <Grid item xs={12} lg={4} sx={{ display: 'flex', flexDirection: 'column' }}>
             <WordOfTheDay
               // TODO: fix Skeleton loading
               expression={wordOfTheDay?.found!}
@@ -45,10 +45,10 @@ const Home: FC<HomeProps> = async (props) => {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={6} lg={4} sx={{ display: 'flex', flexDirection: 'column' }}>
             <NumbersToLezgi />
           </Grid>
-          <Grid item xs={12} md={6} lg={4}>
+          <Grid item xs={12} md={6} lg={4} sx={{ display: 'flex', flexDirection: 'column' }}>
             <LezgiToNumbers />
           </Grid>
           <Grid item xs={12}>
