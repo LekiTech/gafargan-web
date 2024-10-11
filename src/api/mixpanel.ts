@@ -1,6 +1,7 @@
 'use server';
 import Mixpanel from 'mixpanel';
 import { cookies } from 'next/headers';
+import { headers } from 'next/headers';
 import { randomUUID } from 'crypto';
 
 const isDev = process.env.NODE_ENV === 'development';
@@ -12,15 +13,14 @@ const _mixpanel = isDev
       geolocate: true,
     });
 
-// export async function createSessionCookie(newSessionId: string) {
-//   const cookieStore = cookies();
-//   cookieStore.set('sessionid', newSessionId, {
-//     httpOnly: true,
-//     secure: process.env.NODE_ENV === 'production',
-//     path: '/',
-//     sameSite: 'lax',
-//   });
-// }
+function IP() {
+  const FALLBACK_IP_ADDRESS = '0.0.0.0';
+  const forwardedFor = headers().get('x-forwarded-for');
+  if (forwardedFor) {
+    return forwardedFor.split(',')[0] ?? FALLBACK_IP_ADDRESS;
+  }
+  return headers().get('x-real-ip') ?? FALLBACK_IP_ADDRESS;
+}
 
 class MixpanelClient {
   createUserProfile(properties: Record<string, string>) {
@@ -31,13 +31,13 @@ class MixpanelClient {
     const cookieStore = cookies();
     cookieStore.set('sessionid', newSessionId, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV !== 'development',
       path: '/',
       sameSite: 'lax',
     });
     _mixpanel?.people.set(newSessionId, {
       $created: new Date().toISOString(),
-      isDev: isDev,
+      ip: IP(),
       ...properties,
     });
   }
@@ -50,11 +50,17 @@ class MixpanelClient {
     }
     _mixpanel?.track('Website Language Change', {
       distinct_id: sessionId,
+      ip: IP(),
       lang: lang,
     });
   }
 
-  trackTranslationSearch(search: { searchQuery: string; fromLang: string; toLang: string }) {
+  trackTranslationSearch(search: {
+    searchQuery: string;
+    fromLang: string;
+    toLang: string;
+    searchType: 'enter_key' | 'search_button' | 'option_select';
+  }) {
     const cookieStore = cookies();
     const sessionId = cookieStore.get('sessionid');
     if (isDev || !sessionId) {
@@ -62,6 +68,7 @@ class MixpanelClient {
     }
     _mixpanel?.track('Translation Search', {
       distinct_id: sessionId,
+      ip: IP(),
       searchQuery: search.searchQuery,
       fromLang: search.fromLang,
       toLang: search.toLang,
@@ -76,6 +83,7 @@ class MixpanelClient {
     }
     _mixpanel?.track('Numbers to Lezgi', {
       distinct_id: sessionId,
+      ip: IP(),
     });
   }
 
@@ -87,6 +95,20 @@ class MixpanelClient {
     }
     _mixpanel?.track('Lezgi to Numbers', {
       distinct_id: sessionId,
+      ip: IP(),
+    });
+  }
+
+  trackWordOfTheDay(wordOfTheDay: string) {
+    const cookieStore = cookies();
+    const sessionId = cookieStore.get('sessionid');
+    if (isDev || !sessionId) {
+      return;
+    }
+    _mixpanel?.track('Word of the Day', {
+      distinct_id: sessionId,
+      ip: IP(),
+      wordOfTheDay: wordOfTheDay,
     });
   }
 }
@@ -98,3 +120,4 @@ export const trackWebsiteLanguageChange = mixpanel.trackWebsiteLanguageChange;
 export const trackTranslationSearch = mixpanel.trackTranslationSearch;
 export const trackNumbersToLezgi = mixpanel.trackNumbersToLezgi;
 export const trackLezgiToNumbers = mixpanel.trackLezgiToNumbers;
+export const trackWordOfTheDay = mixpanel.trackWordOfTheDay;

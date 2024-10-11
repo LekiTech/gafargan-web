@@ -9,6 +9,7 @@ import { capitalizeFirstLetter } from '@/definition/utils';
 import { usePathname } from 'next/navigation';
 import { ParsedTextComp } from './ParsedTextComp';
 import { toLowerCaseLezgi } from '../../utils';
+import { trackWordOfTheDay } from '@api/mixpanel';
 
 type WordOfTheDayProps = {
   expression: Expression;
@@ -111,6 +112,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
         <Typography sx={{ m: 1.5, textAlign: 'end', cursor: 'pointer' }} variant="body2">
           <Link
             href={`${pathname}/definition?fromLang=${DEFAULT_EXPRESSION_LANG}&toLang=${DEFAULT_DEFINITION_LANG}&exp=${expression?.spelling}`}
+            onClick={(e) => trackWordOfTheDay(expression?.spelling)}
           >
             {learnMore}
           </Link>

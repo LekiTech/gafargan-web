@@ -171,15 +171,15 @@ export const Search: FC<{
     debounceSetOptions(value, searchLang.from, searchLang.to);
   };
 
-  const handleChangeSearchValue = (e: SyntheticEvent<Element, Event>) => {
+  const onEnterPressSearch = (e: SyntheticEvent<Element, Event>) => {
     e.preventDefault();
-    // check below if 'v' is a string
-    // if (typeof v === 'string') {
-    //   goToDefinition(v, pathname, searchLang, router);
-    //   return;
-    // }
-    // goToDefinition(v.spelling, pathname, searchLang, router);
     setShouldPerformSearch(true);
+    trackTranslationSearch({
+      fromLang: searchLang.from,
+      toLang: searchLang.to,
+      searchQuery: inputValue,
+      searchType: 'enter_key',
+    });
   };
 
   return (
@@ -212,7 +212,7 @@ export const Search: FC<{
           disableClearable={true}
           inputValue={inputValue}
           // On `Enter` key press
-          onChange={handleChangeSearchValue}
+          onChange={onEnterPressSearch}
           // On input change, visible to user text change
           onInputChange={handleInputSearchValue}
           options={options}
@@ -258,6 +258,12 @@ export const Search: FC<{
                   event.preventDefault();
                   // goToDefinition(option.spelling, pathname, searchLang, router);
                   setShouldPerformSearch(true);
+                  trackTranslationSearch({
+                    fromLang: searchLang.from,
+                    toLang: searchLang.to,
+                    searchQuery: option.spelling,
+                    searchType: 'option_select',
+                  });
                   if (props.onClick) {
                     props.onClick(event);
                   }
@@ -288,6 +294,7 @@ export const Search: FC<{
               fromLang: searchLang.from,
               toLang: searchLang.to,
               searchQuery: inputValue,
+              searchType: 'search_button',
             });
             //@ts-ignore
             document?.activeElement?.blur();
