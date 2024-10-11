@@ -16,6 +16,9 @@ const _mixpanel = isDev
 function IP() {
   const FALLBACK_IP_ADDRESS = '0.0.0.0';
   const forwardedFor = headers().get('x-forwarded-for');
+  console.log('forwardedFor', forwardedFor);
+  console.log('real-ip', headers().get('x-real-ip'));
+  console.log('x-forwarded-host', headers().get('x-forwarded-host'));
   if (forwardedFor) {
     return forwardedFor.split(',')[0] ?? FALLBACK_IP_ADDRESS;
   }
@@ -24,6 +27,7 @@ function IP() {
 
 class MixpanelClient {
   createUserProfile(properties: Record<string, string>) {
+    IP();
     if (isDev) {
       return;
     }
