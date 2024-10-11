@@ -49,7 +49,7 @@ class MixpanelClient {
       return;
     }
     _mixpanel?.track('Website Language Change', {
-      distinct_id: sessionId,
+      distinct_id: sessionId.value,
       ip: IP(),
       lang: lang,
     });
@@ -67,7 +67,7 @@ class MixpanelClient {
       return;
     }
     _mixpanel?.track('Translation Search', {
-      distinct_id: sessionId,
+      distinct_id: sessionId.value,
       ip: IP(),
       searchQuery: search.searchQuery,
       fromLang: search.fromLang,
@@ -83,7 +83,7 @@ class MixpanelClient {
       return;
     }
     _mixpanel?.track('Numbers to Lezgi', {
-      distinct_id: sessionId,
+      distinct_id: sessionId.value,
       ip: IP(),
     });
   }
@@ -95,7 +95,7 @@ class MixpanelClient {
       return;
     }
     _mixpanel?.track('Lezgi to Numbers', {
-      distinct_id: sessionId,
+      distinct_id: sessionId.value,
       ip: IP(),
     });
   }
@@ -107,7 +107,7 @@ class MixpanelClient {
       return;
     }
     _mixpanel?.track('Word of the Day', {
-      distinct_id: sessionId,
+      distinct_id: sessionId.value,
       ip: IP(),
       wordOfTheDay: wordOfTheDay,
     });
