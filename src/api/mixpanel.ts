@@ -72,6 +72,7 @@ class MixpanelClient {
       searchQuery: search.searchQuery,
       fromLang: search.fromLang,
       toLang: search.toLang,
+      searchType: search.searchType,
     });
   }
 
