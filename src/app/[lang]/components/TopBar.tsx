@@ -13,25 +13,45 @@ import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
 // import { HideOnScroll } from './HideScroll';
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation';
+import { createUserProfile } from '@api/mixpanel';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
+  sessionId?: string;
   // webLangs: Record<WebsiteLang, string>;
   // dictLangs: Record<DictionaryLang, string>;
   // searchLabel: string;
 };
 
 const TopBar = (props: TopBarProps) => {
-  const { currentLang } = props;
+  const { currentLang, sessionId } = props;
   const trigger = useScrollTrigger({
     threshold: 10,
   });
   const theme = useTheme();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const pathSplit = pathname.split('/');
   const pageName = pathSplit[pathSplit.length - 1];
 
+  React.useEffect(() => {
+    if (!sessionId) {
+      console.log('Creating new user profile');
+      // console.log('params', params);
+      console.log('searchParams', searchParams);
+      const properties: Record<string, string> = {};
+      // Extract UTM parameters from searchParams
+      const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+      utmKeys.forEach((key) => {
+        const value = searchParams.has(key) ? searchParams.get(key) : null;
+        if (value !== null) {
+          properties[key] = value;
+        }
+      });
+      createUserProfile(properties);
+    }
+  }, []);
   return (
     // <div> top bar </div>
     <Box
@@ -39,8 +59,8 @@ const TopBar = (props: TopBarProps) => {
         mb: '170px',
         [theme.breakpoints.down('md')]: {
           // mb: trigger ? '100px' : '200px'
-          mb: '200px'
-        }
+          mb: '200px',
+        },
       }}
     >
       <ElevationScroll {...props}>
@@ -72,7 +92,12 @@ const TopBar = (props: TopBarProps) => {
                 maxWidth: '1400px',
               }}
             >
-              <Grid item xs={6} md={2} sx={{ mt: '10px', display: 'flex', alignItems: 'flex-start' }}>
+              <Grid
+                item
+                xs={6}
+                md={2}
+                sx={{ mt: '10px', display: 'flex', alignItems: 'flex-start' }}
+              >
                 {/* <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}> */}
                 <Link href={`/${currentLang}`} style={{ color: 'inherit', textDecoration: 'none' }}>
                   <Typography
@@ -111,24 +136,26 @@ const TopBar = (props: TopBarProps) => {
                   </Typography>
                 </Link>
               </Grid>
-              {pageName !== 'translate' && <Grid
-                item
-                xs={12}
-                md={8}
-                order={{ xs: 3, md: 2 }}
-                sx={(theme) => ({
-                  display: 'flex',
-                  flexDirection: 'row',
-                  justifyContent: 'center',
-                  mt: '10px',
-                  [theme.breakpoints.down('md')]: {
-                    mt: '15px',
-                    display: trigger ? 'none' : 'flex',
-                  },
-                })}
-              >
-                <Search lang={currentLang} />
-              </Grid>}
+              {pageName !== 'translate' && (
+                <Grid
+                  item
+                  xs={12}
+                  md={8}
+                  order={{ xs: 3, md: 2 }}
+                  sx={(theme) => ({
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    mt: '10px',
+                    [theme.breakpoints.down('md')]: {
+                      mt: '15px',
+                      display: trigger ? 'none' : 'flex',
+                    },
+                  })}
+                >
+                  <Search lang={currentLang} />
+                </Grid>
+              )}
               <Grid item xs={6} md={2} order={{ xs: 2, md: 3 }}>
                 <Box
                   sx={{
@@ -144,13 +171,13 @@ const TopBar = (props: TopBarProps) => {
                     webLangs={{ lez: 'Lezgi', rus: 'Russian', eng: 'English', tur: 'Turkish' }} //{t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
                   />
                   {/* <WebLanguageSelect currentLang={currentLang} webLangs={webLangs} /> */}
-                </Box >
-              </Grid >
-            </Grid >
-          </Toolbar >
-        </AppBar >
-      </ElevationScroll >
-    </Box >
+                </Box>
+              </Grid>
+            </Grid>
+          </Toolbar>
+        </AppBar>
+      </ElevationScroll>
+    </Box>
   );
 };
 

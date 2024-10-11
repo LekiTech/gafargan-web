@@ -9,6 +9,7 @@ import Image from 'next/image';
 // import { useMediaQuery } from 'react-responsive';
 import { colors } from '@/colors';
 import { useTranslation } from 'react-i18next';
+import { trackWebsiteLanguageChange } from '@api/mixpanel';
 
 type WebLanguageSelectProps = {
   currentLang: WebsiteLang;
@@ -32,6 +33,7 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
       ? pathname.replace(`/${currentLang}`, `/${lang}`) + params
       : `/${lang}/${params}`;
     router.push(path);
+    trackWebsiteLanguageChange(lang);
   };
   return (
     <Select

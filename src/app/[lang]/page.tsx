@@ -10,17 +10,17 @@ import { VerticalSpacing } from './components/VerticalSpacing';
 
 type HomeProps = {
   params: { lang: string };
-  searchParams: { fromLang: string; toLang: string };
+  searchParams: { fromLang: string; toLang: string } & Record<string, string>;
 };
 
 const Home: FC<HomeProps> = async (props) => {
   const {
     params: { lang },
-    searchParams: { fromLang, toLang },
   } = props;
   const { t } = await initTranslations(lang);
   const wordOfTheDay = await expressionApi.wordOfTheDay();
   const sources = await dictionaryApi.getSources();
+
   return (
     <Box
       sx={{

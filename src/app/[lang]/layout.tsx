@@ -1,6 +1,7 @@
 import './globals.css';
 import * as React from 'react';
 import type { Metadata, ResolvingMetadata } from 'next';
+import { cookies } from 'next/headers';
 import { Inter } from 'next/font/google';
 import Providers from './Providers';
 import { dir } from 'i18next';
@@ -41,29 +42,32 @@ export async function generateMetadata(
 type RootLayoutProps = {
   children: React.ReactNode;
   params: { lang: string };
-  searchParams: { fromLang: string; toLang: string };
 };
 
 export default async function RootLayout(props: RootLayoutProps) {
   const {
     children,
     params: { lang },
-    // searchParams,
   } = props;
-  // const { t } = await initTranslations(lang);
+  const cookieStore = cookies();
+  const sessionId = cookieStore.get('sessionid');
   return (
     <html
       lang={lang}
       dir={dir(lang)}
       style={{ scrollBehavior: 'smooth', scrollPaddingTop: '100px' }}
     >
-      <body className={inter.className} style={{ backgroundColor: colors.background, margin: 0, overflowX: 'hidden' }}>
+      <body
+        className={inter.className}
+        style={{ backgroundColor: colors.background, margin: 0, overflowX: 'hidden' }}
+      >
         <Providers locale={lang}>
           <TopBar
             currentLang={lang as WebsiteLang}
-          // webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
-          // dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
-          // searchLabel={t('search')}
+            sessionId={sessionId?.value}
+            // webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
+            // dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
+            // searchLabel={t('search')}
           />
           {/* <Toolbar sx={{ p: '10px' }} /> */}
           {children}

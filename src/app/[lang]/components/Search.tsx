@@ -1,7 +1,17 @@
 'use client';
 import React, { FC, SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Backdrop, Box, Button, CircularProgress, IconButton, MenuItem, Select, Stack, TextField } from '@mui/material';
+import {
+  Backdrop,
+  Box,
+  Button,
+  CircularProgress,
+  IconButton,
+  MenuItem,
+  Select,
+  Stack,
+  TextField,
+} from '@mui/material';
 import Autocomplete, {
   AutocompleteRenderInputParams,
   autocompleteClasses,
@@ -20,6 +30,7 @@ import { toLowerCaseLezgi } from '../../utils';
 import { useDebounceFn } from '../../use/useDebounceFn';
 import BaseLoader from '../../../ui/BaseLoader';
 import { useTranslation } from 'react-i18next';
+import { trackTranslationSearch } from '@api/mixpanel';
 
 function findPairLang(lang: DictionaryLang) {
   return DictionaryPairs.find((pair) => pair.includes(lang))?.filter((pl) => pl !== lang)[0];
@@ -111,7 +122,7 @@ export const Search: FC<{
   const [inputValue, setInputValue] = useState<string>(exp ? toLowerCaseLezgi(exp) : '');
   const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [prevSearch, setPrevSearch] = useState('')
+  const [prevSearch, setPrevSearch] = useState('');
 
   useEffect(() => {
     setSearchLang({
@@ -122,7 +133,11 @@ export const Search: FC<{
 
   useEffect(() => {
     if (shouldPerformSearch) {
-      if (!searchParams.toString() || searchParams.toString() !== prevSearch || exp !== inputValue) {
+      if (
+        !searchParams.toString() ||
+        searchParams.toString() !== prevSearch ||
+        exp !== inputValue
+      ) {
         setIsLoading(true);
       }
       goToDefinition(inputValue, pathname, searchLang, router);
@@ -132,26 +147,29 @@ export const Search: FC<{
 
   useEffect(() => {
     setIsLoading(false);
-    setPrevSearch(searchParams.toString())
-  }, [pathname, searchParams])
+    setPrevSearch(searchParams.toString());
+  }, [pathname, searchParams]);
 
   // Получение списка подсказок по дебаунс
-  const debounceSetOptions = useCallback(useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
-    setOptions(
-      await expressionApi.suggestions({
-        spelling: value,
-        expLang,
-        defLang,
-        size: 10,
-      })
-    );
-  }, 500), [])
+  const debounceSetOptions = useCallback(
+    useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
+      setOptions(
+        await expressionApi.suggestions({
+          spelling: value,
+          expLang,
+          defLang,
+          size: 10,
+        }),
+      );
+    }, 500),
+    [],
+  );
 
   const handleInputSearchValue = (e: SyntheticEvent<Element, Event>, value: string) => {
     e.preventDefault();
     setInputValue(value);
     debounceSetOptions(value, searchLang.from, searchLang.to);
-  }
+  };
 
   const handleChangeSearchValue = (e: SyntheticEvent<Element, Event>) => {
     e.preventDefault();
@@ -162,7 +180,7 @@ export const Search: FC<{
     // }
     // goToDefinition(v.spelling, pathname, searchLang, router);
     setShouldPerformSearch(true);
-  }
+  };
 
   return (
     <Stack
@@ -170,19 +188,18 @@ export const Search: FC<{
       // direction={isLgBreakpoint ? 'row' : 'column-reverse'}
       spacing={2}
       sx={{ flex: 1 }}
-    // sx={(theme) => ({
-    //   alignItems: 'center',
-    //   justifyContent: 'center',
-    //   // flexDirection: 'row',
-    //   // [theme.breakpoints.down('lg')]: {
-    //   //   flexDirection: 'column-reverse',
-    //   // },
-    // })}
+      // sx={(theme) => ({
+      //   alignItems: 'center',
+      //   justifyContent: 'center',
+      //   // flexDirection: 'row',
+      //   // [theme.breakpoints.down('lg')]: {
+      //   //   flexDirection: 'column-reverse',
+      //   // },
+      // })}
     >
-
       <BaseLoader isLoading={isLoading} setIsLoading={setIsLoading} />
       {/* {fromLang.name} */}
-      <Stack direction="row" spacing={0} sx={{ mt: '0 !important', width: '100%', }}>
+      <Stack direction="row" spacing={0} sx={{ mt: '0 !important', width: '100%' }}>
         <Autocomplete
           id="free-solo-search"
           sx={(theme) => ({
@@ -267,6 +284,11 @@ export const Search: FC<{
             e.preventDefault();
             // goToDefinition(inputValue, pathname, searchLang, router);
             setShouldPerformSearch(true);
+            trackTranslationSearch({
+              fromLang: searchLang.from,
+              toLang: searchLang.to,
+              searchQuery: inputValue,
+            });
             //@ts-ignore
             document?.activeElement?.blur();
           }}
@@ -274,7 +296,11 @@ export const Search: FC<{
           <SearchIcon fontSize="large" />
         </Button>
       </Stack>
-      <Stack direction="row" spacing={0} sx={{ pl: '20px', pr: '20px', justifyContent: 'center', alignItems: 'center' }}>
+      <Stack
+        direction="row"
+        spacing={0}
+        sx={{ pl: '20px', pr: '20px', justifyContent: 'center', alignItems: 'center' }}
+      >
         {/* <Stack direction="row" spacing={0} sx={{ pl: '20px', pr: '20px', justifyContent: 'space-between', alignItems: 'center' }}> */}
         <Stack direction="row" spacing={0} sx={{ justifyContent: 'center', alignItems: 'center' }}>
           <Select
@@ -292,10 +318,10 @@ export const Search: FC<{
                 searchParams,
                 router,
                 pathname,
-                setIsLoading
+                setIsLoading,
               });
             }}
-          // defaultValue={fromLang.code}
+            // defaultValue={fromLang.code}
           >
             {DictionaryLangs.map((lang) => (
               <MenuItem key={lang.toString()} value={lang}>
@@ -314,7 +340,7 @@ export const Search: FC<{
                 searchParams,
                 router,
                 pathname,
-                setIsLoading
+                setIsLoading,
               });
             }}
           >
@@ -336,7 +362,7 @@ export const Search: FC<{
                 searchParams,
                 router,
                 pathname,
-                setIsLoading
+                setIsLoading,
               });
             }}
           >

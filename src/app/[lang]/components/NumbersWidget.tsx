@@ -10,7 +10,8 @@ import { Box, IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum, playLezgiNumberTts } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
 import { useTranslation } from 'react-i18next';
-import { copyText, toLowerCaseLezgi } from '../../utils'
+import { copyText, toLowerCaseLezgi } from '../../utils';
+import { trackLezgiToNumbers, trackNumbersToLezgi } from '@api/mixpanel';
 
 function convertToLezgiAndFormat(num: number): string {
   const newResult = numToLezgi(num);
@@ -44,6 +45,9 @@ export const NumbersToLezgi: FC = () => {
             pattern: '[0-9]*',
             min: '-9007199254740991',
             max: '9007199254740991',
+          }}
+          onFocus={(e) => {
+            trackNumbersToLezgi();
           }}
           onChange={(e) => {
             const caret = e.target.selectionStart;
@@ -141,6 +145,9 @@ export const LezgiToNumbers: FC = () => {
           inputProps={{
             inputMode: 'text',
             pattern: '[ 1iI\u0400-\u04ff]*',
+          }}
+          onFocus={(e) => {
+            trackLezgiToNumbers();
           }}
           onChange={(e) => {
             const inputValue = e.target.value;
