@@ -17,8 +17,6 @@ function IP() {
   const FALLBACK_IP_ADDRESS = '0.0.0.0';
   const forwardedFor = headers().get('x-forwarded-for');
   console.log('forwardedFor', forwardedFor);
-  console.log('real-ip', headers().get('x-real-ip'));
-  console.log('x-forwarded-host', headers().get('x-forwarded-host'));
   if (forwardedFor) {
     return forwardedFor.split(',')[0] ?? FALLBACK_IP_ADDRESS;
   }
@@ -27,7 +25,6 @@ function IP() {
 
 class MixpanelClient {
   createUserProfile(properties: Record<string, string>) {
-    IP();
     if (isDev) {
       return;
     }
@@ -39,9 +36,11 @@ class MixpanelClient {
       path: '/',
       sameSite: 'lax',
     });
+    const ip = IP();
+    console.log('createUserProfile ip', ip);
     _mixpanel?.people.set(newSessionId, {
       $created: new Date().toISOString(),
-      ip: IP(),
+      ip,
       ...properties,
     });
   }
@@ -52,9 +51,11 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
+    const ip = IP();
+    console.log('trackWebsiteLanguageChange ip', ip);
     _mixpanel?.track('Website Language Change', {
       distinct_id: sessionId.value,
-      ip: IP(),
+      ip,
       lang: lang,
     });
   }
@@ -70,9 +71,11 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
+    const ip = IP();
+    console.log('trackTranslationSearch ip', ip);
     _mixpanel?.track('Translation Search', {
       distinct_id: sessionId.value,
-      ip: IP(),
+      ip,
       searchQuery: search.searchQuery,
       fromLang: search.fromLang,
       toLang: search.toLang,
@@ -86,9 +89,11 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
+    const ip = IP();
+    console.log('trackNumbersToLezgi ip', ip);
     _mixpanel?.track('Numbers to Lezgi', {
       distinct_id: sessionId.value,
-      ip: IP(),
+      ip,
     });
   }
 
@@ -98,9 +103,11 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
+    const ip = IP();
+    console.log('trackLezgiToNumbers ip', ip);
     _mixpanel?.track('Lezgi to Numbers', {
       distinct_id: sessionId.value,
-      ip: IP(),
+      ip,
     });
   }
 
@@ -110,9 +117,11 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
+    const ip = IP();
+    console.log('trackWordOfTheDay ip', ip);
     _mixpanel?.track('Word of the Day', {
       distinct_id: sessionId.value,
-      ip: IP(),
+      ip,
       wordOfTheDay: wordOfTheDay,
     });
   }
