@@ -12,6 +12,9 @@ const nextConfig = {
         },
       },
     });
+    // Exclude react-native-sqlite-storage from the client-side bundle for TypeORM
+    config.externals = config.externals || {};
+    config.externals['react-native-sqlite-storage'] = 'commonjs react-native-sqlite-storage';
     return config;
   },
   // webpack(config) {
@@ -19,6 +22,9 @@ const nextConfig = {
   //   return config;
   // }
   // i18n,
+  experimental: {
+    serverComponentsExternalPackages: ['typeorm'],
+  },
 };
 
 module.exports = nextConfig;

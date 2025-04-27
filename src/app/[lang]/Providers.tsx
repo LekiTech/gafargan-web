@@ -5,7 +5,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { I18nextProvider } from 'react-i18next';
 import { initTranslations } from '../i18n'; // Adjust the path as necessary
 import { createInstance, i18n as I18nInstance } from 'i18next';
-import { Provider } from 'react-redux';
+// import { Provider } from 'react-redux';
 // import store from '@/store';
 
 type TranslationProviderProps = {

@@ -23,7 +23,9 @@
       "@repository/*": ["./src/repository/*"],
       "@/*": ["./src/app/[lang]/*"],
       "@i18n/*": ["./src/app/i18n/*"]
-    }
+    },
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/types/**/*.ts"],
   "exclude": ["node_modules"]

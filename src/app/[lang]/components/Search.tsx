@@ -19,8 +19,7 @@ import Autocomplete, {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
 import SearchIcon from '@mui/icons-material/Search';
-import * as expressionApi from '@api/expressionApi';
-import { searchSpelling } from '@repository/word.repository';
+import { suggestions } from '@repository/word.repository';
 import { DictionaryPairs } from '@/store/constants';
 import { colors } from '@/colors';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
@@ -155,7 +154,7 @@ export const Search: FC<{
   // Получение списка подсказок по дебаунс
   const debounceSetOptions = useCallback(
     useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
-      const foundSpellings = await searchSpelling({
+      const foundSpellings = await suggestions({
         searchTerm: value,
         wordLangDialectId: LangToId[expLang],
         definitionsLangDialectId: LangToId[defLang],
