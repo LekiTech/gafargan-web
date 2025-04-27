@@ -4,6 +4,8 @@ This is the third version of the Gafargan database. The first one was created in
 
 The third version created in 2025 is a simplified version of the V2. It is designed to be easy to understand and maintain, while also being fast and efficient. This was achieved by denormalizing the data using JSONB columns. This allows for faster querying and easier maintenance, while still keeping the data organized and structured.
 
+See the most recent version of the database [here](https://dbdiagram.io/d/Gafargan-V3-optimized-680bb7461ca52373f5630e43).
+
 ## Creating the database
 
 You can create a database on the server, on your local machine, or in a Docker container.
