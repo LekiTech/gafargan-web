@@ -167,16 +167,28 @@ CREATE TABLE definition_example (
 
 
 -- materialized view for fast lookups
+DROP MATERIALIZED VIEW IF EXISTS mv_word_definition_translation;
+
 CREATE MATERIALIZED VIEW mv_word_definition_translation AS
-SELECT
-  wd.word_id,
-  def.id           AS definition_id,
-  de.translation_id
-FROM word_details wd
-JOIN definition def
-  ON wd.id = def.word_details_id
-JOIN definition_example de
-  ON def.id = de.definition_id
-WITH NO DATA;  -- populate later with REFRESH MATERIALIZED VIEW
+  /* Translations attached to definitions */
+  SELECT
+    wd.word_id,
+    def.id             AS definition_id,
+    de.translation_id
+  FROM word_details wd
+  JOIN definition def
+    ON wd.id = def.word_details_id
+  JOIN definition_example de
+    ON def.id = de.definition_id
 
+  UNION ALL
 
+  /* Translations attached directly to word_details */
+  SELECT
+    wd.word_id,
+    NULL::UUID        AS definition_id,
+    wde.translation_id
+  FROM word_details wd
+  JOIN word_details_example wde
+    ON wd.id = wde.word_details_id
+WITH NO DATA;  -- fill on first REFRESH
