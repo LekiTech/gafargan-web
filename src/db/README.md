@@ -15,7 +15,7 @@ You can create a database on the server, on your local machine, or in a Docker c
 If using Docker, you can use the following command to create a database:
 
 ```bash
-docker run --name gafargan-db -e POSTGRES_USER=gafargan -e POSTGRES_PASSWORD=gafargan -e POSTGRES_DB=gafargan -p 5435:5432 -d postgres
+docker run --memory=1g --cpus=1 --name gafargan-db -e POSTGRES_USER=gafargan -e POSTGRES_PASSWORD=gafargan -e POSTGRES_DB=gafargan -p 5435:5432 -d postgres
 ```
 
 This will create a new PostgreSQL database with the name `gafargan`, and the user `gafargan` with the password `gafargan`. The database will be accessible on port 5435. You can then connect to the database using a PostgreSQL client, such as pgAdmin or DBeaver.
@@ -28,3 +28,11 @@ To create the database, you can run the scripts from this folder in the followin
 
 1. `01_create_tables.sql` - This script creates the tables in the database.
 2. `02_create_history.sql` - This script creates the history tables in the database.
+
+## Seeding the database
+
+After data has been filled in the database perform the following to refresh materialized views:
+
+```sql
+REFRESH MATERIALIZED VIEW mv_word_definition_translation;
+```

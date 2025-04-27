@@ -185,7 +185,11 @@ CREATE MATERIALIZED VIEW mv_word_definition_translation AS
     wd.word_id,
     def.id             AS definition_id,
     de.translation_id
+    w.lang_dialect_id AS word_lang_dialect_id,
+    wd.lang_dialect_id AS definitions_lang_dialect_id,
   FROM word_details wd
+  JOIN word w
+    ON wd.word_id = w.id
   JOIN definition def
     ON wd.id = def.word_details_id
   JOIN definition_example de
@@ -198,7 +202,11 @@ CREATE MATERIALIZED VIEW mv_word_definition_translation AS
     wd.word_id,
     NULL::INTEGER        AS definition_id,
     wde.translation_id
+    w.lang_dialect_id AS word_lang_dialect_id,
+    wd.lang_dialect_id AS definitions_lang_dialect_id,
   FROM word_details wd
+  JOIN word w
+    ON wd.word_id = w.id
   JOIN word_details_example wde
     ON wd.id = wde.word_details_id
 WITH NO DATA;  -- fill on first REFRESH

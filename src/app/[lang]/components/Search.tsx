@@ -20,17 +20,19 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
 import SearchIcon from '@mui/icons-material/Search';
 import * as expressionApi from '@api/expressionApi';
+import { searchSpelling } from '@repository/word.repository';
 import { DictionaryPairs } from '@/store/constants';
 import { colors } from '@/colors';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
 import { SuggestionResponseDto } from '@api/types.dto';
-import { DictionaryLangs } from '@api/languages';
+import { DictionaryLangs, LangToId } from '@api/languages';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { toLowerCaseLezgi } from '../../utils';
 import { useDebounceFn } from '../../use/useDebounceFn';
 import BaseLoader from '../../../ui/BaseLoader';
 import { useTranslation } from 'react-i18next';
 import { trackTranslationSearch } from '@api/mixpanel';
+import { FoundSpelling } from '@repository/types.model';
 
 function findPairLang(lang: DictionaryLang) {
   return DictionaryPairs.find((pair) => pair.includes(lang))?.filter((pl) => pl !== lang)[0];
@@ -118,7 +120,7 @@ export const Search: FC<{
     to: 'rus' as DictionaryLang,
   });
   const exp = searchParams.get('exp');
-  const [options, setOptions] = useState<SuggestionResponseDto[]>([]);
+  const [options, setOptions] = useState<FoundSpelling[]>([]);
   const [inputValue, setInputValue] = useState<string>(exp ? toLowerCaseLezgi(exp) : '');
   const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -153,14 +155,13 @@ export const Search: FC<{
   // Получение списка подсказок по дебаунс
   const debounceSetOptions = useCallback(
     useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
-      setOptions(
-        await expressionApi.suggestions({
-          spelling: value,
-          expLang,
-          defLang,
-          size: 10,
-        }),
-      );
+      const foundSpellings = await searchSpelling({
+        searchTerm: value,
+        wordLangDialectId: LangToId[expLang],
+        definitionsLangDialectId: LangToId[defLang],
+      });
+      console.log('foundSpellings', foundSpellings);
+      setOptions(foundSpellings);
     }, 500),
     [],
   );
@@ -182,6 +183,7 @@ export const Search: FC<{
     });
   };
 
+  console.log('options', options);
   return (
     <Stack
       direction="column"
@@ -216,6 +218,8 @@ export const Search: FC<{
           // On input change, visible to user text change
           onInputChange={handleInputSearchValue}
           options={options}
+          // show all options
+          filterOptions={(options, state) => options}
           renderInput={(params) => (
             <TextField
               {...params}
