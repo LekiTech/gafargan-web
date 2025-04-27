@@ -1,15 +1,16 @@
 import { ExpressionDetails } from '../../../api/types.model';
 import { Contents } from './types';
 import { cleanText } from '../../utils/cleanText';
+import { WordDetail } from '@repository/entities/WordDetail';
 
 export function createSpellingId(
   idx: number,
   spelling: string,
   definitionDetailsLength: number,
-  inflection?: string,
+  inflection?: string | null,
 ) {
-  const spellingId = `${idx}-spelling-${spelling}-${inflection}-${definitionDetailsLength}`
-    .replaceAll(' ', '_')
+  const spellingId =
+    `${idx}-spelling-${spelling}-${inflection}-${definitionDetailsLength}`.replaceAll(' ', '_');
   return cleanText(spellingId);
 }
 
@@ -18,13 +19,12 @@ export function createDetailsId(
   spelling: string,
   definitionsCount: number,
   spellingId: string,
-  inflection?: string,
+  inflection?: string | null,
   examplesCount?: number,
 ) {
   const detailsId = `${idx}-details-${spelling}-${inflection}-${definitionsCount}-${
     examplesCount ?? 0
-  }`
-    .replaceAll(' ', '_')
+  }`.replaceAll(' ', '_');
   return `${spellingId}-${cleanText(detailsId)}`;
 }
 
@@ -32,41 +32,36 @@ export function createOtherExamplesId(idx: number) {
   return `${idx}-other-examples`;
 }
 
-export function toContents(
-  idx: number,
-  spelling: string,
-  expressionDetails: ExpressionDetails,
-): Contents {
+export function toContents(idx: number, spelling: string, expressionDetails: WordDetail): Contents {
   const otherExamplesCount = expressionDetails.examples?.length ?? 0;
   const spellingId = createSpellingId(
     idx,
     spelling,
-    expressionDetails.definitionDetails.length,
+    expressionDetails.definitions.length,
     expressionDetails.inflection,
-  )
+  );
   return {
     spellingId,
     spelling,
     inflection: expressionDetails.inflection,
-    details: expressionDetails.definitionDetails
+    details: expressionDetails.definitions
       .map((dd, i) => {
-        const definitionPreview = (
-          dd.definitions[0]?.value ??
-          dd.examples?.[0]?.raw ??
-          ''
-        ).replaceAll(/({|}|<|>)/g, '');
+        const definitionPreview = (dd.values[0]?.value ?? dd.examples?.[0]?.raw ?? '').replaceAll(
+          /({|}|<|>)/g,
+          '',
+        );
         return {
           detailsId: createDetailsId(
             i,
             spelling,
-            dd.definitions.length,
+            dd.values.length,
             spellingId,
             expressionDetails.inflection,
             dd.examples?.length,
           ),
           // `details-${spelling}-${expressionDetails.inflection}-` +
           // `${dd.definitions.length}-${dd.examples?.length ?? 0}-${Math.random()}`,
-          definitionsCount: dd.definitions.length,
+          definitionsCount: dd.values.length,
           examplesCount: dd.examples?.length ?? 0,
           preview:
             definitionPreview.length > 20

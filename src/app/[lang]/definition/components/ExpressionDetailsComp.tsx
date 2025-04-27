@@ -11,12 +11,13 @@ import { useTranslation } from 'react-i18next';
 import { toLowerCaseLezgi } from '../../../utils';
 import { useViewport } from '../../../use/useViewport';
 import { EBreakpoints } from '../../../utils/BreakPoints';
+import { WordDetail } from '@repository/entities/WordDetail';
 
 type ExpressionDetailsCompProps = {
   idx: number;
   lang: WebsiteLang;
   spelling: string;
-  data: ExpressionDetails;
+  data: WordDetail;
   isLast: boolean;
 };
 
@@ -29,7 +30,7 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
 }) => {
   const { t } = useTranslation(lang);
   // const { t: tTags } = await useTranslation(lang, 'tags');
-  const spellingId = createSpellingId(idx, spelling, data.definitionDetails.length, data.inflection)
+  const spellingId = createSpellingId(idx, spelling, data.definitions.length, data.inflection);
 
   const { viewport } = useViewport();
   return (
@@ -40,7 +41,7 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         flexDirection: 'column',
         alignItems: 'left',
         justifyContent: 'center',
-        padding: viewport.isLessThan(EBreakpoints.XXL) ? '0 10px' : 0
+        padding: viewport.isLessThan(EBreakpoints.XXL) ? '0 10px' : 0,
       }}
     >
       <Typography
@@ -50,8 +51,10 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         id={spellingId}
         sx={(theme) => ({
           [theme.breakpoints.down('md')]: {
-            width: '90vw', wordWrap: "break-word", fontSize: '2.5rem'
-          }
+            width: '90vw',
+            wordWrap: 'break-word',
+            fontSize: '2.5rem',
+          },
         })}
       >
         {toLowerCaseLezgi(spelling)}
@@ -60,13 +63,13 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         {data.inflection}
       </Typography>
       <Typography variant="caption" color="text.secondary" sx={{ m: '25px 0' }}>
-        {`${data.writtenSources[0].title} - ${data.writtenSources[0].authors}`}
+        {`${data.source?.name} - ${data.source?.authors}`}
       </Typography>
-      {data.definitionDetails.map((dd, i) => (
+      {data.definitions.map((dd, i) => (
         <DefinitionDetailsComp
           key={`exp_det_${i}`}
           idx={i}
-          definitionDetails={dd}
+          definitions={dd}
           lang={lang}
           spelling={spelling}
           inflection={data.inflection}

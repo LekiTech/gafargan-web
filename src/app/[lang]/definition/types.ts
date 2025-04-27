@@ -2,7 +2,7 @@ export type Contents = {
   /** Pure visual ID for UI purposes */
   spellingId: string;
   spelling: string;
-  inflection?: string;
+  inflection?: string | null;
   details: {
     /** Pure visual ID for UI purposes */
     detailsId: string;
@@ -16,7 +16,7 @@ export type Contents = {
 };
 
 export interface IExpressionPageContentStyles {
-  contentDirection: 'row' | 'column'
+  contentDirection: 'row' | 'column';
   mainContentLeftPadding: string;
   contentWidth: string;
   contentTopMargin: string;

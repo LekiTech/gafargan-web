@@ -13,11 +13,12 @@ import { ParsedTextComp } from '../../components/ParsedTextComp';
 
 import { TagComp } from './TagComp';
 import { useTranslation } from 'react-i18next';
+import { Translation } from '@repository/entities/Translation';
 
 export const ExamplesList: FC<{
   parentIdx: number;
   lang: WebsiteLang;
-  examples?: Example[];
+  examples?: Translation[];
 }> = ({ parentIdx, lang, examples }) => {
   const { t } = useTranslation(lang);
   return examples && examples.length > 0 ? (

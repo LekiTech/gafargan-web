@@ -86,14 +86,14 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
   //       // tags: ['сущ.'],
   //     });
   return (
-    <pre>{JSON.stringify(data, null, 2)}</pre>
-    // <ExpressionView
-    //   foundInExamples={foundInExamples?.items ?? []}
-    //   foundInDefinitions={foundInDefinitions?.items ?? []}
-    //   expression={data}
-    //   lang={lang}
-    //   labels={{ otherExamples: t('otherExamples') }}
-    // />
+    // <pre>{JSON.stringify(data, null, 2)}</pre>
+    <ExpressionView
+      foundInExamples={[]}
+      foundInDefinitions={[]}
+      word={data}
+      lang={lang}
+      labels={{ otherExamples: t('otherExamples') }}
+    />
   );
 };
 

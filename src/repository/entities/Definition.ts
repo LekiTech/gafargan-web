@@ -21,7 +21,7 @@ export class Definition {
   wordDetails!: WordDetail | null;
 
   @Column('json', { array: true })
-  values!: any[];
+  values!: DefinitionValue[];
 
   @Column('text', { array: true })
   tags!: string[];
@@ -55,4 +55,9 @@ export class Definition {
     inverseJoinColumn: { name: 'translation_id', referencedColumnName: 'id' },
   })
   examples!: Translation[];
+}
+
+export interface DefinitionValue {
+  value: string;
+  tags?: string[];
 }

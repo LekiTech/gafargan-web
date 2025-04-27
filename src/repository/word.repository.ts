@@ -94,12 +94,3 @@ export async function search({
   console.log('search', JSON.stringify(word, null, 2));
   return word;
 }
-// ): Promise<Word | null> {
-//   const AppDataSource = await getDataSource();
-//   const wordRepo = AppDataSource.getRepository(Word);
-//   const word = await wordRepo.findOne({
-//     where: { id },
-//     relations: ['details'],
-//   });
-//   return word;
-// }

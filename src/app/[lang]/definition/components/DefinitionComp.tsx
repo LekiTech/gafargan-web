@@ -1,6 +1,6 @@
 'use client';
 import React, { FC, useEffect, useState } from 'react';
-import { WebsiteLang, Definition, DefinitionDetails, Example } from '@api/types.model';
+import { WebsiteLang, DefinitionDetails, Example } from '@api/types.model';
 // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
 import { Box, Grid, Stack, Typography } from '@mui/material/index';
 // import { getTranslation } from '@i18n/index';
@@ -11,6 +11,8 @@ import { colors } from '@/colors';
 import { TagComp } from './TagComp';
 import { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
+import { Definition, DefinitionValue } from '@repository/entities/Definition';
+import { Translation } from '@repository/entities/Translation';
 
 // const idxToChar = (lang: WebsiteLang, idx: number) => {
 //   return lang === 'rus' || lang === 'lez'
@@ -22,7 +24,7 @@ type DefinitionCompProps = {
   idx: number;
   lang: WebsiteLang;
   // key: string;
-  definition: Definition;
+  definition: DefinitionValue;
 };
 
 const DefinitionComp: FC<DefinitionCompProps> = ({ idx, lang, definition }) => {
@@ -65,12 +67,12 @@ const DefinitionComp: FC<DefinitionCompProps> = ({ idx, lang, definition }) => {
 const DefinitionsGroup: FC<{
   idx: number;
   lang: WebsiteLang;
-  definitions: Definition[];
-  examples?: Example[];
+  definitions: DefinitionValue[];
+  examples?: Translation[];
   tags?: string[];
   spelling: string;
-  inflection?: string;
-  spellingId: string
+  inflection?: string | null;
+  spellingId: string;
 }> = ({ idx, lang, definitions, examples, spelling, inflection, spellingId }) => {
   const { t } = useTranslation();
   // const { t } = useTranslation(lang, { useSuspense: false });
@@ -87,7 +89,14 @@ const DefinitionsGroup: FC<{
     <Grid container spacing={2} sx={{ pb: '25px', pl: '25px' }}>
       <Grid item xs={12}>
         <Stack
-          id={createDetailsId(idx, spelling, definitions.length, spellingId, inflection, examples?.length)}
+          id={createDetailsId(
+            idx,
+            spelling,
+            definitions.length,
+            spellingId,
+            inflection,
+            examples?.length,
+          )}
           spacing={0}
           sx={{ width: '100%' }}
         >
@@ -131,12 +140,12 @@ const DefinitionsGroup: FC<{
 
 export const DefinitionDetailsComp: FC<{
   idx: number;
-  definitionDetails: DefinitionDetails;
+  definitions: Definition;
   lang: WebsiteLang;
   spelling: string;
-  inflection?: string;
-  spellingId: string
-}> = ({ idx, definitionDetails, lang, spelling, inflection, spellingId }) => {
+  inflection?: string | null;
+  spellingId: string;
+}> = ({ idx, definitions, lang, spelling, inflection, spellingId }) => {
   return (
     <Stack direction="row" key={`exp_det_${idx}`} sx={{ position: 'relative' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -158,9 +167,9 @@ export const DefinitionDetailsComp: FC<{
       <DefinitionsGroup
         idx={idx}
         lang={lang}
-        definitions={definitionDetails.definitions}
-        examples={definitionDetails.examples}
-        tags={definitionDetails.tags}
+        definitions={definitions.values}
+        examples={definitions.examples}
+        tags={definitions.tags}
         spelling={spelling}
         inflection={inflection}
         spellingId={spellingId}
