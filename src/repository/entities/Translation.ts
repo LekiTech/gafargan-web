@@ -10,7 +10,7 @@ export class Translation {
     name: 'phrases_per_lang_dialect',
     type: 'jsonb',
   })
-  phrasesPerLangDialect!: Record<string, any>;
+  phrasesPerLangDialect!: Record<string, TranslationPhrases>;
 
   @Column('text', { array: true })
   tags!: string[];
@@ -39,4 +39,17 @@ export class Translation {
     default: () => 'CURRENT_TIMESTAMP',
   })
   updatedAt!: Date;
+}
+//  For now this one is unnecessary complex, we can use the latter implementation without huge losses in UX
+// export interface TranslationPhrases {
+//   /**
+//    * Here "phrase" is a word, phrase, or a sentence
+//    * It is an array because there could be multiple ways to formulate the same meaning
+//    */
+//   phrases: { phrase: string; tags?: string[] }[];
+//   tags?: string[];
+// }
+export interface TranslationPhrases {
+  phrase: string;
+  tags?: string[];
 }

@@ -1,5 +1,5 @@
 'use client';
-import React, { FC, useMemo } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import {
   ExpressionDefinitionResponseDto,
   ExpressionExampleResponseDto,
@@ -26,15 +26,17 @@ import { SpellingListItem } from './SpellingListItem';
 import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinitionsList';
 import { useTranslation } from 'react-i18next';
 import { Word } from '@repository/entities/Word';
+import { FoundExample, FoundSpelling } from '@repository/types.model';
 // import { useViewport } from '../../../use/useViewport';
 // import { EBreakpoints } from '../../../utils/BreakPoints';
 // import { IExpressionPageContentStyles } from '@/definition/types';
 
 type ExpressionViewProps = {
   lang: WebsiteLang;
-  foundInExamples: ExpressionExampleResponseDto[];
+  foundInExamples?: FoundExample[];
   foundInDefinitions: ExpressionDefinitionResponseDto[];
   word?: Word | null;
+  similarWords: FoundSpelling[];
   labels: {
     otherExamples: string;
   };
@@ -45,6 +47,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   foundInExamples,
   foundInDefinitions,
   word,
+  similarWords,
   labels,
 }) => {
   const { t } = useTranslation(lang);
@@ -60,16 +63,16 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   //   contentTopMargin: viewport.isGreaterThan(EBreakpoints.XXL) ? '50px' : '0',
   // }), [viewport])
 
-  if (!word) {
-    return (
-      <Box>
-        <Typography variant="h1">
-          <Skeleton />
-        </Typography>
-      </Box>
-    );
-  }
-
+  console.log('ExpressionView > ', word);
+  // if (!word) {
+  //   return (
+  //     <Box>
+  //       <Typography variant="h1">
+  //         <Skeleton />
+  //       </Typography>
+  //     </Box>
+  //   );
+  // }
   return (
     <Box
       sx={(theme) => ({
@@ -159,8 +162,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                   maxWidth: '100vw',
                 }}
               >
-                {/* <span>TODO: Similar missing yet</span> */}
-                {similarExpressions?.map((s, i) => (
+                {similarWords?.map((s, i) => (
                   <ListItem key={`similar_${i}`} sx={{ pt: 0, mb: '10px', pl: 0, ml: 0 }}>
                     <SpellingListItem
                       id={s.id}

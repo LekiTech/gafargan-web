@@ -2,7 +2,7 @@
 // import { Client } from 'pg';
 import { getDataSource } from './dataSource';
 import { Word } from './entities/Word';
-import { FoundSpelling } from './types.model';
+import { FoundExample, FoundSpelling } from './types.model';
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
@@ -48,7 +48,7 @@ export async function suggestions({
     limit,
   ]);
   console.log('searchSpelling', res);
-  return res;
+  return JSON.parse(JSON.stringify(res));
 }
 
 export type SearchQuery = {
@@ -92,5 +92,33 @@ export async function search({
     },
   });
   console.log('search', JSON.stringify(word, null, 2));
-  return word;
+  return JSON.parse(JSON.stringify(word));
+}
+
+export async function searchInExamples({
+  searchTerm,
+  wordLangDialectId,
+  definitionsLangDialectId,
+  limit = 10,
+}: SearchSpellingQuery): Promise<FoundExample[]> {
+  const findExamplesQuery = `
+    SELECT word_id, spelling, t.id, phrases_per_lang_dialect, raw, tags, t.created_at FROM translations t 
+      JOIN mv_word_definition_translation AS mv ON t.id = mv.translation_id
+      JOIN word w ON w.id = word_id
+    WHERE raw ILIKE '%' || $1 || '%'
+          -- check that the JSONB object has both language‐keys
+          AND t.phrases_per_lang_dialect ? $2
+          AND t.phrases_per_lang_dialect ? $3
+    LIMIT $4;`;
+  // AND phrases_per_lang_dialect::jsonb->$2 IS NOT NULL
+  // AND phrases_per_lang_dialect::jsonb->$3 IS NOT NULL
+  const AppDataSource = await getDataSource();
+  const res = await AppDataSource.query(findExamplesQuery, [
+    searchTerm,
+    wordLangDialectId,
+    definitionsLangDialectId,
+    limit,
+  ]);
+  console.log('searchInExamples', res);
+  return JSON.parse(JSON.stringify(res));
 }

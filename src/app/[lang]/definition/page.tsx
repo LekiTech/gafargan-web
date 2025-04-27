@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 // import * as expressionApi from '../../../api/expressionApi';
-import { search } from '@repository/word.repository';
+import { search, searchInExamples, suggestions } from '@repository/word.repository';
 import { ResolvingMetadata, Metadata } from 'next';
 import { DictionaryLang, WebsiteLang } from '../../../api/types.model';
 import { initTranslations } from '@i18n/index';
@@ -63,8 +63,24 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
     definitionsLangDialectId: LangToId[toLang],
   });
 
+  const similarWords = data?.details
+    ? []
+    : await suggestions({
+        searchTerm: searchParams.exp,
+        wordLangDialectId: LangToId[fromLang],
+        definitionsLangDialectId: LangToId[toLang],
+        limit: 5,
+      });
+
   // true if found, false if not
   const isExpressionFound = !!data;
+  const foundInExamples = isExpressionFound
+    ? undefined
+    : await searchInExamples({
+        searchTerm: searchParams.exp,
+        wordLangDialectId: LangToId[fromLang],
+        definitionsLangDialectId: LangToId[toLang],
+      });
   // const foundInExamples = isExpressionFound
   //   ? undefined
   //   : await expressionApi.examples({
@@ -88,9 +104,10 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
   return (
     // <pre>{JSON.stringify(data, null, 2)}</pre>
     <ExpressionView
-      foundInExamples={[]}
+      foundInExamples={foundInExamples}
       foundInDefinitions={[]}
       word={data}
+      similarWords={similarWords}
       lang={lang}
       labels={{ otherExamples: t('otherExamples') }}
     />

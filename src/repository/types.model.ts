@@ -1,9 +1,19 @@
 'use server';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { TranslationPhrases } from './entities/Translation';
 export interface FoundSpelling {
   id: number;
   spelling: string;
   variant_id?: number;
+}
+export interface FoundExample {
+  word_id: number;
+  spelling: string;
+  id: number;
+  phrases_per_lang_dialect: Record<string, TranslationPhrases>;
+  raw: string;
+  tags?: string[];
+  created_at: string;
 }
 
 // export interface Word {
