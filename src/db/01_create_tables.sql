@@ -20,8 +20,8 @@ CREATE TYPE Role     AS ENUM ('Admin', 'Moderator', 'User');
 -- lang_dialect
 CREATE TABLE lang_dialect (
   id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  language    Language,
-  dialect     TEXT     NOT NULL UNIQUE,
+  language    Language NOT NULL,
+  dialect     TEXT,
   created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -32,7 +32,7 @@ CREATE TRIGGER lang_dialect_ts
 
 -- "user"
 CREATE TABLE "user" (
-  id          UUID    PRIMARY KEY,
+  id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name        TEXT,
   email       TEXT    NOT NULL UNIQUE,
   password    TEXT    NOT NULL,
@@ -49,7 +49,7 @@ CREATE TRIGGER user_ts
 
 -- source
 CREATE TABLE source (
-  id               UUID    PRIMARY KEY,
+  id               INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   name             TEXT    NOT NULL,
   authors          TEXT,
   publication_year TEXT,
@@ -59,8 +59,8 @@ CREATE TABLE source (
   copyright        TEXT,
   see_source_url   TEXT,
   description      TEXT,
-  created_by       UUID    NOT NULL REFERENCES "user"(id),
-  updated_by       UUID    NOT NULL REFERENCES "user"(id),
+  created_by       INTEGER    NOT NULL REFERENCES "user"(id),
+  updated_by       INTEGER    NOT NULL REFERENCES "user"(id),
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -70,11 +70,11 @@ CREATE TRIGGER source_ts
 
 -- word
 CREATE TABLE word (
-  id               UUID    PRIMARY KEY,
+  id               INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   spelling         TEXT    NOT NULL,
   lang_dialect_id  INTEGER NOT NULL REFERENCES lang_dialect(id),
-  created_by       UUID    NOT NULL REFERENCES "user"(id),
-  updated_by       UUID    NOT NULL REFERENCES "user"(id),
+  created_by       INTEGER    NOT NULL REFERENCES "user"(id),
+  updated_by       INTEGER    NOT NULL REFERENCES "user"(id),
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -85,9 +85,9 @@ CREATE TRIGGER word_ts
 
 -- spelling_variant
 CREATE TABLE spelling_variant (
-  id               UUID    PRIMARY KEY,
+  id               INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   lang_dialect_id  INTEGER REFERENCES lang_dialect(id),
-  word_id          UUID    NOT NULL REFERENCES word(id),
+  word_id          INTEGER    NOT NULL REFERENCES word(id),
   spelling         TEXT    NOT NULL,
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -99,14 +99,14 @@ CREATE TRIGGER spelling_variant_ts
 
 -- word_details
 CREATE TABLE word_details (
-  id               UUID    PRIMARY KEY,
-  word_id          UUID    NOT NULL REFERENCES word(id),
+  id               INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  word_id          INTEGER    NOT NULL REFERENCES word(id),
   order_idx        INT,  -- order of the details per word
   inflection       TEXT,
   lang_dialect_id  INTEGER NOT NULL REFERENCES lang_dialect(id),
-  source_id        UUID    REFERENCES source(id),
-  created_by       UUID    NOT NULL REFERENCES "user"(id),
-  updated_by       UUID    NOT NULL REFERENCES "user"(id),
+  source_id        INTEGER    REFERENCES source(id),
+  created_by       INTEGER    NOT NULL REFERENCES "user"(id),
+  updated_by       INTEGER    NOT NULL REFERENCES "user"(id),
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -117,12 +117,12 @@ CREATE TRIGGER word_details_ts
 
 -- definition
 CREATE TABLE definition (
-  id                 UUID    PRIMARY KEY,
-  word_details_id    UUID    REFERENCES word_details(id),
+  id                 INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  word_details_id    INTEGER    REFERENCES word_details(id),
   values             JSON[],
   tags               TEXT[],
-  created_by         UUID    NOT NULL REFERENCES "user"(id),
-  updated_by         UUID    NOT NULL REFERENCES "user"(id),
+  created_by         INTEGER    NOT NULL REFERENCES "user"(id),
+  updated_by         INTEGER    NOT NULL REFERENCES "user"(id),
   created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -132,12 +132,12 @@ CREATE TRIGGER definition_ts
 
 -- translations
 CREATE TABLE translations (
-  id                    UUID    PRIMARY KEY,
+  id                    INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   phrases_per_lang_dialect JSONB,
   tags                  TEXT[],
   raw                   TEXT,
-  created_by            UUID    NOT NULL REFERENCES "user"(id),
-  updated_by            UUID    NOT NULL REFERENCES "user"(id),
+  created_by            INTEGER    NOT NULL REFERENCES "user"(id),
+  updated_by            INTEGER    NOT NULL REFERENCES "user"(id),
   created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -147,9 +147,9 @@ CREATE TRIGGER translations_ts
 
 -- word_details_example
 CREATE TABLE word_details_example (
-  word_details_id  UUID    NOT NULL REFERENCES word_details(id),
-  translation_id   UUID    NOT NULL REFERENCES translations(id),
-  created_by       UUID    NOT NULL REFERENCES "user"(id),
+  word_details_id  INTEGER    NOT NULL REFERENCES word_details(id),
+  translation_id   INTEGER    NOT NULL REFERENCES translations(id),
+  created_by       INTEGER    NOT NULL REFERENCES "user"(id),
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (word_details_id, translation_id)
 );
@@ -157,9 +157,9 @@ CREATE TABLE word_details_example (
 
 -- definition_example
 CREATE TABLE definition_example (
-  definition_id    UUID    NOT NULL REFERENCES definition(id),
-  translation_id   UUID    NOT NULL REFERENCES translations(id),
-  created_by       UUID    NOT NULL REFERENCES "user"(id),
+  definition_id    INTEGER    NOT NULL REFERENCES definition(id),
+  translation_id   INTEGER    NOT NULL REFERENCES translations(id),
+  created_by       INTEGER    NOT NULL REFERENCES "user"(id),
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (definition_id, translation_id)
 );
@@ -167,7 +167,7 @@ CREATE TABLE definition_example (
 
 
 -- materialized view for fast lookups
-DROP MATERIALIZED VIEW IF EXISTS mv_word_definition_translation;
+-- DROP MATERIALIZED VIEW IF EXISTS mv_word_definition_translation;
 
 CREATE MATERIALIZED VIEW mv_word_definition_translation AS
   /* Translations attached to definitions */
@@ -186,7 +186,7 @@ CREATE MATERIALIZED VIEW mv_word_definition_translation AS
   /* Translations attached directly to word_details */
   SELECT
     wd.word_id,
-    NULL::UUID        AS definition_id,
+    NULL::INTEGER        AS definition_id,
     wde.translation_id
   FROM word_details wd
   JOIN word_details_example wde
