@@ -1,3 +1,11 @@
+-- 0) Fuzzy search extension
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+-- Example usage: 
+--  SELECT * FROM word
+--  WHERE lang_dialect_id = 1
+--  ORDER BY spelling <-> 'кыил'
+--  LIMIT 10;
+
 -- 1) Trigger function to keep updated_at current
 CREATE OR REPLACE FUNCTION set_timestamp()
 RETURNS TRIGGER AS $$
@@ -78,6 +86,7 @@ CREATE TABLE word (
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX word_gin_idx ON word USING gin (spelling gin_trgm_ops);
 CREATE TRIGGER word_ts
   BEFORE UPDATE ON word
   FOR EACH ROW EXECUTE FUNCTION set_timestamp();
@@ -92,6 +101,7 @@ CREATE TABLE spelling_variant (
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+CREATE INDEX spelling_variant_gin_idx ON spelling_variant USING gin (spelling gin_trgm_ops);
 CREATE TRIGGER spelling_variant_ts
   BEFORE UPDATE ON spelling_variant
   FOR EACH ROW EXECUTE FUNCTION set_timestamp();
