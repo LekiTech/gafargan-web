@@ -4,7 +4,7 @@ VALUES ('Kamran Tadzjibov', 'info@lekitech.io', 'test123', 'Lezgi', true, 'Admin
 
 INSERT INTO "lang_dialect"
   ("language", "dialect")
-VALUES ('Lezgi', 'Standard'),
+VALUES ('Lezgi', 'Literary'),
        ('Lezgi', 'Neologism'),
        ('Lezgi', 'Гуьней (Куьре)'),
        ('Lezgi', 'ЯркӀи (Куьре)'),
