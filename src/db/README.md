@@ -36,3 +36,9 @@ After data has been filled in the database perform the following to refresh mate
 ```sql
 REFRESH MATERIALIZED VIEW mv_word_definition_translation;
 ```
+
+## Export db from docker container
+
+```sh
+docker exec gafargan-db pg_dump -U gafargan -F t gafargan | gzip >./backups/gafargan-$(date +%Y-%m-%d).tar.gz
+```
