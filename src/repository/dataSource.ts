@@ -1,4 +1,5 @@
 'use server';
+import 'reflect-metadata';
 import { DataSource } from 'typeorm';
 // import { DataSource } from 'typeorm';
 // import { Word } from './entities/Word';
