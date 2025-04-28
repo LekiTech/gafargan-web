@@ -10,9 +10,11 @@ import { usePathname } from 'next/navigation';
 import { ParsedTextComp } from './ParsedTextComp';
 import { toLowerCaseLezgi } from '../../utils';
 import { trackWordOfTheDay } from '@api/mixpanel';
+import { Word } from '@repository/entities/Word';
+import { LangToId } from '@api/languages';
 
 type WordOfTheDayProps = {
-  expression: Expression;
+  word: Word | null;
   labels: {
     wordOfTheDay: string;
     examples: string;
@@ -23,10 +25,13 @@ type WordOfTheDayProps = {
 const DEFAULT_EXPRESSION_LANG = 'lez';
 const DEFAULT_DEFINITION_LANG = 'rus';
 
-export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
+export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
   const pathname = usePathname();
   const { wordOfTheDay, examples, learnMore } = labels;
-  const firstDefinition = expression?.details[0]?.definitionDetails[0];
+  if (word == null) {
+    return undefined;
+  }
+  const firstDefinition = word.details[0]?.definitions[0];
   return (
     <Card sx={{ minWidth: 275, flexGrow: 1, padding: '20px' }}>
       <CardContent
@@ -43,17 +48,17 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
           {wordOfTheDay}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          {`${expression?.details[0]?.writtenSources?.[0].title} - ${expression?.details?.[0]?.writtenSources?.[0].authors}`}
+          {`${word.details[0]?.source?.name} - ${word.details?.[0]?.source?.authors}`}
         </Typography>
         <Typography variant="h3" component="div" className={expressionFont.className}>
-          {capitalizeFirstLetter(toLowerCaseLezgi(expression?.spelling))}
+          {capitalizeFirstLetter(toLowerCaseLezgi(word.spelling))}
         </Typography>
-        {expression?.details[0]?.inflection && (
+        {word.details[0]?.inflection && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: '10px' }}>
-            {expression?.details[0]?.inflection}
+            {word.details[0]?.inflection}
           </Typography>
         )}
-        {(firstDefinition?.tags || firstDefinition?.definitions) && (
+        {(firstDefinition?.tags || firstDefinition?.values) && (
           <Stack direction="row" spacing={2}>
             {firstDefinition.tags &&
               firstDefinition.tags.length > 0 &&
@@ -64,10 +69,10 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
                   label={tag}
                 />
               ))}
-            {firstDefinition?.definitions &&
-              firstDefinition.definitions[0]?.tags &&
-              firstDefinition.definitions[0].tags.length > 0 &&
-              firstDefinition.definitions[0].tags.map((tag, i) => (
+            {firstDefinition?.values &&
+              firstDefinition.values[0]?.tags &&
+              firstDefinition.values[0].tags.length > 0 &&
+              firstDefinition.values[0].tags.map((tag, i) => (
                 <Chip
                   key={`exp_det_${tag}_${i}`}
                   sx={{ maxWidth: '250px', width: 'wrap-content' }}
@@ -76,9 +81,9 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
               ))}
           </Stack>
         )}
-        {firstDefinition?.definitions && firstDefinition.definitions.length > 0 && (
+        {firstDefinition?.values && firstDefinition.values.length > 0 && (
           <ul>
-            {firstDefinition.definitions.slice(0, 3).map((def, i) => (
+            {firstDefinition.values.slice(0, 3).map((def, i) => (
               <Typography key={`${def.value}_${i}`} component="li" variant="subtitle1">
                 <ParsedTextComp text={def.value} />
               </Typography>
@@ -102,17 +107,19 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ expression, labels }) => {
                   paddingLeft: '10px',
                 }}
               >
-                {example.src}
+                {example.phrasesPerLangDialect[LangToId['lez']].phrase}
                 <br />
-                <i style={{ color: 'GrayText' }}>{example.trl}</i>
+                <i style={{ color: 'GrayText' }}>
+                  {example.phrasesPerLangDialect[LangToId['rus']].phrase}
+                </i>
               </Typography>
             ))}
           </>
         )}
         <Typography sx={{ m: 1.5, textAlign: 'end', cursor: 'pointer' }} variant="body2">
           <Link
-            href={`${pathname}/definition?fromLang=${DEFAULT_EXPRESSION_LANG}&toLang=${DEFAULT_DEFINITION_LANG}&exp=${expression?.spelling}`}
-            onClick={(e) => trackWordOfTheDay(expression?.spelling)}
+            href={`${pathname}/definition?fromLang=${DEFAULT_EXPRESSION_LANG}&toLang=${DEFAULT_DEFINITION_LANG}&exp=${word.spelling}`}
+            onClick={(e) => trackWordOfTheDay(word.spelling)}
           >
             {learnMore}
           </Link>

@@ -11,11 +11,11 @@ import {
 import { remark } from 'remark';
 import html from 'remark-html';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { WrittenSource } from '../../../api/types.model';
 import { useTranslation } from 'react-i18next';
+import { Source } from '@repository/entities/Source';
 
 type WrittenSourceProps = {
-  source: WrittenSource;
+  source: Source;
 };
 
 const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
@@ -36,10 +36,10 @@ const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
     <Accordion>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-      // sx={(theme) => ({
-      //   display: 'flex',
-      //   alignItems: 'center',
-      // })}
+        // sx={(theme) => ({
+        //   display: 'flex',
+        //   alignItems: 'center',
+        // })}
       >
         <Box
           sx={(theme) => ({
@@ -52,13 +52,23 @@ const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
             },
           })}
         >
-          <Typography>📚 {source.title}</Typography>
-          <Typography sx={(theme) => ({ ml: 2, [theme.breakpoints.down('md')]: { ml: 3 }, color: 'text.secondary' })}>{source.authors}</Typography>
+          <Typography>📚 {source.name}</Typography>
+          <Typography
+            sx={(theme) => ({
+              ml: 2,
+              [theme.breakpoints.down('md')]: { ml: 3 },
+              color: 'text.secondary',
+            })}
+          >
+            {source.authors}
+          </Typography>
         </Box>
       </AccordionSummary>
       <AccordionDetails>
         {source.publicationYear && (
-          <Typography paragraph>{t('publishedIn')}: {source.publicationYear}</Typography>
+          <Typography paragraph>
+            {t('publishedIn')}: {source.publicationYear}
+          </Typography>
         )}
         {source.providedBy ? (
           <Typography paragraph>
@@ -72,15 +82,19 @@ const WrittenSourceAccordion: React.FC<WrittenSourceProps> = ({ source }) => {
             )}
           </Typography>
         ) : null}
-        {source.processedBy && <Typography paragraph>{t('processedBy')}: {source.processedBy}</Typography>}
+        {source.processedBy && (
+          <Typography paragraph>
+            {t('processedBy')}: {source.processedBy}
+          </Typography>
+        )}
         {source.copyright && (
           <Typography paragraph color="text.secondary">
             © {source.copyright}
           </Typography>
         )}
-        {source.seeSourceURL && (
+        {source.seeSourceUrl && (
           <Typography paragraph>
-            <Link href={source.seeSourceURL} target="_blank" rel="noopener">
+            <Link href={source.seeSourceUrl} target="_blank" rel="noopener">
               See original source
             </Link>
           </Typography>

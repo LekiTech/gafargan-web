@@ -4,9 +4,10 @@ import { initTranslations } from '@i18n/index';
 import { WordOfTheDay } from './components/WordOfTheDay';
 import { LezgiToNumbers, NumbersToLezgi } from './components/NumbersWidget';
 import { Sources } from './components/Sources';
-import * as expressionApi from '../../api/expressionApi';
-import * as dictionaryApi from '../../api/dictionaryApi';
+// import * as expressionApi from '../../api/expressionApi';
+// import * as dictionaryApi from '../../api/dictionaryApi';
 import { VerticalSpacing } from './components/VerticalSpacing';
+import { getSources, getWordOfTheDay } from '@repository/word.repository';
 
 type HomeProps = {
   params: { lang: string };
@@ -18,8 +19,8 @@ const Home: FC<HomeProps> = async (props) => {
     params: { lang },
   } = props;
   const { t } = await initTranslations(lang);
-  const wordOfTheDay = await expressionApi.wordOfTheDay();
-  const sources = await dictionaryApi.getSources();
+  const wordOfTheDay = await getWordOfTheDay();
+  const sources = await getSources();
 
   return (
     <Box
@@ -37,7 +38,7 @@ const Home: FC<HomeProps> = async (props) => {
           <Grid item xs={12} lg={4} sx={{ display: 'flex', flexDirection: 'column' }}>
             <WordOfTheDay
               // TODO: fix Skeleton loading
-              expression={wordOfTheDay?.found!}
+              word={wordOfTheDay}
               labels={{
                 wordOfTheDay: t('wordOfTheDay'),
                 examples: t('examples'),

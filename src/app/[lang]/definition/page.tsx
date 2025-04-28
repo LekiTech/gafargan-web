@@ -19,20 +19,23 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { t } = await initTranslations(params.lang);
   // fetch data
-
-  const data = await search({
+  const searchQuery = {
     spelling: searchParams.exp,
     wordLangDialectId: LangToId[searchParams.fromLang],
     definitionsLangDialectId: LangToId[searchParams.toLang],
-  });
+  };
+  const data = await search(searchQuery);
 
   if (!data) {
+    const similarWords = await suggestions(searchQuery);
+    const title = t('meta.title');
+    const description = t('probablyYouMeant') + ' ' + similarWords.join(', ');
     return {
-      title: t('notFound'),
-      description: t('notFound'),
+      title,
+      description,
       openGraph: {
-        title: t('notFound'),
-        description: t('notFound'),
+        title,
+        description,
       },
     };
   }
@@ -71,7 +74,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
   const similarWords = data?.details
     ? []
     : await suggestions({
-        searchTerm: searchParams.exp,
+        spelling: searchParams.exp,
         wordLangDialectId: LangToId[fromLang],
         definitionsLangDialectId: LangToId[toLang],
         limit: 5,
@@ -82,7 +85,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
   const foundInExamples = isExpressionFound
     ? undefined
     : await searchInExamples({
-        searchTerm: searchParams.exp,
+        spelling: searchParams.exp,
         wordLangDialectId: LangToId[fromLang],
         definitionsLangDialectId: LangToId[toLang],
       });
@@ -90,7 +93,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params: { lang }, searc
   const foundInDefinitions = isExpressionFound
     ? undefined
     : await searchInDefinitions({
-        searchTerm: searchParams.exp,
+        spelling: searchParams.exp,
         wordLangDialectId: LangToId[fromLang],
         definitionsLangDialectId: LangToId[toLang],
       });

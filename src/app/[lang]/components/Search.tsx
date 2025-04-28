@@ -155,7 +155,7 @@ export const Search: FC<{
   const debounceSetOptions = useCallback(
     useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
       const foundSpellings = await suggestions({
-        searchTerm: value,
+        spelling: value,
         wordLangDialectId: LangToId[expLang],
         definitionsLangDialectId: LangToId[defLang],
       });

@@ -1,22 +1,25 @@
 'use server';
 // import { Client } from 'pg';
 import { getDataSource } from './dataSource';
+import { filterWordsOfTheDay } from './wordsOfTheDay';
 import { Word } from './entities/Word';
 import { FoundDefinition, FoundExample, FoundSpelling } from './types.model';
+import { LangToId } from '@api/languages';
+import { Source } from './entities/Source';
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
 // client.connect();
 
 interface SearchSpellingQuery {
-  searchTerm: string;
+  spelling: string;
   wordLangDialectId: number;
   definitionsLangDialectId: number;
   limit?: number;
 }
 
 export async function suggestions({
-  searchTerm,
+  spelling,
   wordLangDialectId,
   definitionsLangDialectId,
   limit = 10,
@@ -42,12 +45,12 @@ export async function suggestions({
   `;
   const AppDataSource = await getDataSource();
   const res = await AppDataSource.query(findSpellingsQuery, [
-    searchTerm,
+    spelling,
     wordLangDialectId,
     definitionsLangDialectId,
     limit,
   ]);
-  console.log('searchSpelling', res);
+  // console.log('searchSpelling', res);
   return JSON.parse(JSON.stringify(res));
 }
 
@@ -96,7 +99,7 @@ export async function search({
 }
 
 export async function searchInExamples({
-  searchTerm,
+  spelling: searchTerm,
   wordLangDialectId,
   definitionsLangDialectId,
   limit = 10,
@@ -123,7 +126,7 @@ export async function searchInExamples({
 }
 
 export async function searchInDefinitions({
-  searchTerm,
+  spelling: searchTerm,
   wordLangDialectId,
   definitionsLangDialectId,
   limit = 10,
@@ -159,4 +162,54 @@ export async function searchInDefinitions({
   ]);
   // console.log('searchInDefinitions', res);
   return JSON.parse(JSON.stringify(res));
+}
+
+export async function getWordOfTheDay(): Promise<Word | null> {
+  try {
+    const dayOfTheYear = getDayOfTheYear();
+    const wordIndex = filterWordsOfTheDay.length <= dayOfTheYear ? 0 : dayOfTheYear;
+    const searchQuery: SearchQuery = {
+      spelling: filterWordsOfTheDay[wordIndex],
+      wordLangDialectId: LangToId['lez'],
+      definitionsLangDialectId: LangToId['rus'],
+    };
+    const result = await search(searchQuery);
+    return result;
+  } catch (e) {
+    console.error(e);
+  }
+  return null;
+}
+
+function getDayOfTheYear(): number {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff =
+    now.getTime() -
+    start.getTime() +
+    (start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const day = Math.floor(diff / oneDay);
+  return day;
+}
+
+export async function getSources(): Promise<Source[]> {
+  const AppDataSource = await getDataSource();
+  const sourceRepo = AppDataSource.getRepository(Source);
+  const sources = await sourceRepo.find({
+    select: {
+      id: true,
+      name: true,
+      authors: true,
+      publicationYear: true,
+      providedBy: true,
+      providedByUrl: true,
+      processedBy: true,
+      copyright: true,
+      seeSourceUrl: true,
+      description: true,
+    },
+  });
+  // console.log('search', JSON.stringify(word, null, 2));
+  return JSON.parse(JSON.stringify(sources));
 }
