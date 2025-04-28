@@ -50,7 +50,7 @@ export const FoundExamplesList: FC<{
         if (srcExample && trgExample) {
           return [
             <Divider key={`${ex.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,
-            <ListItem key={`${ex.id}_item_${i}`} sx={{ pt: 0 }}>
+            <ListItem key={`${ex.id}_item_${i}`} sx={{ pt: 0, height: '125px' }}>
               <Stack direction="column">
                 <SpellingListItem
                   key={`${ex.id}_spelling_${i}`}

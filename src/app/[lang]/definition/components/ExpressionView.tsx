@@ -11,6 +11,7 @@ import {
   Grid,
   List,
   ListItem,
+  Pagination,
   Paper,
   Skeleton,
   Stack,
@@ -26,7 +27,7 @@ import { SpellingListItem } from './SpellingListItem';
 import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinitionsList';
 import { useTranslation } from 'react-i18next';
 import { Word } from '@repository/entities/Word';
-import { FoundExample, FoundSpelling } from '@repository/types.model';
+import { FoundDefinition, FoundExample, FoundSpelling } from '@repository/types.model';
 // import { useViewport } from '../../../use/useViewport';
 // import { EBreakpoints } from '../../../utils/BreakPoints';
 // import { IExpressionPageContentStyles } from '@/definition/types';
@@ -34,7 +35,7 @@ import { FoundExample, FoundSpelling } from '@repository/types.model';
 type ExpressionViewProps = {
   lang: WebsiteLang;
   foundInExamples?: FoundExample[];
-  foundInDefinitions: ExpressionDefinitionResponseDto[];
+  foundInDefinitions?: FoundDefinition[];
   word?: Word | null;
   similarWords: FoundSpelling[];
   labels: {
@@ -187,6 +188,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                 ) : (
                   <FoundExamplesList lang={lang} examples={foundInExamples} />
                 )}
+                {/* <Pagination count={10} shape="rounded" /> */}
               </Stack>
             </Paper>
           </Grid>
@@ -202,6 +204,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                 ) : (
                   <FoundDefinitionsList lang={lang} definitions={foundInDefinitions} />
                 )}
+                {/* <Pagination count={10} shape="rounded" /> */}
               </Stack>
             </Paper>
           </Grid>

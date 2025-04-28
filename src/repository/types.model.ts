@@ -16,6 +16,17 @@ export interface FoundExample {
   created_at: string;
 }
 
+export interface FoundDefinition {
+  word_id: number;
+  spelling: string;
+  id: number;
+  word_lang_dialect_id: number;
+  value: string;
+  definitions_lang_dialect_id: number;
+  tags?: string[];
+  created_at: string;
+}
+
 // export interface Word {
 //   spelling: string;
 //   details: WordDetails[];

@@ -2,7 +2,7 @@
 // import { Client } from 'pg';
 import { getDataSource } from './dataSource';
 import { Word } from './entities/Word';
-import { FoundExample, FoundSpelling } from './types.model';
+import { FoundDefinition, FoundExample, FoundSpelling } from './types.model';
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
@@ -91,7 +91,7 @@ export async function search({
       },
     },
   });
-  console.log('search', JSON.stringify(word, null, 2));
+  // console.log('search', JSON.stringify(word, null, 2));
   return JSON.parse(JSON.stringify(word));
 }
 
@@ -110,8 +110,7 @@ export async function searchInExamples({
           AND t.phrases_per_lang_dialect ? $2
           AND t.phrases_per_lang_dialect ? $3
     LIMIT $4;`;
-  // AND phrases_per_lang_dialect::jsonb->$2 IS NOT NULL
-  // AND phrases_per_lang_dialect::jsonb->$3 IS NOT NULL
+
   const AppDataSource = await getDataSource();
   const res = await AppDataSource.query(findExamplesQuery, [
     searchTerm,
@@ -119,6 +118,45 @@ export async function searchInExamples({
     definitionsLangDialectId,
     limit,
   ]);
-  console.log('searchInExamples', res);
+  // console.log('searchInExamples', res);
+  return JSON.parse(JSON.stringify(res));
+}
+
+export async function searchInDefinitions({
+  searchTerm,
+  wordLangDialectId,
+  definitionsLangDialectId,
+  limit = 10,
+}: SearchSpellingQuery): Promise<FoundDefinition[]> {
+  const findDefinitionsQuery = `
+    SELECT DISTINCT ON (d.id, value)
+      word_id, spelling, 
+      mv.word_lang_dialect_id AS word_lang_dialect_id,
+      -- pull out the single matched JSON value
+        v.elem->>'value' AS value,
+        mv.definitions_lang_dialect_id AS definitions_lang_dialect_id,
+      tags, d.created_at
+    FROM definition d  
+      JOIN mv_word_definition_translation AS mv ON d.id = mv.definition_id 
+      JOIN word w ON w.id = word_id
+      -- 1) UNNEST the SQL JSON[] array into individual JSON objects:
+      CROSS JOIN LATERAL unnest(d.values) AS v(elem)
+    WHERE
+      -- 2) Search inside each JSON object’s "value" field:
+      v.elem ->> 'value' ILIKE '%' || $1 || '%'
+      -- 3) Compare your dialect IDs as normal integers:
+      AND ((mv.word_lang_dialect_id = $2 AND mv.definitions_lang_dialect_id = $3)
+      OR (mv.word_lang_dialect_id = $3 AND mv.definitions_lang_dialect_id = $2))
+    ORDER BY value, d.id DESC
+    LIMIT $4;`;
+
+  const AppDataSource = await getDataSource();
+  const res = await AppDataSource.query(findDefinitionsQuery, [
+    searchTerm,
+    wordLangDialectId,
+    definitionsLangDialectId,
+    limit,
+  ]);
+  // console.log('searchInDefinitions', res);
   return JSON.parse(JSON.stringify(res));
 }
