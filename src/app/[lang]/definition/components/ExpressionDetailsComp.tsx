@@ -41,7 +41,7 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         flexDirection: 'column',
         alignItems: 'left',
         justifyContent: 'center',
-        padding: viewport.isLessThan(EBreakpoints.XXL) ? '0 10px' : 0,
+        paddingRight: viewport.isLessThan(EBreakpoints.XXL) ? '15px' : 0,
       }}
     >
       <Typography
