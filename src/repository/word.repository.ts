@@ -66,7 +66,7 @@ export async function search({
   definitionsLangDialectId,
 }: SearchQuery): Promise<Word | null> {
   const AppDataSource = await getDataSource();
-  const wordRepo = AppDataSource.getRepository<Word>(WordSchema);
+  const wordRepo = AppDataSource.getRepository(WordSchema);
   const word = await wordRepo.findOne({
     where: {
       spelling: spelling.toUpperCase(),
@@ -196,7 +196,7 @@ function getDayOfTheYear(): number {
 
 export async function getSources(): Promise<Source[]> {
   const AppDataSource = await getDataSource();
-  const sourceRepo = AppDataSource.getRepository<Source>(SourceSchema);
+  const sourceRepo = AppDataSource.getRepository(SourceSchema);
   const sources = await sourceRepo.find({
     select: {
       id: true,
