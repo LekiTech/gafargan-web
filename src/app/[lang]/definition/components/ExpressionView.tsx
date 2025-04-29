@@ -112,6 +112,9 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               pl: '25px',
               pb: '50px',
               [theme.breakpoints.down('md')]: {
+                width: '100%',
+                pt: '15px',
+                pl: '15px',
                 '&.MuiBox-root': {
                   ml: '0',
                   mt: '50px',
