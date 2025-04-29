@@ -6,6 +6,7 @@ import { Word } from './entities/Word';
 import { FoundDefinition, FoundExample, FoundSpelling } from './types.model';
 import { LangToId } from '@api/languages';
 import { Source } from './entities/Source';
+import { SourceSchema, WordSchema } from './entities/schemas';
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
@@ -65,7 +66,7 @@ export async function search({
   definitionsLangDialectId,
 }: SearchQuery): Promise<Word | null> {
   const AppDataSource = await getDataSource();
-  const wordRepo = AppDataSource.getRepository(Word);
+  const wordRepo = AppDataSource.getRepository<Word>(WordSchema);
   const word = await wordRepo.findOne({
     where: {
       spelling: spelling.toUpperCase(),
@@ -195,7 +196,7 @@ function getDayOfTheYear(): number {
 
 export async function getSources(): Promise<Source[]> {
   const AppDataSource = await getDataSource();
-  const sourceRepo = AppDataSource.getRepository(Source);
+  const sourceRepo = AppDataSource.getRepository<Source>(SourceSchema);
   const sources = await sourceRepo.find({
     select: {
       id: true,
