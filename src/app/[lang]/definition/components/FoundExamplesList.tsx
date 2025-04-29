@@ -23,7 +23,7 @@ import { useSearchParams } from 'next/navigation';
 import { ExpressionExampleResponseDto } from '@api/types.dto';
 import { SpellingListItem } from './SpellingListItem';
 import { FoundExample } from '@repository/types.model';
-import { LangToId } from '@api/languages';
+import { IdToLang, LangToId } from '@api/languages';
 
 // This is a default highlight style of <mark> tag. If needed, it can be changed and applied to all of the ParsedTextComp components.
 const highlightStyles = { color: 'black', backgroundColor: 'yellow' };
@@ -43,8 +43,8 @@ export const FoundExamplesList: FC<{
   return examples && examples.length > 0 ? (
     <List sx={{ width: '100%' }} disablePadding>
       {examples.flatMap((ex, i) => {
-        const srcExample = ex.phrases_per_lang_dialect[LangToId[fromLang]];
-        const trgExample = ex.phrases_per_lang_dialect[LangToId[toLang]];
+        const srcExample = ex.phrases_per_lang_dialect[ex.word_lang_dialect_id];
+        const trgExample = ex.phrases_per_lang_dialect[ex.definitions_lang_dialect_id];
         // console.log(srcExample);
         // console.log(trgExample);
         if (srcExample && trgExample) {
@@ -56,8 +56,8 @@ export const FoundExamplesList: FC<{
                   key={`${ex.id}_spelling_${i}`}
                   id={ex.id}
                   spelling={ex.spelling}
-                  fromLang={fromLang}
-                  toLang={toLang}
+                  fromLang={IdToLang[ex.word_lang_dialect_id]}
+                  toLang={IdToLang[ex.definitions_lang_dialect_id]}
                   sx={{ ml: 0, pl: 0 }}
                 />
                 <ListItemText
@@ -86,8 +86,8 @@ export const FoundExamplesList: FC<{
                   </Stack>
                 )}
                 <Typography variant="caption" color="text.secondary" sx={{ mt: '10px' }}>
-                  {t(`languages.${fromLang}`, { ns: 'common' })} →{' '}
-                  {t(`languages.${toLang}`, { ns: 'common' })}
+                  {t(`languages.${IdToLang[ex.word_lang_dialect_id]}`, { ns: 'common' })} →{' '}
+                  {t(`languages.${IdToLang[ex.definitions_lang_dialect_id]}`, { ns: 'common' })}
                 </Typography>
               </Stack>
             </ListItem>,
@@ -101,8 +101,8 @@ export const FoundExamplesList: FC<{
                 key={`${ex.id}_spelling_${i}`}
                 id={ex.id}
                 spelling={ex.spelling}
-                fromLang={fromLang}
-                toLang={toLang}
+                fromLang={IdToLang[ex.word_lang_dialect_id]}
+                toLang={IdToLang[ex.definitions_lang_dialect_id]}
                 sx={{ ml: 0, pl: 0 }}
               />
               <ListItemText

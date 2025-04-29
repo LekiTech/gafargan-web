@@ -106,7 +106,11 @@ export async function searchInExamples({
   limit = 10,
 }: SearchSpellingQuery): Promise<FoundExample[]> {
   const findExamplesQuery = `
-    SELECT word_id, spelling, t.id, phrases_per_lang_dialect, raw, tags, t.created_at FROM translations t 
+    SELECT word_id, spelling, t.id, phrases_per_lang_dialect, raw, tags,
+      mv.word_lang_dialect_id AS word_lang_dialect_id,
+      mv.definitions_lang_dialect_id AS definitions_lang_dialect_id,
+      t.created_at
+    FROM translations t 
       JOIN mv_word_definition_translation AS mv ON t.id = mv.translation_id
       JOIN word w ON w.id = word_id
     WHERE raw ILIKE '%' || $1 || '%'
