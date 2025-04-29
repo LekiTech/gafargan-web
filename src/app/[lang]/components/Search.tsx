@@ -159,7 +159,7 @@ export const Search: FC<{
         wordLangDialectId: LangToId[expLang],
         definitionsLangDialectId: LangToId[defLang],
       });
-      console.log('foundSpellings', foundSpellings);
+
       setOptions(foundSpellings);
     }, 500),
     [],
@@ -182,7 +182,6 @@ export const Search: FC<{
     });
   };
 
-  console.log('options', options);
   return (
     <Stack
       direction="column"

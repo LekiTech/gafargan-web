@@ -45,8 +45,8 @@ export const FoundExamplesList: FC<{
       {examples.flatMap((ex, i) => {
         const srcExample = ex.phrases_per_lang_dialect[LangToId[fromLang]];
         const trgExample = ex.phrases_per_lang_dialect[LangToId[toLang]];
-        console.log(srcExample);
-        console.log(trgExample);
+        // console.log(srcExample);
+        // console.log(trgExample);
         if (srcExample && trgExample) {
           return [
             <Divider key={`${ex.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,

@@ -64,7 +64,6 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   //   contentTopMargin: viewport.isGreaterThan(EBreakpoints.XXL) ? '50px' : '0',
   // }), [viewport])
 
-  console.log('ExpressionView > ', word);
   // if (!word) {
   //   return (
   //     <Box>

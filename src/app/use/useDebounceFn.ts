@@ -11,7 +11,6 @@ export const useDebounceFn = <T extends (...args: any[]) => void>(
       isFirstCall = false;
       return;
     }
-    console.log('debounce', args);
     if (timeout !== null) {
       clearTimeout(timeout);
     }
