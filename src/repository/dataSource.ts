@@ -25,6 +25,7 @@ export async function getDataSource(): Promise<DataSource> {
   if (!AppDataSource.isInitialized) {
     await AppDataSource.initialize();
     console.log('Database connection established');
+    console.log(AppDataSource.entityMetadatas.map((meta) => meta.name));
   }
   return AppDataSource;
 }
