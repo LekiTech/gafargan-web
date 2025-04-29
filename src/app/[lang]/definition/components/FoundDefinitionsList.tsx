@@ -36,7 +36,7 @@ export const FoundDefinitionsList: FC<{
       {definitions.flatMap((def, i) => {
         return [
           <Divider key={`${def.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,
-          <ListItem key={`${def.id}_item_${i}`} sx={{ pt: 0, height: '125px' }}>
+          <ListItem key={`${def.id}_item_${i}`} sx={{ pt: 0, minHeight: '125px' }}>
             <Stack direction="column">
               <SpellingListItem
                 key={`${def.id}_spelling_${i}`}
