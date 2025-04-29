@@ -1,12 +1,24 @@
 'use client';
-import React, { FC, useMemo } from 'react';
+import React, { FC, useMemo, useState } from 'react';
 import {
   ExpressionDefinitionResponseDto,
   ExpressionExampleResponseDto,
   ExpressionSearchResponseDto,
 } from '@api/types.dto';
 import { WebsiteLang } from '@api/types.model';
-import { Box, Grid, List, ListItem, Paper, Skeleton, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
+import {
+  Box,
+  Grid,
+  List,
+  ListItem,
+  Pagination,
+  Paper,
+  Skeleton,
+  Stack,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material';
 import { Sidebar } from './Sidebar';
 import { toContents } from '../utils';
 import { ExpressionDetailsComp } from './ExpressionDetailsComp';
@@ -14,15 +26,18 @@ import { FoundExamplesList, FoundExamplesListMobile } from './FoundExamplesList'
 import { SpellingListItem } from './SpellingListItem';
 import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinitionsList';
 import { useTranslation } from 'react-i18next';
+import { Word } from '@repository/entities/Word';
+import { FoundDefinition, FoundExample, FoundSpelling } from '@repository/types.model';
 // import { useViewport } from '../../../use/useViewport';
 // import { EBreakpoints } from '../../../utils/BreakPoints';
 // import { IExpressionPageContentStyles } from '@/definition/types';
 
 type ExpressionViewProps = {
   lang: WebsiteLang;
-  foundInExamples: ExpressionExampleResponseDto[];
-  foundInDefinitions: ExpressionDefinitionResponseDto[];
-  expression?: ExpressionSearchResponseDto;
+  foundInExamples?: FoundExample[];
+  foundInDefinitions?: FoundDefinition[];
+  word?: Word | null;
+  similarWords: FoundSpelling[];
   labels: {
     otherExamples: string;
   };
@@ -32,7 +47,8 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   lang,
   foundInExamples,
   foundInDefinitions,
-  expression,
+  word,
+  similarWords,
   labels,
 }) => {
   const { t } = useTranslation(lang);
@@ -48,17 +64,15 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   //   contentTopMargin: viewport.isGreaterThan(EBreakpoints.XXL) ? '50px' : '0',
   // }), [viewport])
 
-
-  if (!expression) {
-    return (
-      <Box>
-        <Typography variant="h1">
-          <Skeleton />
-        </Typography>
-      </Box>
-    );
-  }
-  const { found: foundExpression, similar: similarExpressions } = expression;
+  // if (!word) {
+  //   return (
+  //     <Box>
+  //       <Typography variant="h1">
+  //         <Skeleton />
+  //       </Typography>
+  //     </Box>
+  //   );
+  // }
   return (
     <Box
       sx={(theme) => ({
@@ -69,7 +83,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         mb: '50px',
       })}
     >
-      {foundExpression && foundExpression?.details ? (
+      {word && word?.details ? (
         <Stack
           direction={'row'}
           spacing={2}
@@ -82,9 +96,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
           })}
         >
           <Sidebar
-            contents={foundExpression?.details?.map((d, i) =>
-              toContents(i, foundExpression.spelling, d),
-            )}
+            contents={word?.details?.map((d, i) => toContents(i, word.spelling, d))}
             otherExamplesLabel={labels.otherExamples}
           />
           <Box
@@ -103,18 +115,18 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                 '&.MuiBox-root': {
                   ml: '0',
                   mt: '50px',
-                }
+                },
               },
             })}
           >
-            {foundExpression?.details?.map((detail, i) => (
+            {word?.details?.map((detail, i) => (
               <ExpressionDetailsComp
                 key={`exp_det_${i}`}
                 idx={i}
                 lang={lang}
-                spelling={foundExpression.spelling}
+                spelling={word.spelling}
                 data={detail}
-                isLast={i === foundExpression?.details?.length - 1}
+                isLast={i === word?.details?.length - 1}
               />
             ))}
           </Box>
@@ -150,7 +162,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                   maxWidth: '100vw',
                 }}
               >
-                {similarExpressions?.map((s, i) => (
+                {similarWords?.map((s, i) => (
                   <ListItem key={`similar_${i}`} sx={{ pt: 0, mb: '10px', pl: 0, ml: 0 }}>
                     <SpellingListItem
                       id={s.id}
@@ -164,18 +176,34 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
             </Stack>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={(theme) => ({ p: '20px', [theme.breakpoints.down('md')]: { pb: 0 } })}>
+            <Paper
+              elevation={3}
+              sx={(theme) => ({ p: '20px', [theme.breakpoints.down('md')]: { pb: 0 } })}
+            >
               <Stack direction="column">
                 <Typography variant="h6">{t('foundInExamples')}</Typography>
-                {isSmallerThanMd ? <FoundExamplesListMobile lang={lang} examples={foundInExamples} /> : <FoundExamplesList lang={lang} examples={foundInExamples} />}
+                {isSmallerThanMd ? (
+                  <FoundExamplesListMobile lang={lang} examples={foundInExamples} />
+                ) : (
+                  <FoundExamplesList lang={lang} examples={foundInExamples} />
+                )}
+                {/* <Pagination count={10} shape="rounded" /> */}
               </Stack>
             </Paper>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={(theme) => ({ p: '20px', [theme.breakpoints.down('md')]: { pb: 0 } })}>
+            <Paper
+              elevation={3}
+              sx={(theme) => ({ p: '20px', [theme.breakpoints.down('md')]: { pb: 0 } })}
+            >
               <Stack direction="column">
                 <Typography variant="h6">{t('foundInDefinitions')}</Typography>
-                {isSmallerThanMd ? <FoundDefinitionsListMobile lang={lang} definitions={foundInDefinitions} /> : <FoundDefinitionsList lang={lang} definitions={foundInDefinitions} />}
+                {isSmallerThanMd ? (
+                  <FoundDefinitionsListMobile lang={lang} definitions={foundInDefinitions} />
+                ) : (
+                  <FoundDefinitionsList lang={lang} definitions={foundInDefinitions} />
+                )}
+                {/* <Pagination count={10} shape="rounded" /> */}
               </Stack>
             </Paper>
           </Grid>

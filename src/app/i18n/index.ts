@@ -9,7 +9,6 @@ const languages = i18nConfig.locales;
 
 export async function initTranslations(locale: string, i18nInstance?: i18n) {
   i18nInstance = i18nInstance || createInstance();
-
   i18nInstance.use(initReactI18next);
 
   i18nInstance.use(

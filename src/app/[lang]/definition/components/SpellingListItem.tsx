@@ -4,7 +4,7 @@ import { Box, ListItemIcon, ListSubheader, SxProps, Theme } from '@mui/material'
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 export const SpellingListItem: FC<{
-  id: string;
+  id: number;
   spelling: string;
   showIcon?: boolean;
   fromLang?: string;
@@ -13,8 +13,9 @@ export const SpellingListItem: FC<{
 }> = ({ id, spelling, showIcon, fromLang, toLang, sx }) => {
   const path = usePathname();
   const searchParams = useSearchParams();
-  const href = `${path}?fromLang=${fromLang ?? searchParams.get('fromLang')}&toLang=${toLang ?? searchParams.get('toLang')
-    }&exp=${spelling}`;
+  const href = `${path}?fromLang=${fromLang ?? searchParams.get('fromLang')}&toLang=${
+    toLang ?? searchParams.get('toLang')
+  }&exp=${spelling}`;
   return (
     <Box
       component="a"

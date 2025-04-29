@@ -21,40 +21,42 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import { ExpressionDefinitionResponseDto } from '@api/types.dto';
 import { SpellingListItem } from './SpellingListItem';
+import { FoundDefinition } from '@repository/types.model';
+import { IdToLang } from '@api/languages';
 
 export const FoundDefinitionsList: FC<{
   lang: WebsiteLang;
-  definitions?: ExpressionDefinitionResponseDto[];
+  definitions?: FoundDefinition[];
 }> = ({ lang, definitions }) => {
   const { t } = useTranslation(lang);
   const searchParams = useSearchParams();
   const searchString = searchParams.get('exp') ?? undefined;
   return definitions && definitions.length > 0 ? (
-    <List sx={{ width: '100%' }}>
+    <List sx={{ width: '100%' }} disablePadding>
       {definitions.flatMap((def, i) => {
         return [
-          <Divider key={`${def.id}_divider_${i}`} component="li" sx={{ mt: '10px' }} />,
-          <ListItem key={`${def.id}_item_${i}`} sx={{ pt: 0 }}>
+          <Divider key={`${def.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,
+          <ListItem key={`${def.id}_item_${i}`} sx={{ pt: 0, minHeight: '125px' }}>
             <Stack direction="column">
               <SpellingListItem
                 key={`${def.id}_spelling_${i}`}
                 id={def.id}
                 spelling={def.spelling}
-                fromLang={def.expLangId}
-                toLang={def.definition.defLangId}
+                fromLang={IdToLang[def.word_lang_dialect_id]}
+                toLang={IdToLang[def.definitions_lang_dialect_id]}
                 sx={{ ml: 0, pl: 0 }}
               />
               <ListItemText
                 primary={
                   <ParsedTextComp
-                    text={def.definition.value}
+                    text={def.value}
                     highlightOptions={{ stringToHighlight: searchString }}
                   />
                 }
               />
-              {def.definition.tags && def.definition.tags.length > 0 && (
+              {def.tags && def.tags.length > 0 && (
                 <Stack direction="row" spacing={2} sx={{ mt: '10px !important' }}>
-                  {def.definition.tags.map((tag, t_i) => (
+                  {def.tags.map((tag, t_i) => (
                     <TagComp
                       key={`${def.id}_definition_${i}_tags_${tag}_${t_i}`}
                       label={t(tag, { ns: 'tags' })}
@@ -63,8 +65,8 @@ export const FoundDefinitionsList: FC<{
                 </Stack>
               )}
               <Typography variant="caption" color="text.secondary" sx={{ mt: '10px' }}>
-                {t(`languages.${def.expLangId}`, { ns: 'common' })} →{' '}
-                {t(`languages.${def.definition.defLangId}`, { ns: 'common' })}
+                {t(`languages.${IdToLang[def.word_lang_dialect_id]}`, { ns: 'common' })} →{' '}
+                {t(`languages.${IdToLang[def.definitions_lang_dialect_id]}`, { ns: 'common' })}
               </Typography>
             </Stack>
           </ListItem>,
@@ -76,7 +78,7 @@ export const FoundDefinitionsList: FC<{
 
 export const FoundDefinitionsListMobile: FC<{
   lang: WebsiteLang;
-  definitions?: ExpressionDefinitionResponseDto[];
+  definitions?: FoundDefinition[];
 }> = ({ lang, definitions }) => {
   const [open, setOpen] = React.useState(false);
 
@@ -84,16 +86,25 @@ export const FoundDefinitionsListMobile: FC<{
     setOpen(!open);
   };
   return (
-    <Collapse in={open} timeout="auto" collapsedSize={'150px'} orientation='vertical' sx={{ position: 'relative' }}>
+    <Collapse
+      in={open}
+      timeout="auto"
+      collapsedSize={'150px'}
+      orientation="vertical"
+      sx={{ position: 'relative' }}
+    >
       <FoundDefinitionsList lang={lang} definitions={definitions} />
       {!open && (
-        <Box sx={{
-          position: 'absolute',
-          top: 0,
-          height: '150px',
-          width: '100%',
-          backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1) 80% 100%)'
-        }} />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            height: '150px',
+            width: '100%',
+            backgroundImage:
+              'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1) 80% 100%)',
+          }}
+        />
       )}
       <IconButton
         aria-label="expand"
@@ -104,5 +115,5 @@ export const FoundDefinitionsListMobile: FC<{
         {open ? <ExpandLess /> : <ExpandMore />}
       </IconButton>
     </Collapse>
-  )
+  );
 };

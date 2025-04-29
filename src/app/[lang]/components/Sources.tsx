@@ -2,11 +2,11 @@
 import React, { FC } from 'react';
 import Typography from '@mui/material/Typography';
 import { Card, CardContent, Link, Stack } from '@mui/material';
-import { WrittenSource } from '../../../api/types.model';
 import WrittenSourceAccordion from './WrittenSourceAccordion';
+import { Source } from '@repository/entities/Source';
 
 type WordOfTheDayProps = {
-  sources: WrittenSource[];
+  sources: Source[];
   labels: {
     sources: string;
     learnMore: string;

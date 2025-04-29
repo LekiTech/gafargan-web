@@ -22,50 +22,62 @@ import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import { ExpressionExampleResponseDto } from '@api/types.dto';
 import { SpellingListItem } from './SpellingListItem';
+import { FoundExample } from '@repository/types.model';
+import { IdToLang, LangToId } from '@api/languages';
 
 // This is a default highlight style of <mark> tag. If needed, it can be changed and applied to all of the ParsedTextComp components.
 const highlightStyles = { color: 'black', backgroundColor: 'yellow' };
 
 export const FoundExamplesList: FC<{
   lang: WebsiteLang;
-  examples?: ExpressionExampleResponseDto[];
+  examples?: FoundExample[];
 }> = ({ lang, examples }) => {
   const { t } = useTranslation(lang);
   const searchParams = useSearchParams();
   const searchString = searchParams.get('exp') ?? undefined;
+  const fromLang = searchParams.get('fromLang') ?? undefined;
+  const toLang = searchParams.get('toLang') ?? undefined;
+  if (fromLang == undefined || toLang == undefined) {
+    return undefined;
+  }
   return examples && examples.length > 0 ? (
     <List sx={{ width: '100%' }} disablePadding>
       {examples.flatMap((ex, i) => {
-        if (ex.example.src && ex.example.trl) {
+        const srcExample = ex.phrases_per_lang_dialect[ex.word_lang_dialect_id];
+        const trgExample = ex.phrases_per_lang_dialect[ex.definitions_lang_dialect_id];
+        // console.log(srcExample);
+        // console.log(trgExample);
+        if (srcExample && trgExample) {
           return [
             <Divider key={`${ex.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,
-            <ListItem key={`${ex.id}_item_${i}`} sx={{ pt: 0 }}>
+            <ListItem key={`${ex.id}_item_${i}`} sx={{ pt: 0, minHeight: '125px' }}>
               <Stack direction="column">
                 <SpellingListItem
                   key={`${ex.id}_spelling_${i}`}
                   id={ex.id}
                   spelling={ex.spelling}
-                  fromLang={ex.example.srcLangId}
-                  toLang={ex.example.trlLangId}
+                  fromLang={IdToLang[ex.word_lang_dialect_id]}
+                  toLang={IdToLang[ex.definitions_lang_dialect_id]}
                   sx={{ ml: 0, pl: 0 }}
                 />
                 <ListItemText
                   primary={
                     <ParsedTextComp
-                      text={ex.example.src}
+                      // TODO: fixme:
+                      text={srcExample.phrase}
                       highlightOptions={{ stringToHighlight: searchString }}
                     />
                   }
                   secondary={
                     <ParsedTextComp
-                      text={ex.example.trl}
+                      text={trgExample.phrase}
                       highlightOptions={{ stringToHighlight: searchString }}
                     />
                   }
                 />
-                {ex.example.tags && ex.example.tags.length > 0 && (
+                {ex.tags && ex.tags.length > 0 && (
                   <Stack direction="row" spacing={2} sx={{ mt: '10px !important' }}>
-                    {ex.example.tags.map((tag, t_i) => (
+                    {ex.tags.map((tag, t_i) => (
                       <TagComp
                         key={`${ex.id}_example_${i}_tags_${tag}_${t_i}`}
                         label={t(tag, { ns: 'tags' })}
@@ -74,8 +86,8 @@ export const FoundExamplesList: FC<{
                   </Stack>
                 )}
                 <Typography variant="caption" color="text.secondary" sx={{ mt: '10px' }}>
-                  {t(`languages.${ex.example.srcLangId}`, { ns: 'common' })} →{' '}
-                  {t(`languages.${ex.example.trlLangId}`, { ns: 'common' })}
+                  {t(`languages.${IdToLang[ex.word_lang_dialect_id]}`, { ns: 'common' })} →{' '}
+                  {t(`languages.${IdToLang[ex.definitions_lang_dialect_id]}`, { ns: 'common' })}
                 </Typography>
               </Stack>
             </ListItem>,
@@ -83,27 +95,27 @@ export const FoundExamplesList: FC<{
         }
         return [
           <Divider key={`${ex.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,
-          <ListItem key={`${ex.id}_item_${i}`} sx={{ pt: 0 }}>
+          <ListItem key={`${ex.id}_item_${i}`} sx={{ pt: 0, minHeight: '125px' }}>
             <Stack direction="column">
               <SpellingListItem
                 key={`${ex.id}_spelling_${i}`}
                 id={ex.id}
                 spelling={ex.spelling}
-                fromLang={ex.example.srcLangId}
-                toLang={ex.example.trlLangId}
+                fromLang={IdToLang[ex.word_lang_dialect_id]}
+                toLang={IdToLang[ex.definitions_lang_dialect_id]}
                 sx={{ ml: 0, pl: 0 }}
               />
               <ListItemText
                 primary={
                   <ParsedTextComp
-                    text={ex.example.raw}
+                    text={ex.raw}
                     highlightOptions={{ stringToHighlight: searchString }}
                   />
                 }
               />
-              {ex.example.tags && ex.example.tags.length > 0 && (
+              {ex.tags && ex.tags.length > 0 && (
                 <Stack direction="row" spacing={2} sx={{ mt: '10px !important' }}>
-                  {ex.example.tags.map((tag, t_i) => (
+                  {ex.tags.map((tag, t_i) => (
                     <TagComp
                       key={`${ex.id}_example_${i}_tags_${tag}_${t_i}`}
                       label={t(tag, { ns: 'tags' })}
@@ -121,7 +133,7 @@ export const FoundExamplesList: FC<{
 
 export const FoundExamplesListMobile: FC<{
   lang: WebsiteLang;
-  examples?: ExpressionExampleResponseDto[];
+  examples?: FoundExample[];
 }> = ({ lang, examples }) => {
   const [open, setOpen] = React.useState(false);
 
@@ -129,16 +141,25 @@ export const FoundExamplesListMobile: FC<{
     setOpen(!open);
   };
   return (
-    <Collapse in={open} timeout="auto" collapsedSize={'150px'} orientation='vertical' sx={{ position: 'relative' }}>
+    <Collapse
+      in={open}
+      timeout="auto"
+      collapsedSize={'150px'}
+      orientation="vertical"
+      sx={{ position: 'relative' }}
+    >
       <FoundExamplesList lang={lang} examples={examples} />
       {!open && (
-        <Box sx={{
-          position: 'absolute',
-          top: 0,
-          height: '150px',
-          width: '100%',
-          backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1) 80% 100%)'
-        }} />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            height: '150px',
+            width: '100%',
+            backgroundImage:
+              'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1) 80% 100%)',
+          }}
+        />
       )}
       <IconButton
         aria-label="expand"

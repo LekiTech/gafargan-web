@@ -20,10 +20,20 @@
     ],
     "paths": {
       "@api/*": ["./src/api/*"],
+      "@repository/*": ["./src/repository/*"],
       "@/*": ["./src/app/[lang]/*"],
       "@i18n/*": ["./src/app/i18n/*"]
-    }
+    },
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/types/**/*.ts",
+    "src/repository/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }

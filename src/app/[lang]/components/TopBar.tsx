@@ -37,9 +37,8 @@ const TopBar = (props: TopBarProps) => {
 
   React.useEffect(() => {
     if (!sessionId) {
-      console.log('Creating new user profile');
+      // console.log('Creating new user profile');
       // console.log('params', params);
-      console.log('searchParams', searchParams);
       const properties: Record<string, string> = {};
       // Extract UTM parameters from searchParams
       const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
