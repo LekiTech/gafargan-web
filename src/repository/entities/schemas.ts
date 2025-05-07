@@ -7,7 +7,8 @@ import { Translation } from './Translation';
 import { User } from './User';
 import { Word } from './Word';
 import { WordDetail } from './WordDetail';
-import { Language, Role } from './enums';
+import { Proposal } from './Proposal';
+import { Language, Role, ProposalOperation, ProposalStatus } from './enums';
 
 export const DefinitionSchema = new EntitySchema<Definition>({
   name: 'Definition',
@@ -532,6 +533,82 @@ export const WordDetailSchema = new EntitySchema<WordDetail>({
         inverseJoinColumn: { name: 'translation_id', referencedColumnName: 'id' },
       },
       cascade: false,
+    },
+  },
+});
+
+export const ProposalSchema = new EntitySchema<Proposal>({
+  name: 'Proposal',
+  tableName: 'proposal',
+  target: Proposal,
+  columns: {
+    id: {
+      type: Number,
+      primary: true,
+      generated: true,
+    },
+    tableName: {
+      name: 'table_name',
+      type: 'text',
+    },
+    operation: {
+      type: 'enum',
+      enum: ProposalOperation,
+      enumName: 'proposal_operation',
+    },
+    recordId: {
+      name: 'record_id',
+      type: 'int',
+      nullable: true,
+    },
+    newData: {
+      name: 'new_data',
+      type: 'jsonb',
+      nullable: true,
+    },
+    oldData: {
+      name: 'old_data',
+      type: 'jsonb',
+      nullable: true,
+    },
+    proposedById: {
+      name: 'proposed_by',
+      type: 'int',
+    },
+    proposedAt: {
+      name: 'proposed_at',
+      type: 'timestamp',
+      default: () => 'CURRENT_TIMESTAMP',
+    },
+    status: {
+      type: 'enum',
+      enum: ProposalStatus,
+      enumName: 'proposal_status',
+      default: ProposalStatus.PENDING,
+    },
+    reviewedById: {
+      name: 'reviewed_by',
+      type: 'int',
+      nullable: true,
+    },
+    reviewedAt: {
+      name: 'reviewed_at',
+      type: 'timestamp',
+      nullable: true,
+    },
+  },
+  relations: {
+    proposedBy: {
+      type: 'many-to-one',
+      target: () => User,
+      joinColumn: { name: 'proposed_by' },
+      nullable: false,
+    },
+    reviewedBy: {
+      type: 'many-to-one',
+      target: () => User,
+      joinColumn: { name: 'reviewed_by' },
+      nullable: true,
     },
   },
 });

@@ -14,3 +14,15 @@ export enum Role {
   Moderator = 'Moderator',
   User = 'User',
 }
+
+export enum ProposalOperation {
+  INSERT = 'INSERT',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+}
+
+export enum ProposalStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}

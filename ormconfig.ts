@@ -7,6 +7,7 @@ import {
   DefinitionSchema,
   SpellingVariantSchema,
   TranslationSchema,
+  ProposalSchema,
 } from '@repository/entities/schemas';
 import { DataSource } from 'typeorm';
 
@@ -40,6 +41,7 @@ export const AppDataSource = new DataSource({
     DefinitionSchema,
     SpellingVariantSchema,
     TranslationSchema,
+    ProposalSchema,
   ],
   migrations: [],
   subscribers: [],
