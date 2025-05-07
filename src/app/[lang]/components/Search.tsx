@@ -89,12 +89,13 @@ const roundingRadiusPx = `${roundingRadius}px`;
 
 export const Search: FC<{
   lang: WebsiteLang;
+  hideLangs?: boolean;
   // langs: Record<DictionaryLang, string>;
   // fromLang: { code: WebsiteLang; name: string };
   // toLang: { code: WebsiteLang; name: string };
   // searchLabel: string;
   // }> = ({ langs, searchLabel }) => {
-}> = ({ lang }) => {
+}> = ({ lang, hideLangs }) => {
   const { t } = useTranslation(lang);
   const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
     DictionaryLang,
@@ -221,17 +222,40 @@ export const Search: FC<{
           renderInput={(params) => (
             <TextField
               {...params}
-              // label={searchLabel}
-              InputProps={{
-                ...params.InputProps,
-                placeholder: searchLabel,
-                type: 'search',
-                style: {
+              sx={(theme) => ({
+                '& .MuiInputBase-input': {
                   borderStartStartRadius: roundingRadius,
                   borderEndStartRadius: roundingRadius,
                   backgroundColor: '#fff',
+                  paddingLeft: '10px !important',
+                  [theme.breakpoints.down('md')]: {
+                    paddingTop: '0 !important',
+                    paddingBottom: '0 !important',
+                    paddingRight: '0 !important',
+                    height: '30px !important',
+                  },
                 },
-              }}
+                '& .MuiInputBase-root': {
+                  borderStartStartRadius: roundingRadius,
+                  borderEndStartRadius: roundingRadius,
+                  backgroundColor: '#fff',
+                  [theme.breakpoints.down('md')]: {
+                    padding: '0 0 0 0 !important',
+                    height: '30px !important',
+                  },
+                },
+              })}
+              // label={searchLabel}
+              // InputProps={{
+              //   ...params.InputProps,
+              //   placeholder: searchLabel,
+              //   type: 'search',
+              //   style: {
+              //     borderStartStartRadius: roundingRadius,
+              //     borderEndStartRadius: roundingRadius,
+              //     backgroundColor: '#fff',
+              //   },
+              // }}
             />
           )}
           getOptionLabel={(option) => {
@@ -278,7 +302,7 @@ export const Search: FC<{
         />
         <Button
           variant="contained"
-          sx={{
+          sx={(theme) => ({
             borderEndEndRadius: roundingRadiusPx,
             borderStartEndRadius: roundingRadiusPx,
             borderStartStartRadius: 0,
@@ -287,7 +311,10 @@ export const Search: FC<{
             ':hover': {
               backgroundColor: colors.secondaryTint,
             },
-          }}
+            [theme.breakpoints.down('md')]: {
+              height: '30px !important',
+            },
+          })}
           onClick={(e) => {
             e.preventDefault();
             // goToDefinition(inputValue, pathname, searchLang, router);
@@ -302,13 +329,32 @@ export const Search: FC<{
             document?.activeElement?.blur();
           }}
         >
-          <SearchIcon fontSize="large" />
+          <SearchIcon
+            // fontSize="large"
+            sx={(theme) => ({
+              fontSize: 40,
+              [theme.breakpoints.down('md')]: {
+                fontSize: 24,
+              },
+            })}
+          />
         </Button>
       </Stack>
       <Stack
         direction="row"
         spacing={0}
-        sx={{ pl: '20px', pr: '20px', justifyContent: 'center', alignItems: 'center' }}
+        sx={(theme) => ({
+          pl: '20px',
+          pr: '20px',
+          justifyContent: 'center',
+          alignItems: 'center',
+          [theme.breakpoints.down('md')]: {
+            marginTop: '6px !important',
+            marginBottom: '0 !important',
+            paddingBottom: '0 !important',
+            display: hideLangs === true ? 'none' : undefined,
+          },
+        })}
       >
         {/* <Stack direction="row" spacing={0} sx={{ pl: '20px', pr: '20px', justifyContent: 'space-between', alignItems: 'center' }}> */}
         <Stack direction="row" spacing={0} sx={{ justifyContent: 'center', alignItems: 'center' }}>
@@ -340,7 +386,7 @@ export const Search: FC<{
           </Select>
           <IconButton
             aria-label="switch"
-            sx={{ color: colors.text.light }}
+            sx={{ color: colors.text.light, pb: 0, pt: 0 }}
             onClick={() => {
               changeDictLang({
                 lang: searchLang.to,

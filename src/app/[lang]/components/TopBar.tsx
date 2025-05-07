@@ -2,7 +2,15 @@
 import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import { Avatar, Box, Grid, Typography, useScrollTrigger, useTheme } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Grid,
+  Typography,
+  useMediaQuery,
+  useScrollTrigger,
+  useTheme,
+} from '@mui/material';
 import { Search } from './Search';
 import { DictionaryLang, WebsiteLang } from '../../../api/types.model';
 import images from '@/store/images';
@@ -27,9 +35,10 @@ type TopBarProps = {
 const TopBar = (props: TopBarProps) => {
   const { currentLang, sessionId } = props;
   const trigger = useScrollTrigger({
-    threshold: 10,
+    threshold: 25,
   });
   const theme = useTheme();
+  const isMdSize = useMediaQuery(theme.breakpoints.down('md'));
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const pathSplit = pathname.split('/');
@@ -86,16 +95,22 @@ const TopBar = (props: TopBarProps) => {
               container
               sx={{
                 display: 'flex',
+                flex: 1,
                 flexDirection: 'row',
                 justifyContent: pageName == 'translate' ? 'space-between' : 'center',
                 maxWidth: '1400px',
               }}
             >
               <Grid
-                item
-                xs={6}
-                md={2}
-                sx={{ mt: '10px', display: 'flex', alignItems: 'flex-start' }}
+                size={{ xs: 6, md: 2 }}
+                sx={(theme) => ({
+                  mt: '10px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  [theme.breakpoints.down('md')]: {
+                    mt: '0px',
+                  },
+                })}
               >
                 {/* <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}> */}
                 <Link href={`/${currentLang}`} style={{ color: 'inherit', textDecoration: 'none' }}>
@@ -110,7 +125,8 @@ const TopBar = (props: TopBarProps) => {
                       alignItems: 'center',
                       justifySelf: 'start',
                       [theme.breakpoints.down('lg')]: {
-                        fontSize: '1rem',
+                        fontSize: '0.8rem',
+                        display: trigger ? 'none' : 'flex',
                       },
                       // width: '150px',
                       // color: colors.text.light,
@@ -124,8 +140,8 @@ const TopBar = (props: TopBarProps) => {
                         height: '56px',
                         mr: '10px',
                         [theme.breakpoints.down('lg')]: {
-                          width: '36px',
-                          height: '36px',
+                          width: '32px',
+                          height: '32px',
                           mr: '7px',
                         },
                       })}
@@ -137,9 +153,7 @@ const TopBar = (props: TopBarProps) => {
               </Grid>
               {pageName !== 'translate' && (
                 <Grid
-                  item
-                  xs={12}
-                  md={8}
+                  size={{ xs: 12, md: 8 }}
                   order={{ xs: 3, md: 2 }}
                   sx={(theme) => ({
                     display: 'flex',
@@ -147,26 +161,33 @@ const TopBar = (props: TopBarProps) => {
                     justifyContent: 'center',
                     mt: '10px',
                     [theme.breakpoints.down('md')]: {
-                      mt: '15px',
-                      display: trigger ? 'none' : 'flex',
+                      mt: '0px',
+                      // display: trigger ? 'none' : 'flex',
                     },
                   })}
                 >
-                  <Search lang={currentLang} />
+                  <Search lang={currentLang} hideLangs={trigger} />
                 </Grid>
               )}
-              <Grid item xs={6} md={2} order={{ xs: 2, md: 3 }}>
+              <Grid size={{ xs: 6, md: 2 }} order={{ xs: 2, md: 3 }}>
                 <Box
-                  sx={{
+                  sx={(theme) => ({
                     m: '10px',
                     display: 'flex',
                     flexDirection: 'row',
                     justifyContent: 'end',
                     alignItems: 'center',
-                  }}
+                    [theme.breakpoints.down('md')]: {
+                      mt: '0px',
+                      display: trigger ? 'none' : 'flex',
+                    },
+                  })}
                 >
                   <WebLanguageSelect
                     currentLang={currentLang}
+                    flagHeight={isMdSize ? 12 : 20}
+                    flagWidth={isMdSize ? 18 : 30}
+                    fontSize={isMdSize ? '0.8rem' : 18}
                     webLangs={{ lez: 'Lezgi', rus: 'Russian', eng: 'English', tur: 'Turkish' }} //{t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
                   />
                   {/* <WebLanguageSelect currentLang={currentLang} webLangs={webLangs} /> */}

@@ -2,7 +2,7 @@
 import React, { FC, useEffect, useState } from 'react';
 import { WebsiteLang, DefinitionDetails, Example } from '@api/types.model';
 // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
-import { Box, Grid, Stack, Typography } from '@mui/material/index';
+import { Box, Grid, Stack, Typography } from '@mui/material';
 // import { getTranslation } from '@i18n/index';
 import { createDetailsId } from '../utils';
 import { ExamplesComp } from './ExampleComp';
@@ -87,7 +87,7 @@ const DefinitionsGroup: FC<{
   // }
   return (
     <Grid container spacing={2} sx={{ pb: '25px', pl: '25px' }}>
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Stack
           id={createDetailsId(
             idx,
@@ -115,7 +115,7 @@ const DefinitionsGroup: FC<{
       ))} */}
         </Stack>
       </Grid>
-      <Grid item xs={12}>
+      <Grid size={{ xs: 12 }}>
         <ExamplesComp parentIdx={idx} lang={lang} title={t('examples')} examples={examples} />
         {/* {examples && examples.length > 0 && (
           <Accordion variant="outlined" sx={{ backgroundColor: 'inherit', width: '500px' }}>

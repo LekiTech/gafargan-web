@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
-import { MenuItem, Select, Typography } from '@mui/material';
+import { MenuItem, Select, SxProps, Theme, Typography } from '@mui/material';
 import { WebsiteLang } from '../../../api/types.model';
 import images from '@/store/images';
 import Image from 'next/image';
@@ -14,10 +14,13 @@ import { trackWebsiteLanguageChange } from '@api/mixpanel';
 type WebLanguageSelectProps = {
   currentLang: WebsiteLang;
   webLangs: Record<WebsiteLang, string>;
+  flagWidth: number;
+  flagHeight: number;
+  fontSize: string | number;
 };
 
 const WebLanguageSelect = (props: WebLanguageSelectProps) => {
-  const { currentLang, webLangs } = props;
+  const { currentLang, webLangs, flagWidth, flagHeight, fontSize } = props;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -53,43 +56,43 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
     >
       <MenuItem value={'lez'}>
         <Image
-          width="30"
-          height="20"
+          width={flagWidth}
+          height={flagHeight}
           src={images.lezgiFlag}
           alt="lez"
           style={{ marginRight: '10px' }}
         />
-        {getLangLabel('lez')}
+        <span style={{ fontSize: fontSize }}>{getLangLabel('lez')}</span>
       </MenuItem>
       <MenuItem value={'rus'}>
         <Image
-          width="30"
-          height="20"
+          width={flagWidth}
+          height={flagHeight}
           src={images.russianFlag}
           alt="rus"
           style={{ marginRight: '10px' }}
         />
-        {getLangLabel('rus')}
+        <span style={{ fontSize: fontSize }}>{getLangLabel('rus')}</span>
       </MenuItem>
       <MenuItem value={'eng'}>
         <Image
-          width="30"
-          height="20"
+          width={flagWidth}
+          height={flagHeight}
           src={images.ukFlag}
           alt="eng"
           style={{ marginRight: '10px' }}
         />
-        {getLangLabel('eng')}
+        <span style={{ fontSize: fontSize }}>{getLangLabel('eng')}</span>
       </MenuItem>
       <MenuItem value={'tur'}>
         <Image
-          width="30"
-          height="20"
+          width={flagWidth}
+          height={flagHeight}
           src={images.turFlag}
           alt="tur"
           style={{ marginRight: '10px' }}
         />
-        {getLangLabel('tur')}
+        <span style={{ fontSize: fontSize }}>{getLangLabel('tur')}</span>
       </MenuItem>
     </Select>
   );

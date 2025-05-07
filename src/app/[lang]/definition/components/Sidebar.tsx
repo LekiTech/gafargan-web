@@ -31,19 +31,20 @@ type SidebarProps = {
 };
 
 const drawerWidth = 300;
+const topbarHeighSmallScreenExpanded = '130px';
+const topbarHeighSmallScreenCollapsed = '75px';
 
 export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
-
   const { viewport } = useViewport();
 
   const [activeStep, setActiveStep] = useState(0);
   const [activeStepDetailId, setActiveStepDetailId] = useState('');
 
   // вынес в отдельный стейт, не использую {activeStepDetailId} т.к. в select не показываем otherExamples
-  const [activeStepDetailIdForSelect, setActiveStepDetailIdForSelect] = useState('')
+  const [activeStepDetailIdForSelect, setActiveStepDetailIdForSelect] = useState('');
 
   const trigger = useScrollTrigger({
-    threshold: 10,
+    threshold: 25,
   });
   const [isScrolling, setIsScrolling] = useState(false);
 
@@ -53,21 +54,23 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
   useLayoutEffect(() => {
     const eventListener = () => {
       if (isScrolling) return;
-      const { activeStep, activeStepDetailID, detailIdForSelect } = sidebarScrollWatch(contents, viewport)
+      const { activeStep, activeStepDetailID, detailIdForSelect } = sidebarScrollWatch(
+        contents,
+        viewport,
+      );
       setActiveStep(activeStep);
-      setActiveStepDetailId(activeStepDetailID)
+      setActiveStepDetailId(activeStepDetailID);
       setActiveStepDetailIdForSelect(detailIdForSelect);
-    }
+    };
     document.addEventListener('scroll', eventListener);
     return () => document.removeEventListener('scroll', eventListener);
   }, [contents, isScrolling]);
 
-
   // Отвечает за изменение состояния после скролла до элемента в моб. версии при выборе значения в селекте
   useEffect(() => {
     const handleScrolling = () => {
-      setIsScrolling(false)
-    }
+      setIsScrolling(false);
+    };
     window.addEventListener('scrollend', handleScrolling);
     return () => window.removeEventListener('scrollend', handleScrolling);
   }, []);
@@ -75,22 +78,20 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
   // При изменении isScrolling на след. тик выполняет нужную логику
   useLayoutEffect(() => {
     if (!elementForScroll || !isScrolling) return;
-    elementForScroll.scrollIntoView({ block: "center", behavior: "smooth" })
+    elementForScroll.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }, [isScrolling]);
-
 
   const handleChangeSelect = async (event: SelectChangeEvent) => {
     const element = document.getElementById(event.target?.value);
     if (!element) return;
     setActiveStepDetailIdForSelect(event.target?.value);
-    setElementForScroll(element)
+    setElementForScroll(element);
     if (isScrolling) {
-      setIsScrolling(false)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      setIsScrolling(false);
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    setIsScrolling(true)
+    setIsScrolling(true);
   };
-
 
   const getBackgroundColor = (detailsId: string) =>
     activeStepDetailId === detailsId ? green[50] : 'inherit';
@@ -104,7 +105,7 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
         sx={{
           position: 'fixed',
           borderRadius: 0,
-          top: trigger ? '75px' : '200px',
+          top: trigger ? topbarHeighSmallScreenCollapsed : topbarHeighSmallScreenExpanded,
           width: '100%',
           background: '#0f3b2e',
           color: '#fff',
@@ -115,20 +116,26 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
           '& .MuiSelect-icon': {
             backgroundColor: '#fff',
           },
+          '& .MuiNativeSelect-select': {
+            padding: '8px !important',
+          },
         }}
         onChange={handleChangeSelect}
       >
-        {
-          contents.map((c) => c.details.map((d) =>
-          (<option
-            key={d.detailsId}
-            value={cleanText(d.detailsId)}
-            style={{ background: '#0f3b2e' }}
-          > {d.preview}</option>))
-          )
-        }
+        {contents.map((c) =>
+          c.details.map((d) => (
+            <option
+              key={d.detailsId}
+              value={cleanText(d.detailsId)}
+              style={{ background: '#0f3b2e' }}
+            >
+              {' '}
+              {d.preview}
+            </option>
+          )),
+        )}
       </Select>
-    )
+    );
   }
   return (
     <Drawer
@@ -153,7 +160,7 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
         },
       })}
       variant="permanent"
-    // anchor="left"
+      // anchor="left"
     >
       {/* <Toolbar sx={{ p: '10px' }} />
       <Divider /> */}

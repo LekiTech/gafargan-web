@@ -1,5 +1,5 @@
 import React, { FC, Suspense } from 'react';
-import { Box, Grid } from '@mui/material/index';
+import { Box, Grid } from '@mui/material';
 import { initTranslations } from '@i18n/index';
 import { WordOfTheDay } from './components/WordOfTheDay';
 import { LezgiToNumbers, NumbersToLezgi } from './components/NumbersWidget';
@@ -35,7 +35,7 @@ const Home: FC<HomeProps> = async (props) => {
       <Suspense>
         <VerticalSpacing />
         <Grid container spacing={5} sx={{ maxWidth: '1400px' }}>
-          <Grid item xs={12} lg={4} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Grid size={{ xs: 12, lg: 4 }} sx={{ display: 'flex', flexDirection: 'column' }}>
             <WordOfTheDay
               // TODO: fix Skeleton loading
               word={wordOfTheDay}
@@ -46,13 +46,13 @@ const Home: FC<HomeProps> = async (props) => {
               }}
             />
           </Grid>
-          <Grid item xs={12} md={6} lg={4} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }} sx={{ display: 'flex', flexDirection: 'column' }}>
             <NumbersToLezgi />
           </Grid>
-          <Grid item xs={12} md={6} lg={4} sx={{ display: 'flex', flexDirection: 'column' }}>
+          <Grid size={{ xs: 12, md: 6, lg: 4 }} sx={{ display: 'flex', flexDirection: 'column' }}>
             <LezgiToNumbers />
           </Grid>
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Sources
               labels={{ sources: t('sources'), learnMore: t('learnMore') }}
               sources={sources}

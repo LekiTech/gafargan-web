@@ -117,7 +117,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                 pl: '15px',
                 '&.MuiBox-root': {
                   ml: '0',
-                  mt: '50px',
+                  mt: '10px',
                 },
               },
             })}
@@ -146,7 +146,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
             },
           })}
         >
-          <Grid item xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Stack
               direction="column"
               sx={(theme) => ({
@@ -178,7 +178,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               </List>
             </Stack>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={3}
               sx={(theme) => ({ p: '20px', [theme.breakpoints.down('md')]: { pb: 0 } })}
@@ -194,7 +194,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               </Stack>
             </Paper>
           </Grid>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper
               elevation={3}
               sx={(theme) => ({ p: '20px', [theme.breakpoints.down('md')]: { pb: 0 } })}

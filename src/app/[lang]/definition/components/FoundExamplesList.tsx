@@ -12,7 +12,7 @@ import {
   Stack,
   Typography,
   // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
-} from '@mui/material/index';
+} from '@mui/material';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import { ParsedTextComp } from '../../components/ParsedTextComp';

@@ -47,14 +47,12 @@ function Translate() {
         className="translator"
         style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
       >
-        <Grid item container sx={{ maxWidth: '1400px', padding: '0 30px' }}>
+        <Grid container sx={{ maxWidth: '1400px', padding: '0 30px' }}>
           <Grid
-            item
-            xs={12}
-            lg={12}
+            size={{ xs: 12, lg: 12 }}
             sx={{ display: 'flex', gap: '5px', alignItems: 'center', marginBottom: '10px' }}
           >
-            <Grid item xs={12} md={6} lg={6}>
+            <Grid size={{ xs: 12, md: 6, lg: 6 }}>
               <Select
                 value={frstLng}
                 defaultValue="ru"
@@ -83,11 +81,10 @@ function Translate() {
                 <SwapHorizIcon />
               </button>
             </Grid>
-            <Grid item xs={12} md={6} lg={6}>
+            <Grid size={{ xs: 12, md: 6, lg: 6 }}>
               <Select
                 value={secLng}
                 defaultValue="lez"
-                placeholder="Enter Car Brand"
                 sx={{
                   width: '100%',
                   textAlign: 'center',
@@ -110,8 +107,8 @@ function Translate() {
             </Grid>
           </Grid>
 
-          <Grid item xs={12} lg={12} className={translateStyle.fieldsWrapp}>
-            <Grid item xs={12} md={6} lg={6} style={{ position: 'relative' }}>
+          <Grid size={{ xs: 12, lg: 12 }} className={translateStyle.fieldsWrapp}>
+            <Grid size={{ xs: 12, md: 6, lg: 6 }} style={{ position: 'relative' }}>
               <TextField
                 className={translateStyle.textField}
                 type="text"
@@ -153,7 +150,7 @@ function Translate() {
                 </div>
               )}
             </Grid>
-            <Grid item xs={12} md={6} lg={6} style={{ position: 'relative' }}>
+            <Grid size={{ xs: 12, md: 6, lg: 6 }} style={{ position: 'relative' }}>
               <TextField
                 type="text"
                 variant="outlined"
@@ -211,7 +208,7 @@ function Translate() {
         className={translateStyle.userTranslate}
         style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
       >
-        <Grid item container sx={{ maxWidth: '1400px', padding: '0 30px' }}>
+        <Grid container sx={{ maxWidth: '1400px', padding: '0 30px' }}>
           <div className={translateStyle.userTranslateTtile}>
             <h5>
               Внесите свой вклад в развитие лезгинского переводчика. Переведите предложения ниже на

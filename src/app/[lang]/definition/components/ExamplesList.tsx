@@ -8,7 +8,7 @@ import {
   ListItemText,
   Stack,
   // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
-} from '@mui/material/index';
+} from '@mui/material';
 import { ParsedTextComp } from '../../components/ParsedTextComp';
 
 import { TagComp } from './TagComp';
