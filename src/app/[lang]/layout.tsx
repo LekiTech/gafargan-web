@@ -10,6 +10,9 @@ import { initTranslations } from '@i18n/index';
 import { DictionaryLang, WebsiteLang } from '../../api/types.model';
 import TopBar from './components/TopBar';
 import { colors } from './colors';
+import { headers } from 'next/headers';
+import { NextAppProvider } from '@toolpad/core/nextjs';
+import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 
 const languages = ['eng', 'rus', 'lez'];
 
@@ -51,6 +54,24 @@ export default async function RootLayout(props: RootLayoutProps) {
   } = props;
   const cookieStore = cookies();
   const sessionId = cookieStore.get('sessionid');
+  const pathname = headers().get('x-next-pathname') as string;
+  console.log('pathname:', pathname);
+  const matchDashboardPath = /^\/\w{3}\/dashboard(\/|$)/;
+  const isDashboard = matchDashboardPath.test(pathname);
+
+  console.log('isDashboard:', isDashboard);
+
+  const layoutBody = isDashboard ? (
+    <NextAppProvider>
+      <DashboardLayout defaultSidebarCollapsed>{children}</DashboardLayout>
+    </NextAppProvider>
+  ) : (
+    <Providers locale={lang}>
+      <TopBar currentLang={lang as WebsiteLang} sessionId={sessionId?.value} />
+      {children}
+    </Providers>
+  );
+
   return (
     <html
       lang={lang}
@@ -61,17 +82,7 @@ export default async function RootLayout(props: RootLayoutProps) {
         className={inter.className}
         style={{ backgroundColor: colors.background, margin: 0, overflowX: 'hidden' }}
       >
-        <Providers locale={lang}>
-          <TopBar
-            currentLang={lang as WebsiteLang}
-            sessionId={sessionId?.value}
-            // webLangs={t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
-            // dictLangs={t('languages', { returnObjects: true }) as Record<DictionaryLang, string>}
-            // searchLabel={t('search')}
-          />
-          {/* <Toolbar sx={{ p: '10px' }} /> */}
-          {children}
-        </Providers>
+        {layoutBody}
       </body>
     </html>
   );

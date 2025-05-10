@@ -37,6 +37,8 @@ import { i18nRouter } from 'next-i18n-router';
 import i18nConfig from './app/i18n/i18nConfig';
 
 export function middleware(request) {
+  request.headers.set('x-next-pathname', request.nextUrl.pathname);
+
   return i18nRouter(request, i18nConfig);
 }
 
