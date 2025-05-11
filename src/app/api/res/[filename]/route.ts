@@ -4,7 +4,7 @@ import { lezgiNumbersAudios } from '@/store/audios';
 export type LezgiNumbersAudios = keyof typeof lezgiNumbersAudios;
 const CURRENT_PATH = '/api/res/';
 
-export async function GET(request: NextRequest, response: NextResponse) {
+export async function GET(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const filenameEscaped = pathname.replace(CURRENT_PATH, ''); //.replace('.mp3', '');
   const filename = decodeURIComponent(filenameEscaped);

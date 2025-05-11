@@ -57,7 +57,7 @@ const TopBar = (props: TopBarProps) => {
           properties[key] = value;
         }
       });
-      createUserProfile(properties);
+      createUserProfile(properties).then(() => console.log('new user'));
     }
   }, []);
   return (

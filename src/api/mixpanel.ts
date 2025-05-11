@@ -13,23 +13,24 @@ const _mixpanel = isDev
       geolocate: false,
     });
 
-function IP() {
+async function IP() {
   const FALLBACK_IP_ADDRESS = '0.0.0.0';
-  const forwardedFor = headers().get('x-forwarded-for');
+  const headersList = await headers();
+  const forwardedFor = headersList.get('x-forwarded-for');
   console.log('forwardedFor', forwardedFor);
   if (forwardedFor) {
     return forwardedFor.split(',')[0] ?? FALLBACK_IP_ADDRESS;
   }
-  return headers().get('x-real-ip') ?? FALLBACK_IP_ADDRESS;
+  return headersList.get('x-real-ip') ?? FALLBACK_IP_ADDRESS;
 }
 
 class MixpanelClient {
-  createUserProfile(properties: Record<string, string>) {
+  async createUserProfile(properties: Record<string, string>) {
     if (isDev) {
       return;
     }
     const newSessionId = randomUUID();
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.set('sessionid', newSessionId, {
       httpOnly: true,
       secure: process.env.NODE_ENV !== 'development',
@@ -45,8 +46,8 @@ class MixpanelClient {
     });
   }
 
-  trackWebsiteLanguageChange(lang: string) {
-    const cookieStore = cookies();
+  async trackWebsiteLanguageChange(lang: string) {
+    const cookieStore = await cookies();
     const sessionId = cookieStore.get('sessionid');
     if (isDev || !sessionId) {
       return;
@@ -60,13 +61,13 @@ class MixpanelClient {
     });
   }
 
-  trackTranslationSearch(search: {
+  async trackTranslationSearch(search: {
     searchQuery: string;
     fromLang: string;
     toLang: string;
     searchType: 'enter_key' | 'search_button' | 'option_select';
   }) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const sessionId = cookieStore.get('sessionid');
     if (isDev || !sessionId) {
       return;
@@ -83,8 +84,8 @@ class MixpanelClient {
     });
   }
 
-  trackNumbersToLezgi() {
-    const cookieStore = cookies();
+  async trackNumbersToLezgi() {
+    const cookieStore = await cookies();
     const sessionId = cookieStore.get('sessionid');
     if (isDev || !sessionId) {
       return;
@@ -97,8 +98,8 @@ class MixpanelClient {
     });
   }
 
-  trackLezgiToNumbers() {
-    const cookieStore = cookies();
+  async trackLezgiToNumbers() {
+    const cookieStore = await cookies();
     const sessionId = cookieStore.get('sessionid');
     if (isDev || !sessionId) {
       return;
@@ -111,8 +112,8 @@ class MixpanelClient {
     });
   }
 
-  trackWordOfTheDay(wordOfTheDay: string) {
-    const cookieStore = cookies();
+  async trackWordOfTheDay(wordOfTheDay: string) {
+    const cookieStore = await cookies();
     const sessionId = cookieStore.get('sessionid');
     if (isDev || !sessionId) {
       return;

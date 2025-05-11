@@ -172,10 +172,10 @@ export const Search: FC<{
     debounceSetOptions(value, searchLang.from, searchLang.to);
   };
 
-  const onEnterPressSearch = (e: SyntheticEvent<Element, Event>) => {
+  const onEnterPressSearch = async (e: SyntheticEvent<Element, Event>) => {
     e.preventDefault();
     setShouldPerformSearch(true);
-    trackTranslationSearch({
+    await trackTranslationSearch({
       fromLang: searchLang.from,
       toLang: searchLang.to,
       searchQuery: inputValue,
@@ -280,11 +280,11 @@ export const Search: FC<{
                 component="li"
                 // {...props}
                 {...otherProps}
-                onClick={(event) => {
+                onClick={async (event) => {
                   event.preventDefault();
                   // goToDefinition(option.spelling, pathname, searchLang, router);
                   setShouldPerformSearch(true);
-                  trackTranslationSearch({
+                  await trackTranslationSearch({
                     fromLang: searchLang.from,
                     toLang: searchLang.to,
                     searchQuery: option.spelling,
@@ -315,11 +315,11 @@ export const Search: FC<{
               height: '30px !important',
             },
           })}
-          onClick={(e) => {
+          onClick={async (e) => {
             e.preventDefault();
             // goToDefinition(inputValue, pathname, searchLang, router);
             setShouldPerformSearch(true);
-            trackTranslationSearch({
+            await trackTranslationSearch({
               fromLang: searchLang.from,
               toLang: searchLang.to,
               searchQuery: inputValue,
