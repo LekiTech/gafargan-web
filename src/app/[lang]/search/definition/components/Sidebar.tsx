@@ -22,7 +22,7 @@ import { Contents } from '../types';
 import { FC, useEffect, useLayoutEffect, useState } from 'react';
 import { useViewport } from '../../../../use/useViewport';
 import { EBreakpoints } from '../../../../utils/BreakPoints';
-import { sidebarScrollWatch } from '@/home/helpers/sidebarScrollWatch';
+import { sidebarScrollWatch } from '@/search/helpers/sidebarScrollWatch';
 import { cleanText } from '../../../../utils/cleanText';
 
 type SidebarProps = {

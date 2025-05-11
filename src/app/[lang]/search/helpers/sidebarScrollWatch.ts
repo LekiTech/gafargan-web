@@ -1,4 +1,4 @@
-import { Contents } from '@/home/definition/types';
+import { Contents } from '@/search/definition/types';
 import { EBreakpoints } from '../../../utils/BreakPoints';
 import { useViewport } from '../../../use/useViewport';
 import { Viewport } from '../../../services/Viewport';
