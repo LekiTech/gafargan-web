@@ -20,10 +20,10 @@ import { colors } from '@/colors';
 import Link from 'next/link';
 import { Contents } from '../types';
 import { FC, useEffect, useLayoutEffect, useState } from 'react';
-import { useViewport } from '../../../use/useViewport';
-import { EBreakpoints } from '../../../utils/BreakPoints';
-import { sidebarScrollWatch } from '@/helpers/sidebarScrollWatch';
-import { cleanText } from '../../../utils/cleanText';
+import { useViewport } from '../../../../use/useViewport';
+import { EBreakpoints } from '../../../../utils/BreakPoints';
+import { sidebarScrollWatch } from '@/home/helpers/sidebarScrollWatch';
+import { cleanText } from '../../../../utils/cleanText';
 
 type SidebarProps = {
   contents: Contents[];

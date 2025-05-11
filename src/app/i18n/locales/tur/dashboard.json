@@ -1,0 +1,44 @@
+{
+  "languages": {
+    "eng": "İngilizce",
+    "rus": "Rusça",
+    "lez": "Lezgi dili",
+    "tab": "Tabasaran dili",
+    "tur": "Türkçe"
+  },
+  "meta": {
+    "title": "Gafargan Dashboard - Sözlük Oluşturma Gücünü Birleştiriyor",
+    "description": "Dilbilimciler ve topluluklar için azınlık dilleri sözlüklerini birlikte oluşturup geliştirme platformu."
+  },
+  "alphabet": [
+    "a",
+    "b",
+    "c",
+    "ç",
+    "d",
+    "e",
+    "f",
+    "g",
+    "ğ",
+    "h",
+    "ı",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "ö",
+    "o",
+    "r",
+    "s",
+    "ş",
+    "t",
+    "u",
+    "ü",
+    "v",
+    "y",
+    "z"
+  ]
+}

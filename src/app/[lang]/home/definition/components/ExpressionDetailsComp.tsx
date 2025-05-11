@@ -1,6 +1,6 @@
 'use client';
 import React, { FC } from 'react';
-import { ExpressionDetails, WebsiteLang } from '../../../../api/types.model';
+import { ExpressionDetails, WebsiteLang } from '../../../../../api/types.model';
 // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
 import { Divider, Stack, Typography } from '@mui/material';
 import { expressionFont } from '@/fonts';
@@ -8,9 +8,9 @@ import { DefinitionDetailsComp } from './DefinitionComp';
 import { createOtherExamplesId, createSpellingId } from '../utils';
 import { ExamplesComp } from './ExampleComp';
 import { useTranslation } from 'react-i18next';
-import { toLowerCaseLezgi } from '../../../utils';
-import { useViewport } from '../../../use/useViewport';
-import { EBreakpoints } from '../../../utils/BreakPoints';
+import { toLowerCaseLezgi } from '../../../../utils';
+import { useViewport } from '../../../../use/useViewport';
+import { EBreakpoints } from '../../../../utils/BreakPoints';
 import { WordDetail } from '@repository/entities/WordDetail';
 
 type ExpressionDetailsCompProps = {

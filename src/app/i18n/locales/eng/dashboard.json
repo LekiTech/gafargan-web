@@ -1,0 +1,41 @@
+{
+  "languages": {
+    "eng": "English",
+    "rus": "Russian",
+    "lez": "Lezgi",
+    "tab": "Tabasaran",
+    "tur": "Turkish"
+  },
+  "meta": {
+    "title": "Gafargan Dashboard - Empowering Collaborative Dictionary Creation",
+    "description": "A platform for linguists and communities to collaboratively build and refine dictionaries for minority languages."
+  },
+  "alphabet": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z"
+  ]
+}

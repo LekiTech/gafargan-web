@@ -11,7 +11,7 @@ export interface Employee extends DataModel {
   role: EmployeeRole;
 }
 
-const API_URL = '/api/employees';
+// const API_URL = '/api/employees';
 
 export const employeesDataSource: DataSource<Employee> = {
   fields: [
@@ -33,71 +33,114 @@ export const employeesDataSource: DataSource<Employee> = {
       width: 160,
     },
   ],
-  getMany: async ({ paginationModel, filterModel, sortModel }) => {
-    const queryParams = new URLSearchParams();
+  getMany: ({ paginationModel, filterModel, sortModel }) => {
+    // const queryParams = new URLSearchParams();
 
-    queryParams.append('page', paginationModel.page.toString());
-    queryParams.append('pageSize', paginationModel.pageSize.toString());
-    if (sortModel?.length) {
-      queryParams.append('sort', JSON.stringify(sortModel));
-    }
-    if (filterModel?.items?.length) {
-      queryParams.append('filter', JSON.stringify(filterModel.items));
-    }
+    // queryParams.append('page', paginationModel.page.toString());
+    // queryParams.append('pageSize', paginationModel.pageSize.toString());
+    // if (sortModel?.length) {
+    //   queryParams.append('sort', JSON.stringify(sortModel));
+    // }
+    // if (filterModel?.items?.length) {
+    //   queryParams.append('filter', JSON.stringify(filterModel.items));
+    // }
 
-    const res = await fetch(`${API_URL}?${queryParams.toString()}`, {
-      method: 'GET',
-    });
-    const resJson = await res.json();
+    // const res = await fetch(`${API_URL}?${queryParams.toString()}`, {
+    //   method: 'GET',
+    // });
+    // const resJson = await res.json();
 
-    if (!res.ok) {
-      throw new Error(resJson.error);
-    }
-    return resJson;
+    // if (!res.ok) {
+    //   throw new Error(resJson.error);
+    // }
+    return {
+      items: [
+        {
+          id: 1,
+          name: 'Edward Perry',
+          age: 25,
+          joinDate: '2025-05-10T19:29:54.081Z',
+          role: 'Finance',
+        },
+        {
+          id: 2,
+          name: 'Josephine Drake',
+          age: 36,
+          joinDate: '2025-05-10T19:29:54.081Z',
+          role: 'Market',
+        },
+        {
+          id: 3,
+          name: 'Cody Phillips',
+          age: 19,
+          joinDate: '2025-05-10T19:29:54.081Z',
+          role: 'Development',
+        },
+      ],
+      itemCount: 3,
+    };
   },
   getOne: async (employeeId) => {
-    const res = await fetch(`${API_URL}/${employeeId}`);
-    const resJson = await res.json();
+    // const res = await fetch(`${API_URL}/${employeeId}`);
+    // const resJson = await res.json();
 
-    if (!res.ok) {
-      throw new Error(resJson.error);
-    }
-    return resJson;
+    // if (!res.ok) {
+    //   throw new Error(resJson.error);
+    // }
+    return {
+      id: 1,
+      name: 'Edward Perry',
+      age: 25,
+      joinDate: '2025-05-10T19:29:54.081Z',
+      role: 'Finance',
+    };
   },
   createOne: async (data) => {
-    const res = await fetch(API_URL, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const resJson = await res.json();
+    // const res = await fetch(API_URL, {
+    //   method: 'POST',
+    //   body: JSON.stringify(data),
+    //   headers: { 'Content-Type': 'application/json' },
+    // });
+    // const resJson = await res.json();
 
-    if (!res.ok) {
-      throw new Error(resJson.error);
-    }
-    return resJson;
+    // if (!res.ok) {
+    //   throw new Error(resJson.error);
+    // }
+    return {
+      id: 4,
+      name: 'NEW',
+      age: 99,
+      joinDate: '2025-05-10T19:29:54.081Z',
+      role: 'Market',
+    };
   },
   updateOne: async (employeeId, data) => {
-    const res = await fetch(`${API_URL}/${employeeId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const resJson = await res.json();
+    // const res = await fetch(`${API_URL}/${employeeId}`, {
+    //   method: 'PUT',
+    //   body: JSON.stringify(data),
+    //   headers: { 'Content-Type': 'application/json' },
+    // });
+    // const resJson = await res.json();
 
-    if (!res.ok) {
-      throw new Error(resJson.error);
-    }
-    return resJson;
+    // if (!res.ok) {
+    //   throw new Error(resJson.error);
+    // }
+    return {
+      id: 5,
+      name: 'UPDATED',
+      age: 98,
+      joinDate: '2025-05-10T19:29:54.081Z',
+      role: 'Market',
+    };
   },
   deleteOne: async (employeeId) => {
-    const res = await fetch(`${API_URL}/${employeeId}`, { method: 'DELETE' });
-    const resJson = await res.json();
+    // const res = await fetch(`${API_URL}/${employeeId}`, { method: 'DELETE' });
+    // const resJson = await res.json();
 
-    if (!res.ok) {
-      throw new Error(resJson.error);
-    }
-    return resJson;
+    // if (!res.ok) {
+    //   throw new Error(resJson.error);
+    // }
+    return;
   },
   // validate: z.object({
   //   name: z.string({ required_error: 'Name is required' }).nonempty('Name is required'),

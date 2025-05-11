@@ -1,17 +1,10 @@
 import * as React from 'react';
-import { Crud } from '@toolpad/core/Crud';
-import { employeesDataSource, Employee, employeesCache } from './employees';
+import { CrudTable } from './crud-table';
 
 export default function EmployeesCrudPage() {
   return (
     // <div>Hello world!</div>
-    <Crud<Employee>
-      dataSource={employeesDataSource}
-      dataSourceCache={employeesCache}
-      rootPath="/employees"
-      initialPageSize={25}
-      defaultValues={{ itemCount: 1 }}
-    />
+    <CrudTable />
   );
 }
 

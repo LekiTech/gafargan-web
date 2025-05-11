@@ -1,8 +1,8 @@
-import { Contents } from '@/definition/types';
-import { EBreakpoints } from '../../utils/BreakPoints';
-import { useViewport } from '../../use/useViewport';
-import { Viewport } from '../../services/Viewport';
-import { cleanText } from '../../utils/cleanText';
+import { Contents } from '@/home/definition/types';
+import { EBreakpoints } from '../../../utils/BreakPoints';
+import { useViewport } from '../../../use/useViewport';
+import { Viewport } from '../../../services/Viewport';
+import { cleanText } from '../../../utils/cleanText';
 
 export const sidebarScrollWatch = (contents: Contents[], viewport: Viewport) => {
   let activeStep = 0;
@@ -10,22 +10,20 @@ export const sidebarScrollWatch = (contents: Contents[], viewport: Viewport) => 
   let detailIdForSelect = '';
 
   if (window.scrollY < 230) {
-    const content = contents[0]
+    const content = contents[0];
     activeStep = 0;
     activeStepDetailID = detailIdForSelect = cleanText(content.details[0].detailsId);
     return {
       activeStep,
       activeStepDetailID,
-      detailIdForSelect
-    }
+      detailIdForSelect,
+    };
   }
   for (let i = 0; i < contents.length; i++) {
     const step = contents[i];
     for (let j = 0; j < step?.details.length; j++) {
       const detail = step?.details[j];
-      const detailBoundingRect = document
-        .getElementById(detail.detailsId)
-        ?.getBoundingClientRect();
+      const detailBoundingRect = document.getElementById(detail.detailsId)?.getBoundingClientRect();
       if (
         detailBoundingRect?.top &&
         detailBoundingRect?.bottom &&
@@ -57,7 +55,7 @@ export const sidebarScrollWatch = (contents: Contents[], viewport: Viewport) => 
       exampleBoundingRect.top < window.innerHeight &&
       exampleBoundingRect.bottom > 0
     ) {
-      activeStepDetailID = step.otherExamplesId
+      activeStepDetailID = step.otherExamplesId;
       break;
     }
   }
@@ -65,6 +63,6 @@ export const sidebarScrollWatch = (contents: Contents[], viewport: Viewport) => 
   return {
     activeStep,
     activeStepDetailID,
-    detailIdForSelect
-  }
+    detailIdForSelect,
+  };
 };

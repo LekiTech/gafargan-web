@@ -3,7 +3,7 @@ import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { MenuItem, Select, SxProps, Theme, Typography } from '@mui/material';
-import { WebsiteLang } from '../../../api/types.model';
+import { WebsiteLang } from '../../../../api/types.model';
 import images from '@/store/images';
 import Image from 'next/image';
 // import { useMediaQuery } from 'react-responsive';

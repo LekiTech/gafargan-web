@@ -22,9 +22,9 @@ const nextConfig = {
   //   return config;
   // }
   // i18n,
-  experimental: {
-    serverComponentsExternalPackages: ['typeorm'],
-  },
+  // experimental: {
+  //   serverComponentsExternalPackages: ['typeorm'],
+  // },
 };
 
 module.exports = nextConfig;

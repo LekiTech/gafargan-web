@@ -10,7 +10,7 @@ import { Box, IconButton, TextField } from '@mui/material';
 import { numToLezgi, lezgiToNum, playLezgiNumberTts } from 'lezgi-numbers/lib';
 import { expressionFont } from '@/fonts';
 import { useTranslation } from 'react-i18next';
-import { copyText, toLowerCaseLezgi } from '../../utils';
+import { copyText, toLowerCaseLezgi } from '../../../utils';
 import { trackLezgiToNumbers, trackNumbersToLezgi } from '@api/mixpanel';
 
 function convertToLezgiAndFormat(num: number): string {

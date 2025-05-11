@@ -1,5 +1,5 @@
 import React, { FC } from 'react';
-import { HighlightedText } from '@/components/HighlightedText';
+import { HighlightedText } from '@/home/components/HighlightedText';
 
 export enum TextType {
   BASIC = 0,

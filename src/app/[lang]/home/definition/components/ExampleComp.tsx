@@ -6,8 +6,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import { useTranslation } from 'react-i18next';
 import { ExamplesList } from './ExamplesList';
-import { useViewport } from '../../../use/useViewport';
-import { EBreakpoints } from '../../../utils/BreakPoints';
+import { useViewport } from '../../../../use/useViewport';
+import { EBreakpoints } from '../../../../utils/BreakPoints';
 import { Translation } from '@repository/entities/Translation';
 
 export const ExamplesComp: FC<{

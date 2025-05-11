@@ -4,7 +4,7 @@ import { initReactI18next } from 'react-i18next/initReactI18next';
 
 import i18nConfig from './i18nConfig';
 
-const namespaces = ['common', 'tags']; // Ensure this is only namespaces and not altered
+const namespaces = ['common', 'tags', 'dashboard']; // Ensure this is only namespaces and not altered
 const languages = i18nConfig.locales;
 
 export async function initTranslations(locale: string, i18nInstance?: i18n) {

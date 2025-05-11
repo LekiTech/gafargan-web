@@ -12,7 +12,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { Search } from './Search';
-import { DictionaryLang, WebsiteLang } from '../../../api/types.model';
+import { DictionaryLang, WebsiteLang } from '../../../../api/types.model';
 import images from '@/store/images';
 import { ElevationScroll } from './ElevateScroll';
 import { colors } from '@/colors';

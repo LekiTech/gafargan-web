@@ -1,6 +1,6 @@
-import { ExpressionDetails } from '../../../api/types.model';
+import { ExpressionDetails } from '../../../../api/types.model';
 import { Contents } from './types';
-import { cleanText } from '../../utils/cleanText';
+import { cleanText } from '../../../utils/cleanText';
 import { WordDetail } from '@repository/entities/WordDetail';
 
 export function createSpellingId(
