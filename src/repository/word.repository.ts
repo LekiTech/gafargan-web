@@ -218,3 +218,50 @@ export async function getSources(): Promise<Source[]> {
   // console.log('search', JSON.stringify(word, null, 2));
   return JSON.parse(JSON.stringify(sources));
 }
+
+export type PaginationQuery = {
+  page: number;
+  size: number;
+  wordLangDialectId: number;
+  definitionsLangDialectId: number;
+};
+export async function getPaginatedWords({
+  page,
+  size,
+  wordLangDialectId,
+  definitionsLangDialectId,
+}: PaginationQuery): Promise<Word[]> {
+  const AppDataSource = await getDataSource();
+  const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
+  const words = await wordRepo.find({
+    where: {
+      langDialect: { id: wordLangDialectId },
+      details: { langDialect: { id: definitionsLangDialectId } },
+    },
+    take: size,
+    skip: page * size,
+    relations: {
+      // top-level relations
+      langDialect: true,
+      createdBy: true,
+      updatedBy: true,
+      spellingVariants: true,
+
+      // nest “details” and everything under it
+      details: {
+        langDialect: true,
+        source: true,
+        createdBy: true,
+        updatedBy: true,
+        examples: true, // the M:N to Translation
+        definitions: {
+          createdBy: true,
+          updatedBy: true,
+          examples: true, // the M:N to Translation on definitions
+        },
+      },
+    },
+  });
+  // console.log('search', JSON.stringify(word, null, 2));
+  return JSON.parse(JSON.stringify(words));
+}

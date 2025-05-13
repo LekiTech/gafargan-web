@@ -1,10 +1,17 @@
 import * as React from 'react';
-import { CrudTable } from './crud-table';
+import { CustomPaginationActionsTable } from './crud-table';
+import { getPaginatedWords } from '@repository/word.repository';
 
-export default function EmployeesCrudPage() {
+export default async function EmployeesCrudPage() {
+  const words = await getPaginatedWords({
+    page: 0,
+    size: 100,
+    wordLangDialectId: 1,
+    definitionsLangDialectId: 25,
+  });
   return (
     // <div>Hello world!</div>
-    <CrudTable />
+    <CustomPaginationActionsTable words={words} />
   );
 }
 
