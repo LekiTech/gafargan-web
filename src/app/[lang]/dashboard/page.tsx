@@ -1,8 +1,20 @@
-import * as React from 'react';
+import { FC } from 'react';
 import { CustomPaginationActionsTable } from './crud-table';
 import { getPaginatedWords } from '@repository/word.repository';
+import { redirect } from 'next/navigation';
+import { Routes } from '../../routes';
+import { Params, SearchParams } from '@/types';
 
-export default async function EmployeesCrudPage() {
+const EmployeesCrudPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
+  params: paramsPromise,
+}) => {
+  const { lang } = await paramsPromise;
+
+  // Temporary disabled in prod until finishd with development
+  if (process.env.NODE_ENV === 'production') {
+    redirect(`/${lang}/${Routes.UserSearchPage}`);
+  }
+
   const words = await getPaginatedWords({
     page: 0,
     size: 100,
@@ -13,8 +25,9 @@ export default async function EmployeesCrudPage() {
     // <div>Hello world!</div>
     <CustomPaginationActionsTable words={words} />
   );
-}
+};
 
+export default EmployeesCrudPage;
 // import { FC } from 'react';
 // import { createTheme } from '@mui/material/styles';
 // import StickyNote2Icon from '@mui/icons-material/StickyNote2';

@@ -105,7 +105,7 @@ function Row(props: { row: Word }) {
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box sx={{ margin: 1 }}>
               {row.details.map((detailsRow) => (
-                <Paper elevation={1}>
+                <Paper key={row.id + '_' + detailsRow.id} elevation={1}>
                   <Typography key={detailsRow.id} variant="subtitle2" gutterBottom component="div">
                     {detailsRow.inflection}
                   </Typography>
@@ -122,7 +122,9 @@ function Row(props: { row: Word }) {
                           {d.values.map((v) =>
                             v.tags && v.tags.length > 0 ? v.tags.join(', ') : '',
                           )}
-                          <Typography>{d.values.map((v) => v.value).join(', ')}</Typography>
+                          <Typography key={row.id + '_' + detailsRow.id + '_' + d.id + 'vals'}>
+                            {d.values.map((v) => v.value).join(', ')}
+                          </Typography>
                         </>
                       );
                     })}
