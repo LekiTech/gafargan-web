@@ -9,8 +9,8 @@
     "lint": "next lint"
   },
   "engines": {
-    "node": ">=22.15.0",
-    "npm": ">=10.9.2"
+    "node": "=22.15.0",
+    "npm": "=10.9.2"
   },
   "dependencies": {
     "@emotion/cache": "^11.11.0",
