@@ -38,6 +38,7 @@
     "title": "Gafargan – sayıca az halkların dillerinin uygun sözlüğü | Lezgi sözlüğü | Tabasaran sözlüğü.",
     "description": "Sayıca az halkların dilleri için açık kaynaklı bir sözlük ve çevirmen. Şu anda Lezgi ve Tabasaran dilleri için destek var. Lezgi dili-Rusça, Rusça-Lezgi dili ve Tabasaran dili-Rusça sözlüklerin çevirilerini burada bulabilirsiniz. Ayrıca Rusça-Tabasaranca sözlük türüne göre arama yapma imkanı veren çevirilerde aramayı da destekliyoruz. Sözlüğümüz, diğer şeylerin yanı sıra, birkaç kelime girerseniz, girdiğiniz kelimelerin tümünü veya bir kısmını bulan bir çevirmen veya konuşma kılavuzu olarak çalışan kesin olmayan arama imkanı sunar."
   },
+  "tryGafarganOffline": "Gafargan'ı Çevrimdışı Dene",
   "alphabet": [
     "a",
     "b",

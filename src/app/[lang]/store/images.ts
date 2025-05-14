@@ -12,6 +12,16 @@ import ukFlag from '@/assets/images/flags/uk.png';
 import usFlag from '@/assets/images/flags/us.png';
 import turFlag from '@/assets/images/flags/tur.png';
 
+// stores assets
+// android
+import androidEng from '@/assets/images/google-play/eng.png';
+import androidRus from '@/assets/images/google-play/rus.png';
+import androidTur from '@/assets/images/google-play/tur.png';
+// ios
+import iosEng from '@/assets/images/app-store/eng.svg';
+import iosRus from '@/assets/images/app-store/rus.svg';
+import iosTur from '@/assets/images/app-store/tur.svg';
+
 const images = {
   logo,
   cross,
@@ -26,6 +36,18 @@ const images = {
   ukFlag,
   usFlag,
   turFlag,
+  stores: {
+    android: {
+      eng: androidEng,
+      rus: androidRus,
+      tur: androidTur,
+    },
+    ios: {
+      eng: iosEng,
+      rus: iosRus,
+      tur: iosTur,
+    },
+  },
 };
 
 export default images;

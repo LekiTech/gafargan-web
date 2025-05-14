@@ -30,20 +30,23 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
   //   query: '(min-width: 900px)',
   // });
 
-  const changeWebLang = async (lang: WebsiteLang) => {
+  const changeWebLang = (lang: WebsiteLang) => {
     const params = searchParams.toString() ? `?${searchParams.toString()}` : '';
     const path = pathname.startsWith(`/${currentLang}`)
       ? pathname.replace(`/${currentLang}`, `/${lang}`) + params
       : `/${lang}/${params}`;
+    trackWebsiteLanguageChange(lang)
+      .then(() => console.log('language changed'))
+      .catch((err) => console.error('Error tracking language change:', err));
+    // it should be the last action to avoid issues
     router.push(path);
-    await trackWebsiteLanguageChange(lang);
   };
   return (
     <Select
       variant="standard"
       value={currentLang}
       disableUnderline={true}
-      onChange={async (e) => await changeWebLang(e.target.value as WebsiteLang)}
+      onChange={(e) => changeWebLang(e.target.value as WebsiteLang)}
       sx={{
         color: colors.text.light,
         '.MuiSelect-icon': { color: colors.text.light },
