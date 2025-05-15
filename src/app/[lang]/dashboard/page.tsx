@@ -4,6 +4,7 @@ import { getPaginatedWords } from '@repository/word.repository';
 import { redirect } from 'next/navigation';
 import { Routes } from '../../routes';
 import { Params, SearchParams } from '@/types';
+import { FoundDefinitionsList } from './FoundDefinitionsList';
 
 const EmployeesCrudPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
   params: paramsPromise,
@@ -23,7 +24,8 @@ const EmployeesCrudPage: FC<{ params: Params; searchParams: SearchParams }> = as
   });
   return (
     // <div>Hello world!</div>
-    <CustomPaginationActionsTable words={words} />
+    // <CustomPaginationActionsTable words={words} />
+    <FoundDefinitionsList lang={lang} words={words} />
   );
 };
 

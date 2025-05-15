@@ -23,7 +23,7 @@ import { Sidebar } from './Sidebar';
 import { toContents } from '../utils';
 import { ExpressionDetailsComp } from './ExpressionDetailsComp';
 import { FoundExamplesList, FoundExamplesListMobile } from './FoundExamplesList';
-import { SpellingListItem } from './SpellingListItem';
+import { SpellingListItem } from '../../../components/SpellingListItem';
 import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinitionsList';
 import { useTranslation } from 'react-i18next';
 import { Word } from '@repository/entities/Word';

@@ -6,7 +6,7 @@ import { Card, CardContent, Link, Chip, Stack } from '@mui/material';
 import { expressionFont } from '@/fonts';
 import { capitalizeFirstLetter } from '@/search/definition/utils';
 import { usePathname } from 'next/navigation';
-import { ParsedTextComp } from './ParsedTextComp';
+import { ParsedTextComp } from '../../components/ParsedTextComp';
 import { toLowerCaseLezgi } from '../../../utils';
 import { trackWordOfTheDay } from '@api/mixpanel';
 import { Word } from '@repository/entities/Word';

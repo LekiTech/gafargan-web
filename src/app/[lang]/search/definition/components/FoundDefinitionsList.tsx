@@ -15,12 +15,12 @@ import {
 } from '@mui/material';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import { ParsedTextComp } from '../../components/ParsedTextComp';
-import { TagComp } from './TagComp';
+import { ParsedTextComp } from '../../../components/ParsedTextComp';
+import { TagComp } from '../../../components/TagComp';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import { ExpressionDefinitionResponseDto } from '@api/types.dto';
-import { SpellingListItem } from './SpellingListItem';
+import { SpellingListItem } from '../../../components/SpellingListItem';
 import { FoundDefinition } from '@repository/types.model';
 import { IdToLang } from '@api/languages';
 

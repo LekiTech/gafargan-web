@@ -9,9 +9,9 @@ import {
   Stack,
   // Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
 } from '@mui/material';
-import { ParsedTextComp } from '../../components/ParsedTextComp';
+import { ParsedTextComp } from '../../../components/ParsedTextComp';
 
-import { TagComp } from './TagComp';
+import { TagComp } from '../../../components/TagComp';
 import { useTranslation } from 'react-i18next';
 import { Translation } from '@repository/entities/Translation';
 import { useSearchParams } from 'next/navigation';

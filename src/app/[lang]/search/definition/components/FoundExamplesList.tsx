@@ -15,13 +15,13 @@ import {
 } from '@mui/material';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
-import { ParsedTextComp } from '../../components/ParsedTextComp';
+import { ParsedTextComp } from '../../../components/ParsedTextComp';
 
-import { TagComp } from './TagComp';
+import { TagComp } from '../../../components/TagComp';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'next/navigation';
 import { ExpressionExampleResponseDto } from '@api/types.dto';
-import { SpellingListItem } from './SpellingListItem';
+import { SpellingListItem } from '../../../components/SpellingListItem';
 import { FoundExample } from '@repository/types.model';
 import { IdToLang, LangToId } from '@api/languages';
 
