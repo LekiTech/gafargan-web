@@ -46,8 +46,10 @@ export const NumbersToLezgi: FC = () => {
             min: '-9007199254740991',
             max: '9007199254740991',
           }}
-          onFocus={async (e) => {
-            await trackNumbersToLezgi();
+          onFocus={(e) => {
+            trackNumbersToLezgi()
+              .then()
+              .catch((err) => console.error(err));
           }}
           onChange={(e) => {
             const caret = e.target.selectionStart;
@@ -146,8 +148,10 @@ export const LezgiToNumbers: FC = () => {
             inputMode: 'text',
             pattern: '[ 1iI\u0400-\u04ff]*',
           }}
-          onFocus={async (e) => {
-            await trackLezgiToNumbers();
+          onFocus={(e) => {
+            trackLezgiToNumbers()
+              .then()
+              .catch((err) => console.error(err));
           }}
           onChange={(e) => {
             const inputValue = e.target.value;

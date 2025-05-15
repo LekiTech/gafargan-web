@@ -118,7 +118,11 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
         <Typography sx={{ m: 1.5, textAlign: 'end', cursor: 'pointer' }} variant="body2">
           <Link
             href={`${pathname}/definition?fromLang=${DEFAULT_EXPRESSION_LANG}&toLang=${DEFAULT_DEFINITION_LANG}&exp=${word.spelling}`}
-            onClick={async (e) => await trackWordOfTheDay(word.spelling)}
+            onClick={(e) =>
+              trackWordOfTheDay(word.spelling)
+                .then()
+                .catch((err) => console.error(err))
+            }
           >
             {learnMore}
           </Link>
