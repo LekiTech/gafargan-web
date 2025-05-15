@@ -172,15 +172,17 @@ export const Search: FC<{
     debounceSetOptions(value, searchLang.from, searchLang.to);
   };
 
-  const onEnterPressSearch = async (e: SyntheticEvent<Element, Event>) => {
+  const onEnterPressSearch = (e: SyntheticEvent<Element, Event>) => {
     e.preventDefault();
     setShouldPerformSearch(true);
-    await trackTranslationSearch({
+    trackTranslationSearch({
       fromLang: searchLang.from,
       toLang: searchLang.to,
       searchQuery: inputValue,
       searchType: 'enter_key',
-    });
+    })
+      .then()
+      .catch((err) => console.error(err));
   };
 
   return (
@@ -280,16 +282,18 @@ export const Search: FC<{
                 component="li"
                 // {...props}
                 {...otherProps}
-                onClick={async (event) => {
+                onClick={(event) => {
                   event.preventDefault();
                   // goToDefinition(option.spelling, pathname, searchLang, router);
                   setShouldPerformSearch(true);
-                  await trackTranslationSearch({
+                  trackTranslationSearch({
                     fromLang: searchLang.from,
                     toLang: searchLang.to,
                     searchQuery: option.spelling,
                     searchType: 'option_select',
-                  });
+                  })
+                    .then()
+                    .catch((err) => console.error(err));
                   if (props.onClick) {
                     props.onClick(event);
                   }
@@ -315,16 +319,18 @@ export const Search: FC<{
               height: '30px !important',
             },
           })}
-          onClick={async (e) => {
+          onClick={(e) => {
             e.preventDefault();
             // goToDefinition(inputValue, pathname, searchLang, router);
             setShouldPerformSearch(true);
-            await trackTranslationSearch({
+            trackTranslationSearch({
               fromLang: searchLang.from,
               toLang: searchLang.to,
               searchQuery: inputValue,
               searchType: 'search_button',
-            });
+            })
+              .then()
+              .catch((err) => console.error(err));
             //@ts-ignore
             document?.activeElement?.blur();
           }}

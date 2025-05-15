@@ -114,9 +114,3 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy to production
-
-Since Next.js 15 simple `npm run build` will fail because it tries to connect to the database. [It is not allowed in DigitalOcean by design during the build phase](https://docs.digitalocean.com/support/why-does-my-app-fail-to-build-while-trying-to-connect-to-a-digitalocean-managed-database/)
-
-To solve it I introduced a new script `npm run build:prod` that will build the app as `next build --experimental-build-mode compile`
