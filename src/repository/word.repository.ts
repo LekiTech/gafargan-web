@@ -12,11 +12,19 @@ import { SourceSchema, WordSchema } from './entities/schemas';
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
 // client.connect();
 
+export enum WordSearchType {
+  FUZZY = 'fuzzy',
+  PREFIX = 'prefix',
+  SUFFIX = 'suffix',
+  CONTAINS = 'contains',
+}
+
 interface SearchSpellingQuery {
   spelling: string;
   wordLangDialectId: number;
   definitionsLangDialectId: number;
   limit?: number;
+  wordSearchType?: WordSearchType;
 }
 
 export async function suggestions({
@@ -24,7 +32,26 @@ export async function suggestions({
   wordLangDialectId,
   definitionsLangDialectId,
   limit = 10,
+  wordSearchType = WordSearchType.FUZZY,
 }: SearchSpellingQuery): Promise<FoundSpelling[]> {
+  // let whereClause = '';
+  // switch (wordSearchType) {
+  //   case WordSearchType.FUZZY:
+  //     whereClause = `WHERE spelling ILIKE '%' || $1 || '%'`;
+  //     break;
+  //   case WordSearchType.PREFIX:
+  //     whereClause = `WHERE spelling ILIKE $1 || '%'`;
+  //     break;
+  //   case WordSearchType.SUFFIX:
+  //     whereClause = `WHERE spelling ILIKE '%' || $1`;
+  //     break;
+  //   case WordSearchType.CONTAINS:
+  //     whereClause = `WHERE spelling ILIKE '%' || $1 || '%'`;
+  //     break;
+  //   default:
+  //     whereClause = `WHERE spelling ILIKE '%' || $1 || '%'`;
+  //     break;
+  // }
   const findSpellingsQuery = `
     WITH combined AS (
       (SELECT spelling, id, NULL AS variant_id FROM word
