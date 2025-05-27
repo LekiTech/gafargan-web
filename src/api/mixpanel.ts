@@ -37,7 +37,7 @@ class MixpanelClient {
       path: '/',
       sameSite: 'lax',
     });
-    const ip = IP();
+    const ip = await IP();
     console.log('createUserProfile ip', ip);
     _mixpanel?.people.set(newSessionId, {
       $created: new Date().toISOString(),
@@ -52,7 +52,7 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
-    const ip = IP();
+    const ip = await IP();
     console.log('trackWebsiteLanguageChange ip', ip);
     _mixpanel?.track('Website Language Change', {
       distinct_id: sessionId.value,
@@ -72,7 +72,7 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
-    const ip = IP();
+    const ip = await IP();
     console.log('trackTranslationSearch ip', ip);
     _mixpanel?.track('Translation Search', {
       distinct_id: sessionId.value,
@@ -90,7 +90,7 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
-    const ip = IP();
+    const ip = await IP();
     console.log('trackNumbersToLezgi ip', ip);
     _mixpanel?.track('Numbers to Lezgi', {
       distinct_id: sessionId.value,
@@ -104,7 +104,7 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
-    const ip = IP();
+    const ip = await IP();
     console.log('trackLezgiToNumbers ip', ip);
     _mixpanel?.track('Lezgi to Numbers', {
       distinct_id: sessionId.value,
@@ -118,7 +118,7 @@ class MixpanelClient {
     if (isDev || !sessionId) {
       return;
     }
-    const ip = IP();
+    const ip = await IP();
     console.log('trackWordOfTheDay ip', ip);
     _mixpanel?.track('Word of the Day', {
       distinct_id: sessionId.value,

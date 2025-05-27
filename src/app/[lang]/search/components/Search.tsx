@@ -1,16 +1,24 @@
 'use client';
-import React, { FC, SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import React, { FC, SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   Backdrop,
   Box,
   Button,
   CircularProgress,
+  FormControl,
+  FormHelperText,
+  Grid,
   IconButton,
+  Input,
+  InputAdornment,
+  InputLabel,
   MenuItem,
+  OutlinedInput,
   Select,
   Stack,
   TextField,
+  TextFieldProps,
 } from '@mui/material';
 import Autocomplete, {
   AutocompleteRenderInputParams,
@@ -19,6 +27,8 @@ import Autocomplete, {
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
 import SearchIcon from '@mui/icons-material/Search';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { suggestions } from '@repository/word.repository';
 import { DictionaryPairs } from '@/store/constants';
 import { colors } from '@/colors';
@@ -32,6 +42,15 @@ import BaseLoader from '../../../../ui/BaseLoader';
 import { useTranslation } from 'react-i18next';
 import { trackTranslationSearch } from '@api/mixpanel';
 import { FoundSpelling } from '@repository/types.model';
+import { WordSearchType } from '@repository/enums';
+
+const MOBILE_INPUT_HEIGHT = 30;
+const MOBILE_FILLED_INPUT_HEIGHT = 35;
+
+interface SearchLang {
+  from: DictionaryLang;
+  to: DictionaryLang;
+}
 
 function findPairLang(lang: DictionaryLang) {
   return DictionaryPairs.find((pair) => pair.includes(lang))?.filter((pl) => pl !== lang)[0];
@@ -40,10 +59,7 @@ function findPairLang(lang: DictionaryLang) {
 const goToDefinition = (
   exp: string,
   pathname: string,
-  searchLang: {
-    from: 'lez' | 'rus' | 'tab';
-    to: 'lez' | 'rus' | 'tab';
-  },
+  searchLang: SearchLang,
   router: AppRouterInstance,
 ) => {
   if (exp === undefined || exp === null || exp.trim() === '') {
@@ -101,8 +117,7 @@ export const Search: FC<{
     DictionaryLang,
     string
   >;
-  const searchLabel = t('search', { ns: 'common' });
-  const toolsLabel = t('tools', { ns: 'common' });
+  const [isAdvancedSearch, setIsAdvancedSearch] = useState(true);
   // const langs = {
   //   lez: 'Lezgi',
   //   rus: 'Russian',
@@ -115,14 +130,11 @@ export const Search: FC<{
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [searchLang, setSearchLang] = useState({
+  const [searchLang, setSearchLang] = useState<SearchLang>({
     from: 'lez' as DictionaryLang,
     to: 'rus' as DictionaryLang,
   });
   const exp = searchParams.get('exp');
-  const [options, setOptions] = useState<FoundSpelling[]>([]);
-  const [inputValue, setInputValue] = useState<string>(exp ? toLowerCaseLezgi(exp) : '');
-  const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [prevSearch, setPrevSearch] = useState('');
 
@@ -134,218 +146,35 @@ export const Search: FC<{
   }, [searchParams]);
 
   useEffect(() => {
-    if (shouldPerformSearch) {
-      if (
-        !searchParams.toString() ||
-        searchParams.toString() !== prevSearch ||
-        exp !== inputValue
-      ) {
-        setIsLoading(true);
-      }
-      goToDefinition(inputValue, pathname, searchLang, router);
-      setShouldPerformSearch(false);
-    }
-  }, [inputValue, pathname, router, searchLang, shouldPerformSearch]);
-
-  useEffect(() => {
     setIsLoading(false);
     setPrevSearch(searchParams.toString());
-  }, [pathname, searchParams]);
+  }, [searchParams]);
 
-  // Получение списка подсказок по дебаунс
-  const debounceSetOptions = useCallback(
-    useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
-      const foundSpellings = await suggestions({
-        spelling: value,
-        wordLangDialectId: LangToId[expLang],
-        definitionsLangDialectId: LangToId[defLang],
-      });
-
-      setOptions(foundSpellings);
-    }, 500),
-    [],
-  );
-
-  const handleInputSearchValue = (e: SyntheticEvent<Element, Event>, value: string) => {
-    e.preventDefault();
-    setInputValue(value);
-    debounceSetOptions(value, searchLang.from, searchLang.to);
-  };
-
-  const onEnterPressSearch = (e: SyntheticEvent<Element, Event>) => {
-    e.preventDefault();
-    setShouldPerformSearch(true);
-    trackTranslationSearch({
-      fromLang: searchLang.from,
-      toLang: searchLang.to,
-      searchQuery: inputValue,
-      searchType: 'enter_key',
-    })
-      .then()
-      .catch((err) => console.error(err));
-  };
+  const areSearchParamsAllowingNewSearch =
+    !searchParams.toString() || searchParams.toString() !== prevSearch;
 
   return (
-    <Stack
-      direction="column"
-      // direction={isLgBreakpoint ? 'row' : 'column-reverse'}
-      spacing={2}
-      sx={{ flex: 1 }}
-      // sx={(theme) => ({
-      //   alignItems: 'center',
-      //   justifyContent: 'center',
-      //   // flexDirection: 'row',
-      //   // [theme.breakpoints.down('lg')]: {
-      //   //   flexDirection: 'column-reverse',
-      //   // },
-      // })}
-    >
+    <Stack direction="column" spacing={2} sx={{ flex: 1 }}>
       <BaseLoader isLoading={isLoading} setIsLoading={setIsLoading} />
-      {/* {fromLang.name} */}
-      <Stack direction="row" spacing={0} sx={{ mt: '0 !important', width: '100%' }}>
-        <Autocomplete
-          id="free-solo-search"
-          sx={(theme) => ({
-            // minWidth: 400,
-            // [theme.breakpoints.down('md')]: {
-            width: '100%',
-            // },
-          })}
-          freeSolo={true}
-          disableClearable={true}
-          inputValue={inputValue}
-          // On `Enter` key press
-          onChange={onEnterPressSearch}
-          // On input change, visible to user text change
-          onInputChange={handleInputSearchValue}
-          options={options}
-          // show all options
-          filterOptions={(options, state) => options}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              sx={(theme) => ({
-                '& .MuiInputBase-input': {
-                  borderStartStartRadius: roundingRadius,
-                  borderEndStartRadius: roundingRadius,
-                  backgroundColor: '#fff',
-                  paddingLeft: '10px !important',
-                  [theme.breakpoints.down('md')]: {
-                    paddingTop: '0 !important',
-                    paddingBottom: '0 !important',
-                    paddingRight: '0 !important',
-                    height: '30px !important',
-                  },
-                },
-                '& .MuiInputBase-root': {
-                  borderStartStartRadius: roundingRadius,
-                  borderEndStartRadius: roundingRadius,
-                  backgroundColor: '#fff',
-                  [theme.breakpoints.down('md')]: {
-                    padding: '0 0 0 0 !important',
-                    height: '30px !important',
-                  },
-                },
-              })}
-              // label={searchLabel}
-              // InputProps={{
-              //   ...params.InputProps,
-              //   placeholder: searchLabel,
-              //   type: 'search',
-              //   style: {
-              //     borderStartStartRadius: roundingRadius,
-              //     borderEndStartRadius: roundingRadius,
-              //     backgroundColor: '#fff',
-              //   },
-              // }}
-            />
-          )}
-          getOptionLabel={(option) => {
-            if (typeof option === 'string') {
-              return option;
-            }
-            return toLowerCaseLezgi(option.spelling);
-          }}
-          renderOption={(props, option, state, ownerState) => {
-            // @ts-ignore
-            const { key, ...otherProps } = props;
-            return (
-              <Box
-                key={key ?? option.id}
-                sx={{
-                  borderRadius: '8px',
-                  margin: '5px',
-                  [`&.${autocompleteClasses.option}`]: {
-                    padding: '8px',
-                  },
-                }}
-                component="li"
-                // {...props}
-                {...otherProps}
-                onClick={(event) => {
-                  event.preventDefault();
-                  // goToDefinition(option.spelling, pathname, searchLang, router);
-                  setShouldPerformSearch(true);
-                  trackTranslationSearch({
-                    fromLang: searchLang.from,
-                    toLang: searchLang.to,
-                    searchQuery: option.spelling,
-                    searchType: 'option_select',
-                  })
-                    .then()
-                    .catch((err) => console.error(err));
-                  if (props.onClick) {
-                    props.onClick(event);
-                  }
-                }}
-              >
-                {ownerState.getOptionLabel(toLowerCaseLezgi(option.spelling))}
-              </Box>
-            );
-          }}
+
+      {isAdvancedSearch ? (
+        <AdvancedSearchInput
+          searchLang={searchLang}
+          setIsLoading={setIsLoading}
+          setIsAdvancedSearch={setIsAdvancedSearch}
         />
-        <Button
-          variant="contained"
-          sx={(theme) => ({
-            borderEndEndRadius: roundingRadiusPx,
-            borderStartEndRadius: roundingRadiusPx,
-            borderStartStartRadius: 0,
-            borderEndStartRadius: 0,
-            backgroundColor: colors.secondary,
-            ':hover': {
-              backgroundColor: colors.secondaryTint,
-            },
-            [theme.breakpoints.down('md')]: {
-              height: '30px !important',
-            },
-          })}
-          onClick={(e) => {
-            e.preventDefault();
-            // goToDefinition(inputValue, pathname, searchLang, router);
-            setShouldPerformSearch(true);
-            trackTranslationSearch({
-              fromLang: searchLang.from,
-              toLang: searchLang.to,
-              searchQuery: inputValue,
-              searchType: 'search_button',
-            })
-              .then()
-              .catch((err) => console.error(err));
-            //@ts-ignore
-            document?.activeElement?.blur();
-          }}
-        >
-          <SearchIcon
-            // fontSize="large"
-            sx={(theme) => ({
-              fontSize: 40,
-              [theme.breakpoints.down('md')]: {
-                fontSize: 24,
-              },
-            })}
-          />
-        </Button>
-      </Stack>
+      ) : (
+        <SimpleSearchInput
+          router={router}
+          pathname={pathname}
+          exp={exp}
+          areSearchParamsAllowingNewSearch={areSearchParamsAllowingNewSearch}
+          searchLang={searchLang}
+          setIsLoading={setIsLoading}
+          setIsAdvancedSearch={setIsAdvancedSearch}
+        />
+      )}
+
       <Stack
         direction="row"
         spacing={0}
@@ -438,24 +267,450 @@ export const Search: FC<{
             })}
           </Select>
         </Stack>
-        {/* <Button
-          component="label"
-          variant="text"
-          endIcon={<KeyboardArrowDownIcon />}
-          sx={{
-            textTransform: 'none',
-            color: colors.text.light,
-            '& .MuiButton-text': {
-              textTransform: 'none',
-              color: colors.text.light,
-            },
-          }}
-        >
-          {toolsLabel}
-        </Button> */}
       </Stack>
     </Stack>
   );
 };
 
-// export default Search;
+const SimpleSearchInput: FC<{
+  router: AppRouterInstance;
+  pathname: string;
+  exp: string | null;
+  areSearchParamsAllowingNewSearch: boolean;
+  searchLang: SearchLang;
+  setIsLoading: (isLoading: boolean) => void;
+  setIsAdvancedSearch: (isAdvancedSearch: boolean) => void;
+}> = ({
+  router,
+  pathname,
+  exp,
+  areSearchParamsAllowingNewSearch,
+  searchLang,
+  setIsLoading,
+  setIsAdvancedSearch,
+}) => {
+  const [options, setOptions] = useState<FoundSpelling[]>([]);
+  const [inputValue, setInputValue] = useState<string>(exp ? toLowerCaseLezgi(exp) : '');
+  const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
+
+  useEffect(() => {
+    if (shouldPerformSearch) {
+      if (areSearchParamsAllowingNewSearch || exp !== inputValue) {
+        setIsLoading(true);
+      }
+      goToDefinition(inputValue, pathname, searchLang, router);
+      setShouldPerformSearch(false);
+    }
+  }, [inputValue, areSearchParamsAllowingNewSearch, searchLang, shouldPerformSearch]);
+
+  // Получение списка подсказок по дебаунс
+  const debounceSetOptions = useCallback(
+    useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
+      const foundSpellings = await suggestions({
+        spelling: value,
+        wordLangDialectId: LangToId[expLang],
+        definitionsLangDialectId: LangToId[defLang],
+      });
+
+      setOptions(foundSpellings);
+    }, 500),
+    [],
+  );
+
+  const handleInputSearchValue = (e: SyntheticEvent<Element, Event>, value: string) => {
+    e.preventDefault();
+    setInputValue(value);
+    debounceSetOptions(value, searchLang.from, searchLang.to);
+  };
+
+  const onEnterPressSearch = (e: SyntheticEvent<Element, Event>) => {
+    e.preventDefault();
+    setShouldPerformSearch(true);
+    trackTranslationSearch({
+      fromLang: searchLang.from,
+      toLang: searchLang.to,
+      searchQuery: inputValue,
+      searchType: 'enter_key',
+    })
+      .then()
+      .catch((err) => console.error(err));
+  };
+  return (
+    <Stack direction="row" spacing={0} sx={{ mt: '0 !important', width: '100%' }}>
+      <Autocomplete
+        sx={(theme) => ({
+          // minWidth: 400,
+          // [theme.breakpoints.down('md')]: {
+          width: '100%',
+          // },
+        })}
+        freeSolo={true}
+        disableClearable={true}
+        inputValue={inputValue}
+        // On `Enter` key press
+        onChange={onEnterPressSearch}
+        // On input change, visible to user text change
+        onInputChange={handleInputSearchValue}
+        options={options}
+        // show all options
+        filterOptions={(options, state) => options}
+        blurOnSelect={true}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            sx={(theme) => ({
+              '& .MuiInputBase-input': {
+                borderStartStartRadius: roundingRadius,
+                borderEndStartRadius: roundingRadius,
+                backgroundColor: '#fff',
+                paddingLeft: '10px !important',
+                [theme.breakpoints.down('md')]: {
+                  paddingTop: '0 !important',
+                  paddingBottom: '0 !important',
+                  paddingRight: '0 !important',
+                  height: `${MOBILE_INPUT_HEIGHT}px !important`,
+                },
+              },
+              '& .MuiInputBase-root': {
+                borderStartStartRadius: roundingRadius,
+                borderEndStartRadius: roundingRadius,
+                borderStartEndRadius: 0,
+                borderEndEndRadius: 0,
+                backgroundColor: '#fff',
+                [theme.breakpoints.down('md')]: {
+                  padding: '0 0 0 0 !important',
+                  height: `${MOBILE_INPUT_HEIGHT}px !important`,
+                },
+              },
+            })}
+          />
+        )}
+        getOptionLabel={(option) => {
+          if (typeof option === 'string') {
+            return option;
+          }
+          return toLowerCaseLezgi(option.spelling);
+        }}
+        renderOption={(props, option, state, ownerState) => {
+          // @ts-ignore
+          const { key, ...otherProps } = props;
+          return (
+            <Box
+              key={key ?? option.id}
+              sx={{
+                borderRadius: '8px',
+                margin: '5px',
+                [`&.${autocompleteClasses.option}`]: {
+                  padding: '8px',
+                },
+              }}
+              component="li"
+              // {...props}
+              {...otherProps}
+              onClick={(event) => {
+                event.currentTarget.blur();
+                event.preventDefault();
+                setShouldPerformSearch(true);
+                trackTranslationSearch({
+                  fromLang: searchLang.from,
+                  toLang: searchLang.to,
+                  searchQuery: option.spelling,
+                  searchType: 'option_select',
+                })
+                  .then()
+                  .catch((err) => console.error(err));
+                if (props.onClick) {
+                  props.onClick(event);
+                }
+              }}
+            >
+              {ownerState.getOptionLabel(toLowerCaseLezgi(option.spelling))}
+            </Box>
+          );
+        }}
+      />{' '}
+      <IconButton
+        sx={(theme) => ({
+          height: '100%',
+          backgroundColor: '#fff',
+          borderRadius: 0,
+          borderStyle: 'solid',
+          borderWidth: '1px',
+          borderColor: 'rgba(0, 0, 0, 0.23)',
+          borderLeftWidth: '0 !important',
+          borderRightWidth: '0 !important',
+          color: colors.text.dark,
+          '&:hover': {
+            backgroundColor: '#ddd',
+          },
+          [theme.breakpoints.down('md')]: {
+            height: `${MOBILE_INPUT_HEIGHT}px !important`,
+          },
+        })}
+        onClick={() => setIsAdvancedSearch(true)}
+      >
+        <SettingsOutlinedIcon />
+      </IconButton>
+      <Button
+        variant="contained"
+        sx={(theme) => ({
+          borderEndEndRadius: roundingRadiusPx,
+          borderStartEndRadius: roundingRadiusPx,
+          borderStartStartRadius: 0,
+          borderEndStartRadius: 0,
+          backgroundColor: colors.secondary,
+          ':hover': {
+            backgroundColor: colors.secondaryTint,
+          },
+          [theme.breakpoints.down('md')]: {
+            height: `${MOBILE_INPUT_HEIGHT}px !important`,
+          },
+        })}
+        onClick={(e) => {
+          e.currentTarget.blur();
+          e.preventDefault();
+          // goToDefinition(inputValue, pathname, searchLang, router);
+          setShouldPerformSearch(true);
+          trackTranslationSearch({
+            fromLang: searchLang.from,
+            toLang: searchLang.to,
+            searchQuery: inputValue,
+            searchType: 'search_button',
+          })
+            .then()
+            .catch((err) => console.error(err));
+          //@ts-ignore
+          document?.activeElement?.blur();
+        }}
+      >
+        <SearchIcon
+          // fontSize="large"
+          sx={(theme) => ({
+            fontSize: 40,
+            [theme.breakpoints.down('md')]: {
+              fontSize: 24,
+            },
+          })}
+        />
+      </Button>
+    </Stack>
+  );
+};
+
+const advancedInputSlotProps: TextFieldProps['slotProps'] = {
+  input: {
+    disableUnderline: true,
+    sx: (theme) => ({
+      [theme.breakpoints.down('md')]: {
+        '& .MuiInputBase-input': {
+          paddingTop: '10px !important',
+        },
+      },
+    }),
+  },
+  inputLabel: {
+    sx: (theme) => ({
+      [theme.breakpoints.down('md')]: {
+        fontSize: '0.7rem',
+        lineHeight: '1em',
+        height: `${MOBILE_FILLED_INPUT_HEIGHT / 2}px !important`,
+      },
+    }),
+  },
+};
+const AdvancedSearchInput: FC<{
+  searchLang: SearchLang;
+  setIsAdvancedSearch: (isAdvancedSearch: boolean) => void;
+  setIsLoading: (isLoading: boolean) => void;
+}> = ({ searchLang, setIsAdvancedSearch, setIsLoading }) => {
+  // const { t } = useTranslation(searchLang.from);
+  // const [inputValue, setInputValue] = useState<string>('');
+
+  return (
+    <Grid container spacing={0.5} columns={{ xs: 6, lg: 12 }}>
+      <Grid size={{ xs: 3, lg: 2 }} order={1}>
+        <TextField
+          fullWidth
+          variant="filled"
+          slotProps={advancedInputSlotProps}
+          size="small"
+          label={'Starts'}
+          sx={(theme) => ({
+            backgroundColor: '#fff',
+            borderEndStartRadius: roundingRadiusPx,
+            borderStartStartRadius: roundingRadiusPx,
+            [theme.breakpoints.down('md')]: {
+              height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+            },
+          })}
+          // value={inputValue}
+          // onChange={(e) => setInputValue(e.target.value)}
+        />
+      </Grid>
+      <Grid size={{ xs: 3, lg: 2 }} order={{ xs: 2, lg: 3 }}>
+        <TextField
+          fullWidth
+          variant="filled"
+          slotProps={advancedInputSlotProps}
+          label={'Ends'}
+          size="small"
+          sx={(theme) => ({
+            backgroundColor: '#fff',
+            borderEndEndRadius: roundingRadiusPx,
+            borderStartEndRadius: roundingRadiusPx,
+            [theme.breakpoints.down('md')]: {
+              height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+            },
+          })}
+          // value={inputValue}
+          // onChange={(e) => setInputValue(e.target.value)}
+        />
+      </Grid>
+      <Grid size={{ xs: 4, lg: 2 }} order={{ xs: 3, lg: 2 }}>
+        <TextField
+          fullWidth
+          variant="filled"
+          slotProps={advancedInputSlotProps}
+          label={'Contains'}
+          size="small"
+          sx={(theme) => ({
+            backgroundColor: '#fff',
+            [theme.breakpoints.down('lg')]: {
+              borderRadius: roundingRadiusPx,
+            },
+            [theme.breakpoints.down('md')]: {
+              height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+            },
+          })}
+          // value={inputValue}
+          // onChange={(e) => setInputValue(e.target.value)}
+        />
+      </Grid>
+      <Grid size={{ xs: 3, lg: 2 }} order={{ xs: 5, lg: 4 }}>
+        <TextField
+          fullWidth
+          variant="filled"
+          slotProps={advancedInputSlotProps}
+          label={'Min length'}
+          type="number"
+          size="small"
+          sx={(theme) => ({
+            backgroundColor: '#fff',
+            borderEndStartRadius: roundingRadiusPx,
+            borderStartStartRadius: roundingRadiusPx,
+            [theme.breakpoints.down('md')]: {
+              height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+            },
+          })}
+          // value={inputValue}
+          // onChange={(e) => setInputValue(e.target.value)}
+        />
+      </Grid>
+      <Grid size={{ xs: 3, lg: 2 }} order={{ xs: 6, lg: 5 }}>
+        <TextField
+          fullWidth
+          variant="filled"
+          slotProps={advancedInputSlotProps}
+          label={'Max length'}
+          type="number"
+          size="small"
+          sx={(theme) => ({
+            backgroundColor: '#fff',
+            borderEndEndRadius: roundingRadiusPx,
+            borderStartEndRadius: roundingRadiusPx,
+            [theme.breakpoints.down('md')]: {
+              height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+            },
+          })}
+          // value={inputValue}
+          // onChange={(e) => setInputValue(e.target.value)}
+        />
+      </Grid>
+      <Grid size={2} order={{ xs: 4, lg: 6 }}>
+        <Stack
+          direction="row"
+          spacing={0}
+          sx={{ width: '100%', justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Button
+            variant="contained"
+            sx={(theme) => ({
+              borderEndStartRadius: roundingRadiusPx,
+              borderStartStartRadius: roundingRadiusPx,
+              borderStartEndRadius: 0,
+              borderEndEndRadius: 0,
+              backgroundColor: '#fff',
+              color: colors.text.dark,
+              width: `100% !important`,
+              ':hover': {
+                backgroundColor: '#ddd',
+              },
+              [theme.breakpoints.down('md')]: {
+                height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+                minWidth: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+              },
+              [theme.breakpoints.up('md')]: {
+                padding: '4px 16px !important',
+              },
+            })}
+            onClick={() => setIsAdvancedSearch(false)}
+          >
+            <SettingsIcon
+              sx={(theme) => ({
+                fontSize: 40,
+                [theme.breakpoints.down('md')]: {
+                  fontSize: 24,
+                },
+              })}
+            />
+          </Button>
+          <Button
+            variant="contained"
+            sx={(theme) => ({
+              borderEndEndRadius: roundingRadiusPx,
+              borderStartEndRadius: roundingRadiusPx,
+              borderStartStartRadius: 0,
+              borderEndStartRadius: 0,
+              backgroundColor: colors.secondary,
+              width: `100% !important`,
+              ':hover': {
+                backgroundColor: colors.secondaryTint,
+              },
+              [theme.breakpoints.down('md')]: {
+                height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+                minWidth: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+              },
+              [theme.breakpoints.up('md')]: {
+                padding: '4px 16px !important',
+              },
+            })}
+            onClick={(e) => {
+              e.currentTarget.blur();
+              e.preventDefault();
+              // goToDefinition(inputValue, pathname, searchLang, router);
+              // setShouldPerformSearch(true);
+              // trackTranslationSearch({
+              //   fromLang: searchLang.from,
+              //   toLang: searchLang.to,
+              //   searchQuery: inputValue,
+              //   searchType: 'search_button',
+              // })
+              //   .then()
+              //   .catch((err) => console.error(err));
+            }}
+          >
+            <SearchIcon
+              // fontSize="large"
+              sx={(theme) => ({
+                fontSize: 40,
+                [theme.breakpoints.down('md')]: {
+                  fontSize: 24,
+                },
+              })}
+            />
+          </Button>
+        </Stack>
+      </Grid>
+    </Grid>
+  );
+};

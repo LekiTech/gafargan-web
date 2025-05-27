@@ -38,7 +38,7 @@ const TopBar = (props: TopBarProps) => {
     threshold: 25,
   });
   const theme = useTheme();
-  const isMdSize = useMediaQuery(theme.breakpoints.down('md'));
+  const isLgDownSize = useMediaQuery(theme.breakpoints.down('lg'));
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const pathSplit = pathname.split('/');
@@ -185,9 +185,9 @@ const TopBar = (props: TopBarProps) => {
                 >
                   <WebLanguageSelect
                     currentLang={currentLang}
-                    flagHeight={isMdSize ? 12 : 20}
-                    flagWidth={isMdSize ? 18 : 30}
-                    fontSize={isMdSize ? '0.8rem' : 18}
+                    flagHeight={isLgDownSize ? 12 : 20}
+                    flagWidth={isLgDownSize ? 18 : 30}
+                    fontSize={isLgDownSize ? '0.8rem' : 18}
                     webLangs={{ lez: 'Lezgi', rus: 'Russian', eng: 'English', tur: 'Turkish' }} //{t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
                   />
                   {/* <WebLanguageSelect currentLang={currentLang} webLangs={webLangs} /> */}

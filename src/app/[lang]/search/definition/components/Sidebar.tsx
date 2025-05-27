@@ -108,13 +108,13 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
           top: trigger ? topbarHeighSmallScreenCollapsed : topbarHeighSmallScreenExpanded,
           width: '100%',
           background: '#0f3b2e',
-          color: '#fff',
+          color: colors.text.light,
           zIndex: 2,
           '& .MuiOutlinedInput-notchedOutline': {
             border: 'none',
           },
-          '& .MuiSelect-icon': {
-            backgroundColor: '#fff',
+          '& .MuiNativeSelect-icon': {
+            color: colors.text.light,
           },
           '& .MuiNativeSelect-select': {
             padding: '8px !important',

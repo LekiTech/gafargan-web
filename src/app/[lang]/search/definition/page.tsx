@@ -102,6 +102,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
         spelling: exp,
         wordLangDialectId: LangToId[fromLang],
         definitionsLangDialectId: LangToId[toLang],
+        limit: 100,
       });
 
   const foundInDefinitions = isExpressionFound
@@ -110,6 +111,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
         spelling: exp,
         wordLangDialectId: LangToId[fromLang],
         definitionsLangDialectId: LangToId[toLang],
+        limit: 100,
       });
   // const foundInExamples = isExpressionFound
   //   ? undefined

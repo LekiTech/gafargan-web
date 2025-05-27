@@ -7,17 +7,11 @@ import { FoundDefinition, FoundExample, FoundSpelling } from './types.model';
 import { LangToId } from '@api/languages';
 import { Source } from './entities/Source';
 import { SourceSchema, WordSchema } from './entities/schemas';
+import { WordSearchType } from './enums';
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
 // client.connect();
-
-export enum WordSearchType {
-  FUZZY = 'fuzzy',
-  PREFIX = 'prefix',
-  SUFFIX = 'suffix',
-  CONTAINS = 'contains',
-}
 
 interface SearchSpellingQuery {
   spelling: string;
@@ -34,52 +28,64 @@ export async function suggestions({
   limit = 10,
   wordSearchType = WordSearchType.FUZZY,
 }: SearchSpellingQuery): Promise<FoundSpelling[]> {
-  // let whereClause = '';
-  // switch (wordSearchType) {
-  //   case WordSearchType.FUZZY:
-  //     whereClause = `WHERE spelling ILIKE '%' || $1 || '%'`;
-  //     break;
-  //   case WordSearchType.PREFIX:
-  //     whereClause = `WHERE spelling ILIKE $1 || '%'`;
-  //     break;
-  //   case WordSearchType.SUFFIX:
-  //     whereClause = `WHERE spelling ILIKE '%' || $1`;
-  //     break;
-  //   case WordSearchType.CONTAINS:
-  //     whereClause = `WHERE spelling ILIKE '%' || $1 || '%'`;
-  //     break;
-  //   default:
-  //     whereClause = `WHERE spelling ILIKE '%' || $1 || '%'`;
-  //     break;
-  // }
+  const queryParameters = [spelling, wordLangDialectId, definitionsLangDialectId, limit];
+  const spellingQuery = createSpellingPartQuery(wordSearchType, {
+    spellingIdx: '$1',
+    limitIdx: '$4',
+  });
   const findSpellingsQuery = `
     WITH combined AS (
       (SELECT spelling, id, NULL AS variant_id FROM word
-      WHERE lang_dialect_id = $2 --and spelling ilike '%пе%'
-      ORDER BY spelling <-> $1
-      LIMIT $4)
+      WHERE lang_dialect_id = $2
+      ${spellingQuery})
     UNION ALL
       (SELECT spelling, word_id AS id , id AS variant_id FROM spelling_variant
-      WHERE lang_dialect_id = $2 --and spelling ilike '%пе%'
-      ORDER BY spelling <-> $1
-      LIMIT $4)
+      WHERE lang_dialect_id = $2
+      ${spellingQuery})
     )
     SELECT combined.spelling, combined.id, combined.variant_id FROM combined 
     INNER JOIN (SELECT DISTINCT word_id, lang_dialect_id FROM word_details) AS wd 
       ON wd.word_id = combined.id
     WHERE wd.lang_dialect_id = $3
-    ORDER BY spelling <-> $1
-    LIMIT $4;
+    ${spellingQuery};
   `;
   const AppDataSource = await getDataSource();
-  const res = await AppDataSource.query(findSpellingsQuery, [
-    spelling,
-    wordLangDialectId,
-    definitionsLangDialectId,
-    limit,
-  ]);
+  const res = await AppDataSource.query(findSpellingsQuery, queryParameters);
   // console.log('searchSpelling', res);
   return JSON.parse(JSON.stringify(res));
+}
+
+function createSpellingPartQuery(
+  wordSearchType: WordSearchType,
+  paramIdxs: { spellingIdx: string; limitIdx: string },
+): string {
+  const { spellingIdx, limitIdx } = paramIdxs;
+  switch (wordSearchType) {
+    case WordSearchType.PREFIX:
+      return `
+        AND spelling ILIKE ${spellingIdx} || '%'
+        ORDER BY spelling
+        LIMIT ${limitIdx}`;
+    case WordSearchType.SUFFIX:
+      return `
+        AND spelling ILIKE '%' || ${spellingIdx}
+        ORDER BY spelling
+        LIMIT ${limitIdx}`;
+    case WordSearchType.CONTAINS:
+      return `
+        AND spelling ILIKE '%' || ${spellingIdx} || '%'
+        ORDER BY spelling
+        LIMIT ${limitIdx}`;
+    case WordSearchType.FUZZY:
+      return `
+        ORDER BY spelling <-> ${spellingIdx}
+        LIMIT ${limitIdx}`;
+    default:
+      return `
+        AND spelling ILIKE '%' || ${spellingIdx} || '%'
+        ORDER BY spelling
+        LIMIT ${limitIdx}`;
+  }
 }
 
 export type SearchQuery = {
@@ -180,8 +186,8 @@ export async function searchInDefinitions({
       -- 2) Search inside each JSON object’s "value" field:
       v.elem ->> 'value' ILIKE '%' || $1 || '%'
       -- 3) Compare your dialect IDs as normal integers:
-      AND ((mv.word_lang_dialect_id = $2 AND mv.definitions_lang_dialect_id = $3)
-      OR (mv.word_lang_dialect_id = $3 AND mv.definitions_lang_dialect_id = $2))
+      AND mv.word_lang_dialect_id = $3 
+      AND mv.definitions_lang_dialect_id = $2
     ORDER BY value, d.id DESC
     LIMIT $4;`;
 
