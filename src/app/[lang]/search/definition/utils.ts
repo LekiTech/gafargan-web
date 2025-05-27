@@ -80,3 +80,17 @@ export function toContents(idx: number, spelling: string, expressionDetails: Wor
 export function capitalizeFirstLetter(str: string) {
   return str?.charAt(0).toUpperCase() + str?.slice(1);
 }
+
+export function flipAndMergeTags(input: Record<string, string>): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  for (const [key, value] of Object.entries(input)) {
+    if (result[value]) {
+      result[value] += `;${key}`;
+    } else {
+      result[value] = key;
+    }
+  }
+
+  return result;
+}

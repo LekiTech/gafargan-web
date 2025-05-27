@@ -19,6 +19,7 @@ import {
   Stack,
   TextField,
   TextFieldProps,
+  Typography,
 } from '@mui/material';
 import Autocomplete, {
   AutocompleteRenderInputParams,
@@ -43,6 +44,7 @@ import { useTranslation } from 'react-i18next';
 import { trackTranslationSearch } from '@api/mixpanel';
 import { FoundSpelling } from '@repository/types.model';
 import { WordSearchType } from '@repository/enums';
+import { flipAndMergeTags } from '../definition/utils';
 
 const MOBILE_INPUT_HEIGHT = 30;
 const MOBILE_FILLED_INPUT_HEIGHT = 35;
@@ -160,6 +162,7 @@ export const Search: FC<{
       {isAdvancedSearch ? (
         <AdvancedSearchInput
           searchLang={searchLang}
+          websiteLang={lang}
           setIsLoading={setIsLoading}
           setIsAdvancedSearch={setIsAdvancedSearch}
         />
@@ -441,6 +444,7 @@ const SimpleSearchInput: FC<{
           borderLeftWidth: '0 !important',
           borderRightWidth: '0 !important',
           color: colors.text.dark,
+          padding: '4px 8px',
           '&:hover': {
             backgroundColor: '#ddd',
           },
@@ -450,7 +454,14 @@ const SimpleSearchInput: FC<{
         })}
         onClick={() => setIsAdvancedSearch(true)}
       >
-        <SettingsOutlinedIcon />
+        <SettingsOutlinedIcon
+          sx={(theme) => ({
+            fontSize: 40,
+            [theme.breakpoints.down('md')]: {
+              fontSize: 24,
+            },
+          })}
+        />
       </IconButton>
       <Button
         variant="contained"
@@ -519,16 +530,27 @@ const advancedInputSlotProps: TextFieldProps['slotProps'] = {
     }),
   },
 };
+interface AdvancedSearchParams {
+  starts?: string;
+  ends?: string;
+  contains?: string;
+  minLength?: number;
+  maxLength?: number;
+  tag?: [string, string];
+}
 const AdvancedSearchInput: FC<{
   searchLang: SearchLang;
+  websiteLang: WebsiteLang;
   setIsAdvancedSearch: (isAdvancedSearch: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
-}> = ({ searchLang, setIsAdvancedSearch, setIsLoading }) => {
+}> = ({ searchLang, websiteLang, setIsAdvancedSearch, setIsLoading }) => {
   const { t, i18n } = useTranslation(searchLang.from);
-  const allTags = Object.entries(i18n.getResourceBundle('lez', 'tags')).filter(
-    (kv) => kv != null && kv[0] != null && kv[1] != null,
-  ) as [string, string][];
-  // const [inputValue, setInputValue] = useState<string>('');
+  const allTags = Object.entries(
+    flipAndMergeTags(i18n.getResourceBundle(websiteLang, 'tags')),
+  ).filter((kv) => kv != null && kv[0] != null && kv[1] != null) as [string, string][];
+  const [inputValues, setInputValues] = useState<AdvancedSearchParams>({});
+
+  console.log('AdvancedSearchInput > inputValues', inputValues);
 
   return (
     <Grid container spacing={0.5} columns={{ xs: 6, lg: 8 }}>
@@ -547,8 +569,8 @@ const AdvancedSearchInput: FC<{
               height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
             },
           })}
-          // value={inputValue}
-          // onChange={(e) => setInputValue(e.target.value)}
+          value={inputValues.starts ?? ''}
+          onChange={(e) => setInputValues({ ...inputValues, starts: e.target.value })}
         />
       </Grid>
       <Grid size={{ xs: 3, lg: 2 }} order={{ xs: 2, lg: 3 }}>
@@ -566,8 +588,8 @@ const AdvancedSearchInput: FC<{
               height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
             },
           })}
-          // value={inputValue}
-          // onChange={(e) => setInputValue(e.target.value)}
+          value={inputValues.ends ?? ''}
+          onChange={(e) => setInputValues({ ...inputValues, ends: e.target.value })}
         />
       </Grid>
       <Grid size={{ xs: 4, lg: 4 }} order={{ xs: 3, lg: 2 }}>
@@ -586,8 +608,8 @@ const AdvancedSearchInput: FC<{
               height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
             },
           })}
-          // value={inputValue}
-          // onChange={(e) => setInputValue(e.target.value)}
+          value={inputValues.contains ?? ''}
+          onChange={(e) => setInputValues({ ...inputValues, contains: e.target.value })}
         />
       </Grid>
       <Grid size={2} order={{ xs: 5, lg: 4 }}>
@@ -606,8 +628,13 @@ const AdvancedSearchInput: FC<{
               height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
             },
           })}
-          // value={inputValue}
-          // onChange={(e) => setInputValue(e.target.value)}
+          value={inputValues.minLength ?? ''}
+          onChange={(e) =>
+            setInputValues({
+              ...inputValues,
+              minLength: e.target.value.length > 0 ? parseInt(e.target.value) : undefined,
+            })
+          }
         />
       </Grid>
       <Grid size={2} order={{ xs: 6, lg: 5 }}>
@@ -626,36 +653,58 @@ const AdvancedSearchInput: FC<{
               height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
             },
           })}
-          // value={inputValue}
-          // onChange={(e) => setInputValue(e.target.value)}
+          value={inputValues.maxLength ?? ''}
+          onChange={(e) =>
+            setInputValues({
+              ...inputValues,
+              maxLength: e.target.value.length > 0 ? parseInt(e.target.value) : undefined,
+            })
+          }
         />
       </Grid>
       <Grid size={2} order={{ xs: 7, lg: 6 }}>
-        <FormControl variant="filled" size="small" fullWidth>
-          <InputLabel id="demo-simple-select-filled-label">Tag</InputLabel>
-          <Select
-            defaultValue={''}
-            // value={age}
-            // onChange={handleChange}
-            size="small"
-            sx={(theme) => ({
-              backgroundColor: '#fff',
-              borderRadius: roundingRadiusPx,
-              [theme.breakpoints.down('md')]: {
-                height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
-              },
-            })}
-          >
-            <MenuItem value="">
-              <em>None</em>
+        <Select
+          defaultValue={''}
+          displayEmpty
+          renderValue={(selected) => {
+            const parsedSelected = JSON.parse(selected as string) as [string, string] | [];
+            if (parsedSelected.length === 0) {
+              return (
+                <Typography
+                  component={'span'}
+                  sx={(theme) => ({
+                    [theme.breakpoints.down('md')]: { fontSize: '0.7rem', lineHeight: '1em' },
+                  })}
+                >
+                  Tags
+                </Typography>
+              );
+            }
+            // display the tag name
+            return parsedSelected[0];
+          }}
+          value={JSON.stringify(inputValues.tag) ?? '[]'}
+          onChange={(e) =>
+            setInputValues({ ...inputValues, tag: JSON.parse(e.target.value) ?? [] })
+          }
+          size="small"
+          sx={(theme) => ({
+            backgroundColor: '#fff',
+            borderRadius: roundingRadiusPx,
+            width: '100%',
+            height: '100%',
+            [theme.breakpoints.down('md')]: {
+              height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+            },
+          })}
+        >
+          <MenuItem value={'[]'}>-</MenuItem>
+          {allTags.map(([tagName, tagValues]) => (
+            <MenuItem key={tagName} value={JSON.stringify([tagName, tagValues])}>
+              {tagName}
             </MenuItem>
-            {allTags.map(([tag, tagName]) => (
-              <MenuItem key={tag} value={tag}>
-                {tagName}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+          ))}
+        </Select>
       </Grid>
       <Grid size={2} order={{ xs: 4, lg: 6 }}>
         <Stack
