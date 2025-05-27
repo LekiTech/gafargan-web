@@ -1,2 +1,3 @@
-export { copyText } from './copyText'
-export { toLowerCaseLezgi } from './toLowerCaseLezgi'
+export { copyText } from './copyText';
+export { toLowerCaseLezgi } from './toLowerCaseLezgi';
+export { normalizeLezgiString } from './normalizeLezgi';

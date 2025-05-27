@@ -36,7 +36,7 @@ import { DictionaryLang, WebsiteLang } from '@api/types.model';
 import { SuggestionResponseDto } from '@api/types.dto';
 import { DictionaryLangs, LangToId } from '@api/languages';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { toLowerCaseLezgi } from '../../../utils';
+import { normalizeLezgiString, toLowerCaseLezgi } from '../../../utils';
 import { useDebounceFn } from '../../../use/useDebounceFn';
 import BaseLoader from '../../../../ui/BaseLoader';
 import { useTranslation } from 'react-i18next';
@@ -295,10 +295,11 @@ const SimpleSearchInput: FC<{
 
   useEffect(() => {
     if (shouldPerformSearch) {
-      if (areSearchParamsAllowingNewSearch || exp !== inputValue) {
+      const normalizedValue = normalizeLezgiString(inputValue);
+      if (areSearchParamsAllowingNewSearch || exp !== normalizedValue) {
         setIsLoading(true);
       }
-      goToDefinition(inputValue, pathname, searchLang, router);
+      goToDefinition(normalizedValue, pathname, searchLang, router);
       setShouldPerformSearch(false);
     }
   }, [inputValue, areSearchParamsAllowingNewSearch, searchLang, shouldPerformSearch]);
@@ -523,11 +524,14 @@ const AdvancedSearchInput: FC<{
   setIsAdvancedSearch: (isAdvancedSearch: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
 }> = ({ searchLang, setIsAdvancedSearch, setIsLoading }) => {
-  // const { t } = useTranslation(searchLang.from);
+  const { t, i18n } = useTranslation(searchLang.from);
+  const allTags = Object.entries(i18n.getResourceBundle('lez', 'tags')).filter(
+    (kv) => kv != null && kv[0] != null && kv[1] != null,
+  ) as [string, string][];
   // const [inputValue, setInputValue] = useState<string>('');
 
   return (
-    <Grid container spacing={0.5} columns={{ xs: 6, lg: 12 }}>
+    <Grid container spacing={0.5} columns={{ xs: 6, lg: 8 }}>
       <Grid size={{ xs: 3, lg: 2 }} order={1}>
         <TextField
           fullWidth
@@ -566,7 +570,7 @@ const AdvancedSearchInput: FC<{
           // onChange={(e) => setInputValue(e.target.value)}
         />
       </Grid>
-      <Grid size={{ xs: 4, lg: 2 }} order={{ xs: 3, lg: 2 }}>
+      <Grid size={{ xs: 4, lg: 4 }} order={{ xs: 3, lg: 2 }}>
         <TextField
           fullWidth
           variant="filled"
@@ -586,7 +590,7 @@ const AdvancedSearchInput: FC<{
           // onChange={(e) => setInputValue(e.target.value)}
         />
       </Grid>
-      <Grid size={{ xs: 3, lg: 2 }} order={{ xs: 5, lg: 4 }}>
+      <Grid size={2} order={{ xs: 5, lg: 4 }}>
         <TextField
           fullWidth
           variant="filled"
@@ -606,7 +610,7 @@ const AdvancedSearchInput: FC<{
           // onChange={(e) => setInputValue(e.target.value)}
         />
       </Grid>
-      <Grid size={{ xs: 3, lg: 2 }} order={{ xs: 6, lg: 5 }}>
+      <Grid size={2} order={{ xs: 6, lg: 5 }}>
         <TextField
           fullWidth
           variant="filled"
@@ -625,6 +629,33 @@ const AdvancedSearchInput: FC<{
           // value={inputValue}
           // onChange={(e) => setInputValue(e.target.value)}
         />
+      </Grid>
+      <Grid size={2} order={{ xs: 7, lg: 6 }}>
+        <FormControl variant="filled" size="small" fullWidth>
+          <InputLabel id="demo-simple-select-filled-label">Tag</InputLabel>
+          <Select
+            defaultValue={''}
+            // value={age}
+            // onChange={handleChange}
+            size="small"
+            sx={(theme) => ({
+              backgroundColor: '#fff',
+              borderRadius: roundingRadiusPx,
+              [theme.breakpoints.down('md')]: {
+                height: `${MOBILE_FILLED_INPUT_HEIGHT}px !important`,
+              },
+            })}
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            {allTags.map(([tag, tagName]) => (
+              <MenuItem key={tag} value={tag}>
+                {tagName}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Grid>
       <Grid size={2} order={{ xs: 4, lg: 6 }}>
         <Stack

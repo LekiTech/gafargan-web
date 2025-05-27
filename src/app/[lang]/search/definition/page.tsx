@@ -10,7 +10,7 @@ import { ResolvingMetadata, Metadata } from 'next';
 import { DictionaryLang, WebsiteLang } from '../../../../api/types.model';
 import { initTranslations } from '@i18n/index';
 import { ExpressionView } from './components/ExpressionView';
-import { toLowerCaseLezgi } from '../../../utils';
+import { normalizeLezgiString, toLowerCaseLezgi } from '../../../utils';
 import { LangToId } from '@api/languages';
 import { Params, SearchParams } from '../../types';
 import { redirect } from 'next/navigation';
@@ -77,10 +77,12 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
     redirect(`/${lang}`);
     return;
   }
+  const normalizedExpValue = normalizeLezgiString(exp);
+  console.log('normalizedExpValue', normalizedExpValue);
   // const fromLang = fromLang as DictionaryLang;
   // const toLang = toLang as DictionaryLang;
   const data = await search({
-    spelling: exp,
+    spelling: normalizedExpValue,
     wordLangDialectId: LangToId[fromLang],
     definitionsLangDialectId: LangToId[toLang],
   });
@@ -88,7 +90,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
   const similarWords = data?.details
     ? []
     : await suggestions({
-        spelling: exp,
+        spelling: normalizedExpValue,
         wordLangDialectId: LangToId[fromLang],
         definitionsLangDialectId: LangToId[toLang],
         limit: 5,
@@ -99,7 +101,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
   const foundInExamples = isExpressionFound
     ? undefined
     : await searchInExamples({
-        spelling: exp,
+        spelling: normalizedExpValue,
         wordLangDialectId: LangToId[fromLang],
         definitionsLangDialectId: LangToId[toLang],
         limit: 100,
@@ -108,7 +110,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
   const foundInDefinitions = isExpressionFound
     ? undefined
     : await searchInDefinitions({
-        spelling: exp,
+        spelling: normalizedExpValue,
         wordLangDialectId: LangToId[fromLang],
         definitionsLangDialectId: LangToId[toLang],
         limit: 100,
