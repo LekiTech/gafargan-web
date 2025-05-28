@@ -119,7 +119,7 @@ export const Search: FC<{
     DictionaryLang,
     string
   >;
-  const [isAdvancedSearch, setIsAdvancedSearch] = useState(true);
+  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
   // const langs = {
   //   lez: 'Lezgi',
   //   rus: 'Russian',
@@ -432,8 +432,8 @@ const SimpleSearchInput: FC<{
             </Box>
           );
         }}
-      />{' '}
-      <IconButton
+      />
+      {/* <IconButton
         sx={(theme) => ({
           height: '100%',
           backgroundColor: '#fff',
@@ -462,7 +462,7 @@ const SimpleSearchInput: FC<{
             },
           })}
         />
-      </IconButton>
+      </IconButton> */}
       <Button
         variant="contained"
         sx={(theme) => ({
