@@ -136,7 +136,7 @@ export const Search: FC<{
     from: 'lez' as DictionaryLang,
     to: 'rus' as DictionaryLang,
   });
-  const exp = searchParams.get('exp');
+  // const exp = searchParams.get('exp');
   const [isLoading, setIsLoading] = useState(false);
   const [prevSearch, setPrevSearch] = useState('');
 
@@ -170,7 +170,7 @@ export const Search: FC<{
         <SimpleSearchInput
           router={router}
           pathname={pathname}
-          exp={exp}
+          searchParams={searchParams}
           areSearchParamsAllowingNewSearch={areSearchParamsAllowingNewSearch}
           searchLang={searchLang}
           setIsLoading={setIsLoading}
@@ -278,7 +278,7 @@ export const Search: FC<{
 const SimpleSearchInput: FC<{
   router: AppRouterInstance;
   pathname: string;
-  exp: string | null;
+  searchParams: ReadonlyURLSearchParams;
   areSearchParamsAllowingNewSearch: boolean;
   searchLang: SearchLang;
   setIsLoading: (isLoading: boolean) => void;
@@ -286,16 +286,16 @@ const SimpleSearchInput: FC<{
 }> = ({
   router,
   pathname,
-  exp,
+  searchParams,
   areSearchParamsAllowingNewSearch,
   searchLang,
   setIsLoading,
   setIsAdvancedSearch,
 }) => {
+  const exp = searchParams.get('exp');
   const [options, setOptions] = useState<FoundSpelling[]>([]);
   const [inputValue, setInputValue] = useState<string>(exp ? toLowerCaseLezgi(exp) : '');
   const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
-
   useEffect(() => {
     if (shouldPerformSearch) {
       const normalizedValue = normalizeLezgiString(inputValue);
