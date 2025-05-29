@@ -77,7 +77,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
     redirect(`/${lang}`);
     return;
   }
-  const normalizedExpValue = normalizeLezgiString(exp);
+  const normalizedExpValue = normalizeLezgiString(exp, { removePunctuation: false });
   console.log('normalizedExpValue', normalizedExpValue);
   // const fromLang = fromLang as DictionaryLang;
   // const toLang = toLang as DictionaryLang;

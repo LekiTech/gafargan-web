@@ -3,7 +3,8 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { TranslationPhrases } from './entities/Translation';
 export interface FoundSpelling {
   id: number;
-  spelling: string;
+  word_spelling: string;
+  variant_spelling?: string;
   variant_id?: number;
 }
 export interface FoundExample {

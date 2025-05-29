@@ -29,25 +29,38 @@ export async function suggestions({
   wordSearchType = WordSearchType.FUZZY,
 }: SearchSpellingQuery): Promise<FoundSpelling[]> {
   const queryParameters = [spelling, wordLangDialectId, definitionsLangDialectId, limit];
-  const spellingQuery = createSpellingPartQuery(wordSearchType, {
+  const spellingQuery = createSpellingPartQuery(wordSearchType, 'spelling', {
     spellingIdx: '$1',
     limitIdx: '$4',
   });
+  const wordSpellingAliasQuery = createSpellingPartQuery(wordSearchType, 'word_spelling', {
+    spellingIdx: '$1',
+    limitIdx: '$4',
+  });
+  const variantSpellingQuery = createSpellingPartQuery(
+    wordSearchType,
+    'spelling_variant.spelling',
+    {
+      spellingIdx: '$1',
+      limitIdx: '$4',
+    },
+  );
   const findSpellingsQuery = `
     WITH combined AS (
-      (SELECT spelling, id, NULL AS variant_id FROM word
+      (SELECT spelling AS word_spelling, id, NULL AS variant_spelling, NULL AS variant_id FROM word
       WHERE lang_dialect_id = $2
       ${spellingQuery})
     UNION ALL
-      (SELECT spelling, word_id AS id , id AS variant_id FROM spelling_variant
-      WHERE lang_dialect_id = $2
-      ${spellingQuery})
+      (SELECT word.spelling AS word_spelling, word_id AS id, spelling_variant.spelling AS variant_spelling, spelling_variant.id AS variant_id FROM spelling_variant
+      JOIN word ON word.id = spelling_variant.word_id
+      WHERE spelling_variant.lang_dialect_id = $2
+      ${variantSpellingQuery})
     )
-    SELECT combined.spelling, combined.id, combined.variant_id FROM combined 
+    SELECT combined.word_spelling, combined.id, combined.variant_spelling, combined.variant_id FROM combined
     INNER JOIN (SELECT DISTINCT word_id, lang_dialect_id FROM word_details) AS wd 
       ON wd.word_id = combined.id
     WHERE wd.lang_dialect_id = $3
-    ${spellingQuery};
+    ${wordSpellingAliasQuery};
   `;
   const AppDataSource = await getDataSource();
   const res = await AppDataSource.query(findSpellingsQuery, queryParameters);
@@ -57,6 +70,7 @@ export async function suggestions({
 
 function createSpellingPartQuery(
   wordSearchType: WordSearchType,
+  columnName: 'spelling' | 'word_spelling' | 'spelling_variant.spelling',
   paramIdxs: { spellingIdx: string; limitIdx: string },
 ): string {
   const { spellingIdx, limitIdx } = paramIdxs;
@@ -64,26 +78,26 @@ function createSpellingPartQuery(
     case WordSearchType.PREFIX:
       return `
         AND spelling ILIKE ${spellingIdx} || '%'
-        ORDER BY spelling
+        ORDER BY ${columnName}
         LIMIT ${limitIdx}`;
     case WordSearchType.SUFFIX:
       return `
         AND spelling ILIKE '%' || ${spellingIdx}
-        ORDER BY spelling
+        ORDER BY ${columnName}
         LIMIT ${limitIdx}`;
     case WordSearchType.CONTAINS:
       return `
         AND spelling ILIKE '%' || ${spellingIdx} || '%'
-        ORDER BY spelling
+        ORDER BY ${columnName}
         LIMIT ${limitIdx}`;
     case WordSearchType.FUZZY:
       return `
-        ORDER BY spelling <-> ${spellingIdx}
+        ORDER BY ${columnName} <-> ${spellingIdx}
         LIMIT ${limitIdx}`;
     default:
       return `
         AND spelling ILIKE '%' || ${spellingIdx} || '%'
-        ORDER BY spelling
+        ORDER BY ${columnName}
         LIMIT ${limitIdx}`;
   }
 }
@@ -101,11 +115,21 @@ export async function search({
   const AppDataSource = await getDataSource();
   const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
   const word = await wordRepo.findOne({
-    where: {
-      spelling: spelling.toUpperCase(),
-      langDialect: { id: wordLangDialectId },
-      details: { langDialect: { id: definitionsLangDialectId } },
-    },
+    where: [
+      {
+        spelling: spelling.toUpperCase(),
+        langDialect: { id: wordLangDialectId },
+        details: { langDialect: { id: definitionsLangDialectId } },
+      },
+      {
+        spellingVariants: {
+          spelling: spelling.toUpperCase(),
+          langDialect: { id: wordLangDialectId },
+        },
+        langDialect: { id: wordLangDialectId },
+        details: { langDialect: { id: definitionsLangDialectId } },
+      },
+    ],
     relations: {
       // top-level relations
       langDialect: true,

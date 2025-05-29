@@ -55,6 +55,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   const theme = useTheme();
   const isSmallerThanMd = useMediaQuery(theme.breakpoints.down('md'));
 
+  console.log('ExpressionView > word', word);
   // NOTE: Part below didn't work as intended after merging, holding on previous version
   // const { viewport } = useViewport()
   // const pageStyles = useMemo<IExpressionPageContentStyles>(() => ({
@@ -169,7 +170,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                   <ListItem key={`similar_${i}`} sx={{ pt: 0, mb: '10px', pl: 0, ml: 0 }}>
                     <SpellingListItem
                       id={s.id}
-                      spelling={s.spelling}
+                      spelling={s.variant_spelling ?? s.word_spelling}
                       showIcon={false}
                       sx={{ minWidth: 'max-content', color: '#bb1614', fontWeight: 600, pl: 0 }}
                     />

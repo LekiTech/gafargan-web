@@ -28,8 +28,8 @@ export function replaceVerticalBar(line: string): string {
  * @param line the input line where excess spaces will be trimmed.
  * @return a new string with excess spaces removed.
  */
-function trimSpaces(line: string): string {
-  return line.replaceAll(/\s+/gm, ' ').trim();
+export function trimSpaces(line: string): string {
+  return line.replace(/\s+/gm, ' ').trim();
 }
 
 /**
@@ -39,15 +39,24 @@ function trimSpaces(line: string): string {
  * 3. Trims leading and trailing spaces using the {@link #trimSpaces(String)} method.
  *
  * @param line the input string to be normalized.
+ * @param removePunctuation a boolean flag indicating whether to remove punctuation characters.
  * @return the normalized string after replacing vertical bars, removing punctuation, and trimming spaces.
  * @see #replaceVerticalBar(String)
  * @see #trimSpaces(String)
  */
-export function normalizeLezgiString(line: string): string {
+export function normalizeLezgiString(
+  line: string,
+  options?: { removePunctuation: boolean },
+): string {
   /* Executed first before the 'replaceAll()' method to avoid errors when using the '!'
      instead of a stick in letters with a stick (кI, тI, пI ...). */
   const resultAfterReplacingVerticalBar = replaceVerticalBar(line);
-  const resultAfterRemovingPunctuation = resultAfterReplacingVerticalBar.replaceAll(/[,.?!]/gm, '');
+  if (options?.removePunctuation != true) {
+    /* If the 'removePunctuation' parameter is false, we return the result after replacing vertical bars
+       without removing punctuation marks. */
+    return trimSpaces(resultAfterReplacingVerticalBar);
+  }
+  const resultAfterRemovingPunctuation = resultAfterReplacingVerticalBar.replace(/[,.?!]/gm, '');
   /* The 'trimSpaces()' method is executed last, after the 'replaceAll()' method,
      to handle cases where spaces can be before and after punctuation marks ("вун атуй , рагъ атуй!", etc.). */
   return trimSpaces(resultAfterRemovingPunctuation);

@@ -393,14 +393,14 @@ const SimpleSearchInput: FC<{
           if (typeof option === 'string') {
             return option;
           }
-          return toLowerCaseLezgi(option.spelling);
+          return toLowerCaseLezgi(option.word_spelling);
         }}
         renderOption={(props, option, state, ownerState) => {
           // @ts-ignore
           const { key, ...otherProps } = props;
           return (
             <Box
-              key={key ?? option.id}
+              key={`${option.id}_${option.variant_id}`}
               sx={{
                 borderRadius: '8px',
                 margin: '5px',
@@ -418,7 +418,7 @@ const SimpleSearchInput: FC<{
                 trackTranslationSearch({
                   fromLang: searchLang.from,
                   toLang: searchLang.to,
-                  searchQuery: option.spelling,
+                  searchQuery: option.word_spelling,
                   searchType: 'option_select',
                 })
                   .then()
@@ -428,7 +428,9 @@ const SimpleSearchInput: FC<{
                 }
               }}
             >
-              {ownerState.getOptionLabel(toLowerCaseLezgi(option.spelling))}
+              {ownerState.getOptionLabel(
+                toLowerCaseLezgi(option.variant_spelling ?? option.word_spelling),
+              )}
             </Box>
           );
         }}

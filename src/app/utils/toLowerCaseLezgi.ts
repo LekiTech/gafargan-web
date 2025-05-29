@@ -5,7 +5,7 @@ export function toLowerCaseLezgi(
   options: { capitalize: boolean } = { capitalize: false },
 ) {
   const lowerCased = lezgiString?.toLowerCase(); //.replaceAll(/(?<=[кптцчКПТЦЧ])[i1lӏ|!]/g, 'I');
-  const normalizedString = normalizeLezgiString(lowerCased);
+  const normalizedString = normalizeLezgiString(lowerCased, { removePunctuation: false });
 
   if (options.capitalize) {
     return normalizedString.charAt(0).toUpperCase() + normalizedString.slice(1);
