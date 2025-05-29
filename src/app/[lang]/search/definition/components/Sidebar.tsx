@@ -32,7 +32,7 @@ type SidebarProps = {
 
 const drawerWidth = 300;
 const topbarHeighSmallScreenExpanded = '130px';
-const topbarHeighSmallScreenCollapsed = '75px';
+const topbarHeighSmallScreenCollapsed = '90px'; //'75px';
 
 export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
   const { viewport } = useViewport();
@@ -43,9 +43,9 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
   // вынес в отдельный стейт, не использую {activeStepDetailId} т.к. в select не показываем otherExamples
   const [activeStepDetailIdForSelect, setActiveStepDetailIdForSelect] = useState('');
 
-  const trigger = useScrollTrigger({
-    threshold: 25,
-  });
+  // const trigger = useScrollTrigger({
+  //   threshold: 25,
+  // });
   const [isScrolling, setIsScrolling] = useState(false);
 
   const [elementForScroll, setElementForScroll] = useState<HTMLElement>();
@@ -97,15 +97,21 @@ export const Sidebar: FC<SidebarProps> = ({ contents, otherExamplesLabel }) => {
     activeStepDetailId === detailsId ? green[50] : 'inherit';
 
   if (viewport.isLessThan(EBreakpoints.MD)) {
+    const totalDetailsCount = contents.flatMap((c) => c.details).length;
+    if (totalDetailsCount === 0) {
+      return;
+    }
     return (
       <Select
         id="word-select"
         value={activeStepDetailIdForSelect}
         native
         sx={{
-          position: 'fixed',
+          // position: 'fixed',
+          position: 'sticky',
+          top: topbarHeighSmallScreenCollapsed,
           borderRadius: 0,
-          top: trigger ? topbarHeighSmallScreenCollapsed : topbarHeighSmallScreenExpanded,
+          // top: trigger ? topbarHeighSmallScreenCollapsed : topbarHeighSmallScreenExpanded,
           width: '100%',
           background: '#0f3b2e',
           color: colors.text.light,

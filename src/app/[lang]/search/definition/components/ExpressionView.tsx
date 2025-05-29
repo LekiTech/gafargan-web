@@ -11,6 +11,7 @@ import {
   Grid,
   List,
   ListItem,
+  ListItemText,
   Pagination,
   Paper,
   Skeleton,
@@ -28,6 +29,7 @@ import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinit
 import { useTranslation } from 'react-i18next';
 import { Word } from '@repository/entities/Word';
 import { FoundDefinition, FoundExample, FoundSpelling } from '@repository/types.model';
+import { toLowerCaseLezgi } from '../../../../utils';
 // import { useViewport } from '../../../use/useViewport';
 // import { EBreakpoints } from '../../../utils/BreakPoints';
 // import { IExpressionPageContentStyles } from '@/definition/types';
@@ -80,19 +82,20 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         width: '100vw',
         display: 'flex',
         justifyContent: 'center',
-        mt: '20px',
         mb: '50px',
       })}
     >
       {word && word?.details ? (
         <Stack
-          direction={'row'}
+          // direction={'row'}
           spacing={2}
           sx={(theme) => ({
             maxWidth: '1400px',
+            flexDirection: 'row',
             alignItems: 'baseline',
             [theme.breakpoints.down('md')]: {
               width: '100%',
+              flexDirection: 'column',
             },
           })}
         >
@@ -109,20 +112,35 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               width: '65vw',
               maxWidth: '100%',
               boxSizing: 'border-box',
+              ml: '25px !important',
               pt: '25px',
               pl: '25px',
               pb: '50px',
               [theme.breakpoints.down('md')]: {
                 width: '100%',
+                ml: '0px !important',
                 pt: '15px',
                 pl: '15px',
                 '&.MuiBox-root': {
-                  ml: '0',
+                  ml: '0px !important',
                   mt: '10px',
                 },
               },
             })}
           >
+            {(word?.spellingVariants.length ?? 0) > 0 && (
+              <List>
+                {word.spellingVariants.map((variant, i) => (
+                  <ListItemText
+                    key={`variant_${i}`}
+                    primary={toLowerCaseLezgi(variant.spelling)}
+                    secondary={variant.langDialect?.dialect}
+                    // primary={ex.src}
+                    // secondary={ex.trl}
+                  />
+                ))}
+              </List>
+            )}
             {word?.details?.map((detail, i) => (
               <ExpressionDetailsComp
                 key={`exp_det_${i}`}

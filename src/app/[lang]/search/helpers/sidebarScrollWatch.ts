@@ -12,7 +12,8 @@ export const sidebarScrollWatch = (contents: Contents[], viewport: Viewport) => 
   if (window.scrollY < 230) {
     const content = contents[0];
     activeStep = 0;
-    activeStepDetailID = detailIdForSelect = cleanText(content.details[0].detailsId);
+    activeStepDetailID = detailIdForSelect =
+      content.details.length > 0 ? cleanText(content.details[0].detailsId) : '0';
     return {
       activeStep,
       activeStepDetailID,
@@ -23,6 +24,9 @@ export const sidebarScrollWatch = (contents: Contents[], viewport: Viewport) => 
     const step = contents[i];
     for (let j = 0; j < step?.details.length; j++) {
       const detail = step?.details[j];
+      if (detail == null) {
+        continue;
+      }
       const detailBoundingRect = document.getElementById(detail.detailsId)?.getBoundingClientRect();
       if (
         detailBoundingRect?.top &&

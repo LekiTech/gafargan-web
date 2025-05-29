@@ -135,7 +135,9 @@ export async function search({
       langDialect: true,
       createdBy: true,
       updatedBy: true,
-      spellingVariants: true,
+      spellingVariants: {
+        langDialect: true,
+      },
 
       // nest “details” and everything under it
       details: {

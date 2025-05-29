@@ -1,40 +1,28 @@
 'use client';
-import React, { FC, SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
+import React, { FC, SyntheticEvent, useCallback, useEffect, useState } from 'react';
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
-  Backdrop,
   Box,
   Button,
-  CircularProgress,
-  FormControl,
-  FormHelperText,
   Grid,
   IconButton,
-  Input,
   InputAdornment,
-  InputLabel,
   MenuItem,
-  OutlinedInput,
   Select,
   Stack,
   TextField,
   TextFieldProps,
   Typography,
 } from '@mui/material';
-import Autocomplete, {
-  AutocompleteRenderInputParams,
-  autocompleteClasses,
-} from '@mui/material/Autocomplete';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
 import SearchIcon from '@mui/icons-material/Search';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ClearIcon from '@mui/icons-material/Clear';
 import { suggestions } from '@repository/word.repository';
 import { DictionaryPairs } from '@/store/constants';
 import { colors } from '@/colors';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
-import { SuggestionResponseDto } from '@api/types.dto';
 import { DictionaryLangs, LangToId } from '@api/languages';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { normalizeLezgiString, toLowerCaseLezgi } from '../../../utils';
@@ -43,7 +31,6 @@ import BaseLoader from '../../../../ui/BaseLoader';
 import { useTranslation } from 'react-i18next';
 import { trackTranslationSearch } from '@api/mixpanel';
 import { FoundSpelling } from '@repository/types.model';
-import { WordSearchType } from '@repository/enums';
 import { flipAndMergeTags } from '../definition/utils';
 
 const MOBILE_INPUT_HEIGHT = 30;
@@ -172,6 +159,7 @@ export const Search: FC<{
           pathname={pathname}
           searchParams={searchParams}
           areSearchParamsAllowingNewSearch={areSearchParamsAllowingNewSearch}
+          websiteLang={lang}
           searchLang={searchLang}
           setIsLoading={setIsLoading}
           setIsAdvancedSearch={setIsAdvancedSearch}
@@ -280,6 +268,7 @@ const SimpleSearchInput: FC<{
   pathname: string;
   searchParams: ReadonlyURLSearchParams;
   areSearchParamsAllowingNewSearch: boolean;
+  websiteLang: WebsiteLang;
   searchLang: SearchLang;
   setIsLoading: (isLoading: boolean) => void;
   setIsAdvancedSearch: (isAdvancedSearch: boolean) => void;
@@ -288,15 +277,20 @@ const SimpleSearchInput: FC<{
   pathname,
   searchParams,
   areSearchParamsAllowingNewSearch,
+  websiteLang,
   searchLang,
   setIsLoading,
   setIsAdvancedSearch,
 }) => {
+  const { t } = useTranslation(websiteLang);
   const exp = searchParams.get('exp');
   const [options, setOptions] = useState<FoundSpelling[]>([]);
   const [inputValue, setInputValue] = useState<string>(exp ? toLowerCaseLezgi(exp) : '');
   const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
   useEffect(() => {
+    if (inputValue.length === 0) {
+      return;
+    }
     if (shouldPerformSearch) {
       const normalizedValue = normalizeLezgiString(inputValue);
       if (areSearchParamsAllowingNewSearch || exp !== normalizedValue) {
@@ -349,7 +343,7 @@ const SimpleSearchInput: FC<{
           // },
         })}
         freeSolo={true}
-        disableClearable={true}
+        // disableClearable={true}
         inputValue={inputValue}
         // On `Enter` key press
         onChange={onEnterPressSearch}
@@ -363,6 +357,7 @@ const SimpleSearchInput: FC<{
           <TextField
             {...params}
             type="search"
+            placeholder={t('enterSearchWord', { ns: 'common' })}
             sx={(theme) => ({
               '& .MuiInputBase-input': {
                 borderStartStartRadius: roundingRadius,
@@ -386,10 +381,47 @@ const SimpleSearchInput: FC<{
                   padding: '0 0 0 0 !important',
                   height: `${MOBILE_INPUT_HEIGHT}px !important`,
                 },
+                "& input[type='search']::-webkit-search-cancel-button, input[type='search']::-webkit-search-decoration":
+                  {
+                    display: 'none',
+                    appearance: 'none',
+                  },
               },
             })}
           />
         )}
+        slotProps={{
+          clearIndicator: {
+            // size: 'large',
+            sx: (theme) => ({
+              [theme.breakpoints.up('md')]: {
+                height: 40,
+                width: 40,
+                '& .MuiSvgIcon-root': {
+                  fontSize: 36,
+                },
+              },
+            }),
+          },
+          // input: {
+          //   type: 'search',
+          //   sx: {
+          //     "& input[type='search']::-webkit-search-cancel-button, input[type='search']::-webkit-search-decoration":
+          //       {
+          //         display: 'none',
+          //         appearance: 'none',
+          //       },
+          //   },
+          //   endAdornment:
+          //     inputValue.length > 0 ? (
+          //       <InputAdornment position="end">
+          //         <IconButton onClick={() => setInputValue('')}>
+          //           <ClearIcon />
+          //         </IconButton>
+          //       </InputAdornment>
+          //     ) : undefined,
+          // },
+        }}
         getOptionLabel={(option) => {
           if (typeof option === 'string') {
             return option;

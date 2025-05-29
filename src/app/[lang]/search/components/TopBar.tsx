@@ -23,6 +23,7 @@ import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
 // import { HideOnScroll } from './HideScroll';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { createUserProfile } from '@api/mixpanel';
+import { Routes } from '../../../routes';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
@@ -34,9 +35,9 @@ type TopBarProps = {
 
 const TopBar = (props: TopBarProps) => {
   const { currentLang, sessionId } = props;
-  const trigger = useScrollTrigger({
-    threshold: 25,
-  });
+  // const trigger = useScrollTrigger({
+  //   threshold: 25,
+  // });
   const theme = useTheme();
   const isLgDownSize = useMediaQuery(theme.breakpoints.down('lg'));
   const searchParams = useSearchParams();
@@ -64,23 +65,29 @@ const TopBar = (props: TopBarProps) => {
     // <div> top bar </div>
     <Box
       sx={{
-        mb: '170px',
+        position: 'sticky',
+        top: 0,
+        // mb: '25px',
+        zIndex: (theme) => theme.zIndex.drawer + 1,
         [theme.breakpoints.down('md')]: {
           // mb: trigger ? '100px' : '200px'
-          mb: '200px',
+          // mb: '150px',
+          top: -40,
         },
       }}
     >
       <ElevationScroll {...props}>
         <AppBar
           sx={(theme) => ({
-            position: 'fixed',
+            // position: 'fixed',
+            position: 'relative',
+            // position: 'sticky',
+            // top: 0,
             backgroundColor: colors.primary, //'white',
             color: colors.text.light, //'#333',
             borderBottomStyle: 'solid',
             borderBottomWidth: '1px',
             borderBottomColor: colors.primaryTint,
-            zIndex: (theme) => theme.zIndex.drawer + 1,
           })}
         >
           <Toolbar
@@ -113,7 +120,10 @@ const TopBar = (props: TopBarProps) => {
                 })}
               >
                 {/* <Grid item xs={6} md={2} sx={{ display: 'flex', alignItems: 'center' }}> */}
-                <Link href={`/${currentLang}`} style={{ color: 'inherit', textDecoration: 'none' }}>
+                <Link
+                  href={`/${currentLang}/${Routes.UserSearchPage}`}
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                >
                   <Typography
                     variant="h6"
                     component="div"
@@ -124,9 +134,11 @@ const TopBar = (props: TopBarProps) => {
                       flexDirection: 'row',
                       alignItems: 'center',
                       justifySelf: 'start',
+                      userSelect: 'none',
+                      cursor: 'pointer',
                       [theme.breakpoints.down('lg')]: {
                         fontSize: '0.8rem',
-                        display: trigger ? 'none' : 'flex',
+                        // display: trigger ? 'none' : 'flex',
                       },
                       // width: '150px',
                       // color: colors.text.light,
@@ -166,7 +178,7 @@ const TopBar = (props: TopBarProps) => {
                     },
                   })}
                 >
-                  <Search lang={currentLang} hideLangs={trigger} />
+                  <Search lang={currentLang} />
                 </Grid>
               )}
               <Grid size={{ xs: 6, md: 2 }} order={{ xs: 2, md: 3 }}>
@@ -179,7 +191,7 @@ const TopBar = (props: TopBarProps) => {
                     alignItems: 'center',
                     [theme.breakpoints.down('md')]: {
                       mt: '0px',
-                      display: trigger ? 'none' : 'flex',
+                      // display: trigger ? 'none' : 'flex',
                     },
                   })}
                 >
