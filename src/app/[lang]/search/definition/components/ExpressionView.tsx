@@ -8,10 +8,12 @@ import {
 import { WebsiteLang } from '@api/types.model';
 import {
   Box,
+  Divider,
   Grid,
   List,
   ListItem,
   ListItemText,
+  ListSubheader,
   Pagination,
   Paper,
   Skeleton,
@@ -21,7 +23,7 @@ import {
   useTheme,
 } from '@mui/material';
 import { Sidebar } from './Sidebar';
-import { toContents } from '../utils';
+import { langDialectToString, toContents } from '../utils';
 import { ExpressionDetailsComp } from './ExpressionDetailsComp';
 import { FoundExamplesList, FoundExamplesListMobile } from './FoundExamplesList';
 import { SpellingListItem } from '../../../components/SpellingListItem';
@@ -30,6 +32,7 @@ import { useTranslation } from 'react-i18next';
 import { Word } from '@repository/entities/Word';
 import { FoundDefinition, FoundExample, FoundSpelling } from '@repository/types.model';
 import { toLowerCaseLezgi } from '../../../../utils';
+import { IdToLang } from '@api/languages';
 // import { useViewport } from '../../../use/useViewport';
 // import { EBreakpoints } from '../../../utils/BreakPoints';
 // import { IExpressionPageContentStyles } from '@/definition/types';
@@ -117,6 +120,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               pl: '25px',
               pb: '50px',
               [theme.breakpoints.down('md')]: {
+                order: 3,
                 width: '100%',
                 ml: '0px !important',
                 pt: '15px',
@@ -128,19 +132,6 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               },
             })}
           >
-            {(word?.spellingVariants.length ?? 0) > 0 && (
-              <List>
-                {word.spellingVariants.map((variant, i) => (
-                  <ListItemText
-                    key={`variant_${i}`}
-                    primary={toLowerCaseLezgi(variant.spelling)}
-                    secondary={variant.langDialect?.dialect}
-                    // primary={ex.src}
-                    // secondary={ex.trl}
-                  />
-                ))}
-              </List>
-            )}
             {word?.details?.map((detail, i) => (
               <ExpressionDetailsComp
                 key={`exp_det_${i}`}
@@ -152,6 +143,88 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               />
             ))}
           </Box>
+          {(word?.spellingVariants.length ?? 0) > 0 && (
+            <Box
+              sx={{
+                minWidth: '250px',
+                [theme.breakpoints.down('md')]: {
+                  order: 2,
+                  width: '100%',
+                  ml: '0px !important',
+                  pt: '15px',
+                  boxSizing: 'border-box',
+                  '&.MuiBox-root': {
+                    ml: '0px !important',
+                    mt: '10px',
+                  },
+                },
+              }}
+            >
+              <Typography variant="h6" sx={{ [theme.breakpoints.down('md')]: { pl: '15px' } }}>
+                {t(`wordVariants`, { ns: 'common' })}
+              </Typography>
+              <List
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  [theme.breakpoints.down('md')]: {
+                    flexDirection: 'row',
+                    p: 0,
+                    overflow: 'auto',
+                    maxWidth: '100vw',
+                  },
+                }}
+              >
+                <Divider sx={{ [theme.breakpoints.down('md')]: { display: 'none' } }} />
+                <ListItem
+                  sx={{
+                    pt: 0,
+                    mb: '10px',
+                    pl: '15px',
+                    pr: '15px',
+                    ml: 0,
+                    [theme.breakpoints.down('md')]: {
+                      borderRightWidth: '1px',
+                      borderRightStyle: 'solid',
+                      borderRightColor: '#ccc',
+                    },
+                  }}
+                >
+                  <ListItemText
+                    primary={toLowerCaseLezgi(word.spelling)}
+                    secondary={langDialectToString(word.langDialect, t, { showOnlyDialect: true })}
+                  />
+                </ListItem>
+                {word.spellingVariants.map((variant, i) => (
+                  <ListItem
+                    key={`variant_${i}`}
+                    sx={{
+                      pt: 0,
+                      mb: '10px',
+                      pl: '15px',
+                      pr: '15px',
+                      ml: 0,
+                      [theme.breakpoints.down('md')]:
+                        i < word.spellingVariants.length - 1
+                          ? {
+                              borderRightWidth: '1px',
+                              borderRightStyle: 'solid',
+                              borderRightColor: '#ccc',
+                            }
+                          : {},
+                    }}
+                  >
+                    <ListItemText
+                      primary={toLowerCaseLezgi(variant.spelling)}
+                      secondary={langDialectToString(variant.langDialect!, t, {
+                        showOnlyDialect: true,
+                      })}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            </Box>
+          )}
         </Stack>
       ) : (
         <Grid

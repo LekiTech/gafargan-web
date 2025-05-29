@@ -2,6 +2,9 @@ import { ExpressionDetails } from '../../../../api/types.model';
 import { Contents } from './types';
 import { cleanText } from '../../../utils/cleanText';
 import { WordDetail } from '@repository/entities/WordDetail';
+import { LangDialect } from '@repository/entities/LangDialect';
+import { TFunction } from 'i18next';
+import { IdToLang } from '@api/languages';
 
 export function createSpellingId(
   idx: number,
@@ -93,4 +96,25 @@ export function flipAndMergeTags(input: Record<string, string>): Record<string, 
   }
 
   return result;
+}
+
+export function langDialectToString(
+  langDialect: LangDialect,
+  t: TFunction,
+  options?: { showOnlyLang: boolean } | { showOnlyDialect: boolean },
+): string {
+  if (!langDialect) {
+    return '';
+  }
+  const langName = t(`languages.${IdToLang[langDialect.id]}`, { ns: 'common' });
+  if (options && 'showOnlyLang' in options && options.showOnlyLang) {
+    return langName;
+  }
+  const dialectName = langDialect.dialect
+    ? ` ${t(`dialects.${langDialect?.dialect}`, { ns: 'common' })}`
+    : '';
+  if (options && 'showOnlyDialect' in options && options.showOnlyDialect) {
+    return dialectName;
+  }
+  return langName + ' ' + dialectName;
 }
