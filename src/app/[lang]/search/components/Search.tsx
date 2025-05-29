@@ -362,6 +362,7 @@ const SimpleSearchInput: FC<{
         renderInput={(params) => (
           <TextField
             {...params}
+            type="search"
             sx={(theme) => ({
               '& .MuiInputBase-input': {
                 borderStartStartRadius: roundingRadius,

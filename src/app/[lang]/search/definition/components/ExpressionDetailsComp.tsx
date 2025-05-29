@@ -59,11 +59,8 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
       >
         {toLowerCaseLezgi(spelling)}
       </Typography>
-      <Typography variant="h6" color="text.secondary">
+      <Typography variant="h6" color="text.secondary" sx={{ mb: '10px' }}>
         {data.inflection}
-      </Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ m: '25px 0' }}>
-        {`${data.source?.name} - ${data.source?.authors}`}
       </Typography>
       {data.definitions.map((dd, i) => (
         <DefinitionDetailsComp
@@ -88,6 +85,9 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         isOtherExamples={true}
         examples={data.examples}
       />
+      <Typography variant="caption" color="text.secondary" sx={{ m: '15px 0' }}>
+        {`${data.source?.name} - ${data.source?.authors}`}
+      </Typography>
       {!isLast && <Divider sx={{ mt: '30px' }} />}
     </Stack>
   );

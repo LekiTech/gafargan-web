@@ -42,23 +42,32 @@ const DefinitionComp: FC<DefinitionCompProps> = ({ idx, lang, definition }) => {
         // borderLeft: '1px solid grey',
       }}
     >
-      <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-        <Typography variant="body1" sx={{ fontWeight: 'bold', fontSize: '16px', minWidth: '20px' }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        <Typography
+          variant="body1"
+          sx={{
+            fontWeight: 'bold',
+            fontSize: '16px',
+            minWidth: '20px',
+            alignSelf: 'start',
+            marginTop: '4px !important',
+          }}
+        >
           {/* {idxToChar(lang, idx) + ' :'} */}
           {t(`alphabet.${idx}`) + ' :'}
         </Typography>
-        <Typography variant="body1" sx={{ fontSize: '20px' }}>
+        <Typography component={'div'} variant="body1" sx={{ fontSize: '20px' }}>
+          {/* <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}> */}
+          {definition.tags?.map((tag, t_i) => (
+            <TagComp
+              key={`exp_det_${idx}_tags_${tag}_${t_i}`}
+              label={t(tag, { ns: 'tags' })}
+              styles={{ marginRight: '5px' }}
+            />
+          ))}
+          {/* </Stack> */}
           <ParsedTextComp text={definition.value} />
         </Typography>
-      </Stack>
-      <Stack direction="row" spacing={2}>
-        {definition.tags?.map((tag, t_i) => (
-          <TagComp
-            key={`exp_det_${idx}_tags_${tag}_${t_i}`}
-            label={t(tag, { ns: 'tags' })}
-            // sx={{ maxWidth: '250px', width: 'wrap-content' }}
-          />
-        ))}
       </Stack>
     </Stack>
   );
@@ -86,7 +95,7 @@ const DefinitionsGroup: FC<{
   //   return <div>translations loading...</div>;
   // }
   return (
-    <Grid container spacing={2} sx={{ pb: '25px', pl: '25px' }}>
+    <Grid container spacing={2} sx={{ pb: '12px', pl: '10px' }}>
       <Grid size={{ xs: 12 }}>
         <Stack
           id={createDetailsId(
@@ -147,7 +156,7 @@ export const DefinitionDetailsComp: FC<{
   spellingId: string;
 }> = ({ idx, definitions, lang, spelling, inflection, spellingId }) => {
   return (
-    <Stack direction="row" key={`exp_det_${idx}`} sx={{ position: 'relative' }}>
+    <Stack direction="row" key={`exp_det_${idx}`} sx={{ position: 'relative', mt: '10px' }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Typography
           variant="body1"

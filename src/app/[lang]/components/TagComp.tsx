@@ -4,7 +4,10 @@ import { Chip } from '@mui/material';
 import { red } from '@mui/material/colors';
 import { FC } from 'react';
 
-export const TagComp: FC<{ label: string }> = ({ label }) => {
+export const TagComp: FC<{
+  label: string;
+  styles?: { marginLeft?: string; marginRight?: string };
+}> = ({ label, styles }) => {
   return (
     <Chip
       size="small"
@@ -14,6 +17,8 @@ export const TagComp: FC<{ label: string }> = ({ label }) => {
         width: 'wrap-content',
         cursor: 'pointer',
         ':hover': { backgroundColor: red[50], color: colors.secondary },
+        marginLeft: styles?.marginLeft,
+        marginRight: styles?.marginRight,
       }}
       label={label}
     />
