@@ -11,6 +11,7 @@ import { toLowerCaseLezgi } from '../../../utils';
 import { trackWordOfTheDay } from '@api/mixpanel';
 import { Word } from '@repository/entities/Word';
 import { LangToId } from '@api/languages';
+import { useTranslation } from 'react-i18next';
 
 type WordOfTheDayProps = {
   word: Word | null;
@@ -26,6 +27,7 @@ const DEFAULT_DEFINITION_LANG = 'rus';
 
 export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
   const pathname = usePathname();
+  const { t } = useTranslation();
   const { wordOfTheDay, examples, learnMore } = labels;
   if (word == null) {
     return undefined;
@@ -65,7 +67,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
                 <Chip
                   key={`exp_det_${tag}_${i}`}
                   sx={{ maxWidth: '250px', width: 'wrap-content' }}
-                  label={tag}
+                  label={t(tag, { ns: 'tags' })}
                 />
               ))}
             {firstDefinition?.values &&

@@ -24,10 +24,10 @@ type DefinitionCompProps = {
   idx: number;
   lang: WebsiteLang;
   // key: string;
-  definition: DefinitionValue;
+  definitionValue: DefinitionValue;
 };
 
-const DefinitionComp: FC<DefinitionCompProps> = ({ idx, lang, definition }) => {
+const DefinitionComp: FC<DefinitionCompProps> = ({ idx, lang, definitionValue }) => {
   const { t } = useTranslation();
   return (
     <Stack
@@ -58,7 +58,7 @@ const DefinitionComp: FC<DefinitionCompProps> = ({ idx, lang, definition }) => {
         </Typography>
         <Typography component={'div'} variant="body1" sx={{ fontSize: '20px' }}>
           {/* <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}> */}
-          {definition.tags?.map((tag, t_i) => (
+          {definitionValue.tags?.map((tag, t_i) => (
             <TagComp
               key={`exp_det_${idx}_tags_${tag}_${t_i}`}
               label={t(tag, { ns: 'tags' })}
@@ -66,7 +66,7 @@ const DefinitionComp: FC<DefinitionCompProps> = ({ idx, lang, definition }) => {
             />
           ))}
           {/* </Stack> */}
-          <ParsedTextComp text={definition.value} />
+          <ParsedTextComp text={definitionValue.value} />
         </Typography>
       </Stack>
     </Stack>
@@ -82,7 +82,7 @@ const DefinitionsGroup: FC<{
   spelling: string;
   inflection?: string | null;
   spellingId: string;
-}> = ({ idx, lang, definitions, examples, spelling, inflection, spellingId }) => {
+}> = ({ idx, lang, definitions, examples, spelling, tags, inflection, spellingId }) => {
   const { t } = useTranslation();
   // const { t } = useTranslation(lang, { useSuspense: false });
   // const [t, setT] = useState<TFunction<any, any>>();
@@ -109,8 +109,19 @@ const DefinitionsGroup: FC<{
           spacing={0}
           sx={{ width: '100%' }}
         >
+          {tags && tags.length > 0 && (
+            <Stack direction="row" spacing={1} sx={{ justifySelf: 'center', mt: '5px' }}>
+              {tags.map((tag, t_i) => (
+                <TagComp
+                  key={`exp_det_${idx}_tags_${tag}_${t_i}`}
+                  label={t(tag, { ns: 'tags' })}
+                  styles={{ marginRight: '5px' }}
+                />
+              ))}
+            </Stack>
+          )}
           {definitions.map((d, i) => (
-            <DefinitionComp key={`${idx}_${i}`} idx={i} definition={d} lang={lang} />
+            <DefinitionComp key={`${idx}_${i}`} idx={i} definitionValue={d} lang={lang} />
           ))}
           {/* {examples?.map((e, i) => (
         <Stack key={`exp_det_${idx}_ex_${i}`} spacing={2} direction={'row'}>
@@ -155,34 +166,37 @@ export const DefinitionDetailsComp: FC<{
   inflection?: string | null;
   spellingId: string;
 }> = ({ idx, definitions, lang, spelling, inflection, spellingId }) => {
+  const { t } = useTranslation();
   return (
-    <Stack direction="row" key={`exp_det_${idx}`} sx={{ position: 'relative', mt: '10px' }}>
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography
-          variant="body1"
-          sx={{
-            fontWeight: 'bold',
-            fontSize: '20px',
-            width: '20px',
-            textAlign: 'center',
-          }}
-        >
-          {idx + 1}
-        </Typography>
-        <Box
-          sx={{ flex: 2, width: '4px', backgroundColor: colors.primaryTint, opacity: 0.03 }}
-        ></Box>
-      </Box>
-      <DefinitionsGroup
-        idx={idx}
-        lang={lang}
-        definitions={definitions.values}
-        examples={definitions.examples}
-        tags={definitions.tags}
-        spelling={spelling}
-        inflection={inflection}
-        spellingId={spellingId}
-      />
+    <Stack direction="column" sx={{ position: 'relative', mt: '10px' }}>
+      <Stack direction="row">
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography
+            variant="body1"
+            sx={{
+              fontWeight: 'bold',
+              fontSize: '20px',
+              width: '20px',
+              textAlign: 'center',
+            }}
+          >
+            {idx + 1}
+          </Typography>
+          <Box
+            sx={{ flex: 2, width: '4px', backgroundColor: colors.primaryTint, opacity: 0.03 }}
+          ></Box>
+        </Box>
+        <DefinitionsGroup
+          idx={idx}
+          lang={lang}
+          definitions={definitions.values}
+          examples={definitions.examples}
+          tags={definitions.tags}
+          spelling={spelling}
+          inflection={inflection}
+          spellingId={spellingId}
+        />
+      </Stack>
     </Stack>
   );
 };
