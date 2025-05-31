@@ -431,6 +431,9 @@ const SimpleSearchInput: FC<{
         renderOption={(props, option, state, ownerState) => {
           // @ts-ignore
           const { key, ...otherProps } = props;
+          const optionLabel = toLowerCaseLezgi(
+            option.word_spelling + (option.variant_spelling ? ` (${option.variant_spelling})` : ''),
+          );
           return (
             <Box
               key={`${option.id}_${option.variant_id}`}
@@ -461,9 +464,7 @@ const SimpleSearchInput: FC<{
                 }
               }}
             >
-              {ownerState.getOptionLabel(
-                toLowerCaseLezgi(option.variant_spelling ?? option.word_spelling),
-              )}
+              {ownerState.getOptionLabel(optionLabel)}
             </Box>
           );
         }}

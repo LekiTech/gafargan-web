@@ -49,13 +49,13 @@ export async function generateMetadata(
 
   // optionally access and extend (rather than replace) parent metadata
   const previousImages = (await parent).openGraph?.images || [];
-  const spelling = toLowerCaseLezgi(data?.spelling || '', { capitalize: true });
+  const spelling = toLowerCaseLezgi(data?.[0]?.spelling || '', { capitalize: true });
   return {
     title: `${spelling && `"${spelling}"`} ${t('languages.' + fromLang)} - ${t(
       'languages.' + toLang,
     )} ${t('translation').toLowerCase()}`, //.charAt(0).toUpperCase() + spelling.slice(1),
     description:
-      data?.details[0].definitions[0]?.values[0].value?.replaceAll(/\{|}|<[^>]*>/g, '') || '',
+      data?.[0]?.details[0].definitions[0]?.values[0].value?.replaceAll(/\{|}|<[^>]*>/g, '') || '',
     // openGraph: {
     //   images: ['/some-specific-page-image.jpg', ...previousImages],
     // },
@@ -87,7 +87,10 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
     definitionsLangDialectId: LangToId[toLang],
   });
 
-  const similarWords = data?.details
+  // true if found, false if not
+  const isExpressionFound = !!data;
+
+  const similarWords = isExpressionFound
     ? []
     : await suggestions({
         spelling: normalizedExpValue,
@@ -96,8 +99,6 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
         limit: 5,
       });
 
-  // true if found, false if not
-  const isExpressionFound = !!data;
   const foundInExamples = isExpressionFound
     ? undefined
     : await searchInExamples({
@@ -115,36 +116,18 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
         definitionsLangDialectId: LangToId[toLang],
         limit: 100,
       });
-  // const foundInExamples = isExpressionFound
-  //   ? undefined
-  //   : await expressionApi.examples({
-  //       searchString: exp,
-  //       lang1: fromLang,
-  //       lang2: toLang,
-  //       pageSize: 10,
-  //       currentPage: 0,
-  //       // tags: ['сущ.'],
-  //     });
-  // const foundInDefinitions = isExpressionFound
-  //   ? undefined
-  //   : await expressionApi.definitions({
-  //       searchString: exp,
-  //       expLang: fromLang,
-  //       defLang: toLang,
-  //       pageSize: 10,
-  //       currentPage: 0,
-  //       // tags: ['сущ.'],
-  //     });
+
   return (
-    // <pre>{JSON.stringify(data, null, 2)}</pre>
-    <ExpressionView
-      foundInExamples={foundInExamples}
-      foundInDefinitions={foundInDefinitions}
-      word={data}
-      similarWords={similarWords}
-      lang={lang}
-      labels={{ otherExamples: t('otherExamples') }}
-    />
+    <>
+      <ExpressionView
+        foundInExamples={foundInExamples}
+        foundInDefinitions={foundInDefinitions}
+        words={data}
+        similarWords={similarWords}
+        lang={lang}
+        labels={{ otherExamples: t('otherExamples') }}
+      />
+    </>
   );
 };
 

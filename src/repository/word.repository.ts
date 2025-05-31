@@ -49,6 +49,9 @@ export async function suggestions({
     WITH combined AS (
       (SELECT spelling AS word_spelling, id, NULL AS variant_spelling, NULL AS variant_id FROM word
       WHERE lang_dialect_id = $2
+        AND id NOT IN (
+          SELECT word_id FROM spelling_variant WHERE lang_dialect_id = 1
+        )
       ${spellingQuery})
     UNION ALL
       (SELECT word.spelling AS word_spelling, word_id AS id, spelling_variant.spelling AS variant_spelling, spelling_variant.id AS variant_id FROM spelling_variant
@@ -111,10 +114,10 @@ export async function search({
   spelling,
   wordLangDialectId,
   definitionsLangDialectId,
-}: SearchQuery): Promise<Word | null> {
+}: SearchQuery): Promise<Word[] | null> {
   const AppDataSource = await getDataSource();
   const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
-  const word = await wordRepo.findOne({
+  const word = await wordRepo.find({
     where: [
       {
         spelling: spelling.toUpperCase(),
@@ -238,7 +241,7 @@ export async function getWordOfTheDay(): Promise<Word | null> {
       definitionsLangDialectId: LangToId['rus'],
     };
     const result = await search(searchQuery);
-    return result;
+    return result?.[0] ?? null;
   } catch (e) {
     console.error(e);
   }

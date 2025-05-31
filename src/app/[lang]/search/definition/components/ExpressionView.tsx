@@ -41,7 +41,10 @@ type ExpressionViewProps = {
   lang: WebsiteLang;
   foundInExamples?: FoundExample[];
   foundInDefinitions?: FoundDefinition[];
-  word?: Word | null;
+  /**
+   * Single word that
+   */
+  words?: Word[] | null;
   similarWords: FoundSpelling[];
   labels: {
     otherExamples: string;
@@ -52,7 +55,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   lang,
   foundInExamples,
   foundInDefinitions,
-  word,
+  words,
   similarWords,
   labels,
 }) => {
@@ -60,7 +63,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   const theme = useTheme();
   const isSmallerThanMd = useMediaQuery(theme.breakpoints.down('md'));
 
-  console.log('ExpressionView > word', word);
+  console.log('ExpressionView > word', words);
   // NOTE: Part below didn't work as intended after merging, holding on previous version
   // const { viewport } = useViewport()
   // const pageStyles = useMemo<IExpressionPageContentStyles>(() => ({
@@ -88,7 +91,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         mb: '50px',
       })}
     >
-      {word && word?.details ? (
+      {words && words.length > 0 ? (
         <Stack
           // direction={'row'}
           spacing={2}
@@ -103,7 +106,9 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
           })}
         >
           <Sidebar
-            contents={word?.details?.map((d, i) => toContents(i, word.spelling, d))}
+            contents={words
+              .map((word) => word.details?.map((d, i) => toContents(i, word.spelling, d)))
+              .flat()}
             otherExamplesLabel={labels.otherExamples}
           />
           <Box
@@ -120,7 +125,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               pl: '25px',
               pb: '50px',
               [theme.breakpoints.down('md')]: {
-                order: 3,
+                // order: 3,
                 width: '100%',
                 ml: '0px !important',
                 pt: '15px',
@@ -132,18 +137,22 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
               },
             })}
           >
-            {word?.details?.map((detail, i) => (
-              <ExpressionDetailsComp
-                key={`exp_det_${i}`}
-                idx={i}
-                lang={lang}
-                spelling={word.spelling}
-                data={detail}
-                isLast={i === word?.details?.length - 1}
-              />
-            ))}
+            {words?.map((word, wi) =>
+              word.details?.map((detail, i) => (
+                <ExpressionDetailsComp
+                  key={`exp_det_${i}`}
+                  idx={i}
+                  websiteLang={lang}
+                  spelling={word.spelling}
+                  spellingVariants={word.spellingVariants}
+                  wordLangDialect={word.langDialect}
+                  data={detail}
+                  isLast={i === word?.details?.length - 1 && wi === words.length - 1}
+                />
+              )),
+            )}
           </Box>
-          {(word?.spellingVariants.length ?? 0) > 0 && (
+          {/* {(words?.spellingVariants.length ?? 0) > 0 && (
             <Box
               sx={{
                 minWidth: '250px',
@@ -191,11 +200,13 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                   }}
                 >
                   <ListItemText
-                    primary={toLowerCaseLezgi(word.spelling)}
-                    secondary={langDialectToString(word.langDialect, t, { showOnlyDialect: true })}
+                    primary={toLowerCaseLezgi(words.spelling)}
+                    secondary={langDialectToString(words.langDialect, t, {
+                      showOnlyDialect: true,
+                    })}
                   />
                 </ListItem>
-                {word.spellingVariants.map((variant, i) => (
+                {words.spellingVariants.map((variant, i) => (
                   <ListItem
                     key={`variant_${i}`}
                     sx={{
@@ -205,7 +216,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                       pr: '15px',
                       ml: 0,
                       [theme.breakpoints.down('md')]:
-                        i < word.spellingVariants.length - 1
+                        i < words.spellingVariants.length - 1
                           ? {
                               borderRightWidth: '1px',
                               borderRightStyle: 'solid',
@@ -224,7 +235,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                 ))}
               </List>
             </Box>
-          )}
+          )} */}
         </Stack>
       ) : (
         <Grid
