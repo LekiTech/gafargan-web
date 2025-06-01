@@ -5,6 +5,7 @@ import {
   searchInExamples,
   suggestions,
   searchInDefinitions,
+  suggestionsFuzzy,
 } from '@repository/word.repository';
 import { ResolvingMetadata, Metadata } from 'next';
 import { DictionaryLang, WebsiteLang } from '../../../../api/types.model';
@@ -34,7 +35,7 @@ export async function generateMetadata(
   const data = await search(searchQuery);
 
   if (!data) {
-    const similarWords = await suggestions(searchQuery);
+    const similarWords = await suggestionsFuzzy(searchQuery);
     const title = t('meta.title');
     const description = t('probablyYouMeant') + ' ' + similarWords.join(', ');
     return {
@@ -92,7 +93,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
 
   const similarWords = isExpressionFound
     ? []
-    : await suggestions({
+    : await suggestionsFuzzy({
         spelling: normalizedExpValue,
         wordLangDialectId: LangToId[fromLang],
         definitionsLangDialectId: LangToId[toLang],

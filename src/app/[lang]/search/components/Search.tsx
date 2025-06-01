@@ -19,7 +19,7 @@ import SwitchIcon from '@mui/icons-material/SyncAlt';
 import SearchIcon from '@mui/icons-material/Search';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ClearIcon from '@mui/icons-material/Clear';
-import { suggestions } from '@repository/word.repository';
+import { suggestions, suggestionsFuzzy } from '@repository/word.repository';
 import { DictionaryPairs } from '@/store/constants';
 import { colors } from '@/colors';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
@@ -304,7 +304,7 @@ const SimpleSearchInput: FC<{
   // Получение списка подсказок по дебаунс
   const debounceSetOptions = useCallback(
     useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
-      const foundSpellings = await suggestions({
+      const foundSpellings = await suggestionsFuzzy({
         spelling: value,
         wordLangDialectId: LangToId[expLang],
         definitionsLangDialectId: LangToId[defLang],

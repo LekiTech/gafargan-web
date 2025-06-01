@@ -18,57 +18,108 @@ interface SearchSpellingQuery {
   wordLangDialectId: number;
   definitionsLangDialectId: number;
   limit?: number;
-  wordSearchType?: WordSearchType;
 }
 
-export async function suggestions({
+export async function suggestionsFuzzy({
   spelling,
   wordLangDialectId,
   definitionsLangDialectId,
   limit = 10,
-  wordSearchType = WordSearchType.FUZZY,
 }: SearchSpellingQuery): Promise<FoundSpelling[]> {
   const queryParameters = [spelling, wordLangDialectId, definitionsLangDialectId, limit];
-  const spellingQuery = createSpellingPartQuery(wordSearchType, 'spelling', {
-    spellingIdx: '$1',
-    limitIdx: '$4',
-  });
-  const wordSpellingAliasQuery = createSpellingPartQuery(wordSearchType, 'word_spelling', {
-    spellingIdx: '$1',
-    limitIdx: '$4',
-  });
-  const variantSpellingQuery = createSpellingPartQuery(
-    wordSearchType,
-    'spelling_variant.spelling',
-    {
-      spellingIdx: '$1',
-      limitIdx: '$4',
-    },
-  );
   const findSpellingsQuery = `
     WITH combined AS (
       (SELECT spelling AS word_spelling, id, NULL AS variant_spelling, NULL AS variant_id FROM word
-      WHERE lang_dialect_id = $2
-        AND id NOT IN (
-          SELECT word_id FROM spelling_variant WHERE lang_dialect_id = 1
-        )
-      ${spellingQuery})
-    UNION ALL
+        WHERE lang_dialect_id = $2
+        ORDER BY spelling <-> $1
+        LIMIT $4
+      )
+      UNION ALL
       (SELECT word.spelling AS word_spelling, word_id AS id, spelling_variant.spelling AS variant_spelling, spelling_variant.id AS variant_id FROM spelling_variant
-      JOIN word ON word.id = spelling_variant.word_id
-      WHERE spelling_variant.lang_dialect_id = $2
-      ${variantSpellingQuery})
+        JOIN word ON word.id = spelling_variant.word_id
+        WHERE spelling_variant.lang_dialect_id = $2
+        ORDER BY spelling_variant.spelling <-> $1
+        LIMIT $4
+      )
+    ),
+    filtered AS (SELECT combined.word_spelling, combined.id, combined.variant_spelling, combined.variant_id,
+        word_spelling <-> $1 AS distance
+      FROM combined 
+      INNER JOIN (SELECT DISTINCT word_id  FROM word_details 
+        WHERE lang_dialect_id = $3
+      ) AS wd 
+        ON wd.word_id = combined.id
+    ),
+    ranked AS (
+      SELECT *, ROW_NUMBER() OVER (
+        PARTITION BY word_spelling 
+        ORDER BY 
+          (variant_spelling IS NULL), -- false (0) comes before true (1)
+          distance
+      ) AS rn
+      FROM filtered
     )
-    SELECT combined.word_spelling, combined.id, combined.variant_spelling, combined.variant_id FROM combined
-    INNER JOIN (SELECT DISTINCT word_id, lang_dialect_id FROM word_details) AS wd 
-      ON wd.word_id = combined.id
-    WHERE wd.lang_dialect_id = $3
-    ${wordSpellingAliasQuery};
+    SELECT word_spelling, id, variant_spelling, variant_id
+    FROM ranked
+    WHERE rn = 1
+    ORDER BY distance
+    LIMIT $4;
   `;
   const AppDataSource = await getDataSource();
   const res = await AppDataSource.query(findSpellingsQuery, queryParameters);
   // console.log('searchSpelling', res);
   return JSON.parse(JSON.stringify(res));
+}
+
+// TODO: return always distinct list of `word_spelling`s
+export async function suggestions({
+  spelling,
+  wordLangDialectId,
+  definitionsLangDialectId,
+  limit = 10,
+}: SearchSpellingQuery) {
+  //Promise<FoundSpelling[]> {
+  // const queryParameters = [spelling, wordLangDialectId, definitionsLangDialectId, limit];
+  // const spellingQuery = createSpellingPartQuery(wordSearchType, 'spelling', {
+  //   spellingIdx: '$1',
+  //   limitIdx: '$4',
+  // });
+  // const wordSpellingAliasQuery = createSpellingPartQuery(wordSearchType, 'word_spelling', {
+  //   spellingIdx: '$1',
+  //   limitIdx: '$4',
+  // });
+  // const variantSpellingQuery = createSpellingPartQuery(
+  //   wordSearchType,
+  //   'spelling_variant.spelling',
+  //   {
+  //     spellingIdx: '$1',
+  //     limitIdx: '$4',
+  //   },
+  // );
+  // const findSpellingsQuery = `
+  //   WITH combined AS (
+  //     (SELECT spelling AS word_spelling, id, NULL AS variant_spelling, NULL AS variant_id FROM word
+  //     WHERE lang_dialect_id = $2
+  //       AND id NOT IN (
+  //         SELECT word_id FROM spelling_variant WHERE lang_dialect_id = 1
+  //       )
+  //     ${spellingQuery})
+  //   UNION ALL
+  //     (SELECT word.spelling AS word_spelling, word_id AS id, spelling_variant.spelling AS variant_spelling, spelling_variant.id AS variant_id FROM spelling_variant
+  //     JOIN word ON word.id = spelling_variant.word_id
+  //     WHERE spelling_variant.lang_dialect_id = $2
+  //     ${variantSpellingQuery})
+  //   )
+  //   SELECT combined.word_spelling, combined.id, combined.variant_spelling, combined.variant_id FROM combined
+  //   INNER JOIN (SELECT DISTINCT word_id, lang_dialect_id FROM word_details) AS wd
+  //     ON wd.word_id = combined.id
+  //   WHERE wd.lang_dialect_id = $3
+  //   ${wordSpellingAliasQuery};
+  // `;
+  // const AppDataSource = await getDataSource();
+  // const res = await AppDataSource.query(findSpellingsQuery, queryParameters);
+  // // console.log('searchSpelling', res);
+  // return JSON.parse(JSON.stringify(res));
 }
 
 function createSpellingPartQuery(
