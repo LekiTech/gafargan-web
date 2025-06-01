@@ -243,6 +243,12 @@ export const SpellingVariantSchema = new EntitySchema<SpellingVariant>({
       joinColumn: { name: 'word_id' },
       inverseSide: 'spellingVariants',
     },
+    source: {
+      type: 'many-to-one',
+      target: () => Source,
+      joinColumn: { name: 'source_id' },
+      inverseSide: 'spellingVariants',
+    },
   },
 });
 
@@ -430,6 +436,12 @@ export const WordSchema = new EntitySchema<Word>({
       type: 'many-to-one',
       target: () => LangDialect,
       joinColumn: { name: 'lang_dialect_id' },
+      inverseSide: 'words',
+    },
+    source: {
+      type: 'many-to-one',
+      target: () => Source,
+      joinColumn: { name: 'source_id' },
       inverseSide: 'words',
     },
     createdBy: {

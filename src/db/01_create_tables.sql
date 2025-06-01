@@ -81,6 +81,7 @@ CREATE TABLE word (
   id               INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   spelling         TEXT    NOT NULL,
   lang_dialect_id  INTEGER NOT NULL REFERENCES lang_dialect(id),
+  source_id        INTEGER    REFERENCES source(id),
   created_by       INTEGER    NOT NULL REFERENCES "user"(id),
   updated_by       INTEGER    NOT NULL REFERENCES "user"(id),
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -98,6 +99,7 @@ CREATE TABLE spelling_variant (
   lang_dialect_id  INTEGER REFERENCES lang_dialect(id),
   word_id          INTEGER    NOT NULL REFERENCES word(id),
   spelling         TEXT    NOT NULL,
+  source_id        INTEGER    REFERENCES source(id),
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

@@ -53,72 +53,131 @@ CREATE TABLE history_translations (
 
 CREATE OR REPLACE FUNCTION history_source_trigger()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_source;
 BEGIN
-  INSERT INTO history_source
-    SELECT OLD.*, OLD.updated_at, CURRENT_TIMESTAMP;
+  SELECT
+    OLD.id, OLD.name, OLD.authors, OLD.publication_year, OLD.provided_by, OLD.provided_by_url, OLD.processed_by,
+    OLD.copyright, OLD.see_source_url, OLD.description,
+    OLD.created_by, OLD.updated_by, OLD.created_at, OLD.updated_at,
+    OLD.updated_at, CURRENT_TIMESTAMP -- valid_from, valid_to
+  INTO full_row;
+  INSERT INTO history_source OVERRIDING SYSTEM VALUE VALUES (full_row.*);
   RETURN NEW;
 END;
 $$;
 
+
+
 CREATE OR REPLACE FUNCTION history_word_trigger()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_word;
 BEGIN
-  INSERT INTO history_word
-    SELECT OLD.*, OLD.updated_at, CURRENT_TIMESTAMP;
+  SELECT
+    OLD.id, OLD.spelling, OLD.lang_dialect_id, OLD.created_by, OLD.updated_by,
+    OLD.created_at, OLD.updated_at,
+    OLD.updated_at, CURRENT_TIMESTAMP, -- valid_from, valid_to
+	OLD.source_id
+  INTO full_row;
+  INSERT INTO history_word OVERRIDING SYSTEM VALUE VALUES (full_row.*);
   RETURN NEW;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION history_spelling_variant_trigger()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_spelling_variant;
 BEGIN
-  INSERT INTO history_spelling_variant
-    SELECT OLD.*, OLD.updated_at, CURRENT_TIMESTAMP;
+  SELECT
+    OLD.id, OLD.lang_dialect_id, OLD.word_id, OLD.spelling,
+    OLD.created_at, OLD.updated_at,
+    OLD.updated_at, CURRENT_TIMESTAMP, -- valid_from, valid_to
+	OLD.source_id
+  INTO full_row;
+  INSERT INTO history_spelling_variant OVERRIDING SYSTEM VALUE VALUES (full_row.*);
   RETURN NEW;
 END;
 $$;
+
+
 
 CREATE OR REPLACE FUNCTION history_word_details_trigger()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_word_details;
 BEGIN
-  INSERT INTO history_word_details
-    SELECT OLD.*, OLD.updated_at, CURRENT_TIMESTAMP;
+  SELECT
+    OLD.id, OLD.word_id, OLD.order_idx, OLD.inflection, OLD.lang_dialect_id, OLD.source_id,
+    OLD.created_by, OLD.updated_by, OLD.created_at, OLD.updated_at,
+    OLD.updated_at, CURRENT_TIMESTAMP -- valid_from, valid_to
+  INTO full_row;
+  INSERT INTO history_word_details OVERRIDING SYSTEM VALUE VALUES (full_row.*);
   RETURN NEW;
 END;
 $$;
 
+
+
 CREATE OR REPLACE FUNCTION history_definition_trigger()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_definition;
 BEGIN
-  INSERT INTO history_definition
-    SELECT OLD.*, OLD.updated_at, CURRENT_TIMESTAMP;
+  SELECT
+    OLD.id, OLD.word_details_id, OLD.values, OLD.tags,
+    OLD.created_by, OLD.updated_by, OLD.created_at, OLD.updated_at,
+    OLD.updated_at, CURRENT_TIMESTAMP -- valid_from, valid_to
+  INTO full_row;
+  INSERT INTO history_definition OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  RETURN NEW;
+END;
+$$;
+
+
+
+CREATE OR REPLACE FUNCTION history_translations_trigger()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_translations;
+BEGIN
+  SELECT
+    OLD.id, OLD.phrases_per_lang_dialect, OLD.tags, OLD.raw,
+    OLD.created_by, OLD.updated_by, OLD.created_at, OLD.updated_at,
+    OLD.updated_at, CURRENT_TIMESTAMP -- valid_from, valid_to
+  INTO full_row;
+  INSERT INTO history_translations OVERRIDING SYSTEM VALUE VALUES (full_row.*);
   RETURN NEW;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION history_word_details_example_trigger()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_word_details_example;
 BEGIN
-  INSERT INTO history_word_details_example
-    SELECT OLD.*, OLD.created_at, CURRENT_TIMESTAMP;
+  SELECT
+    OLD.word_details_id, OLD.translation_id,
+    OLD.created_by, OLD.created_at,
+    OLD.created_at, CURRENT_TIMESTAMP -- valid_from, valid_to
+  INTO full_row;
+  INSERT INTO history_word_details_example OVERRIDING SYSTEM VALUE VALUES (full_row.*);
   RETURN NEW;
 END;
 $$;
 
 CREATE OR REPLACE FUNCTION history_definition_example_trigger()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_definition_example;
 BEGIN
-  INSERT INTO history_definition_example
-    SELECT OLD.*, OLD.created_at, CURRENT_TIMESTAMP;
-  RETURN NEW;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION history_translations_trigger()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
-BEGIN
-  INSERT INTO history_translations
-    SELECT OLD.*, OLD.updated_at, CURRENT_TIMESTAMP;
+  SELECT
+    OLD.definition_id, OLD.translation_id,
+    OLD.created_by, OLD.created_at,
+    OLD.created_at, CURRENT_TIMESTAMP -- valid_from, valid_to
+  INTO full_row;
+  INSERT INTO history_definition_example OVERRIDING SYSTEM VALUE VALUES (full_row.*);
   RETURN NEW;
 END;
 $$;

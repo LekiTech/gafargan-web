@@ -1,5 +1,7 @@
 import { User } from './User';
 import type { WordDetail } from './WordDetail';
+import type { Word } from './Word';
+import { SpellingVariant } from './SpellingVariant';
 
 export class Source {
   id!: number;
@@ -31,4 +33,8 @@ export class Source {
   updatedAt!: Date;
 
   wordDetails!: WordDetail[];
+
+  words!: Word[];
+
+  spellingVariants!: SpellingVariant[];
 }

@@ -1,5 +1,6 @@
 import { Word } from './Word';
 import { LangDialect } from './LangDialect';
+import { Source } from './Source';
 
 export class SpellingVariant {
   id!: number;
@@ -9,6 +10,8 @@ export class SpellingVariant {
   word!: Word;
 
   spelling!: string;
+
+  source!: Source | null;
 
   createdAt!: Date;
 

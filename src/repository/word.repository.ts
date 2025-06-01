@@ -9,6 +9,7 @@ import { Source } from './entities/Source';
 import { SourceSchema, WordSchema } from './entities/schemas';
 import { WordSearchType } from './enums';
 import { In } from 'typeorm';
+import { sources } from 'next/dist/compiled/webpack/webpack';
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
@@ -188,10 +189,12 @@ export async function search({
     relations: {
       // top-level relations
       langDialect: true,
+      source: true,
       createdBy: true,
       updatedBy: true,
       spellingVariants: {
         langDialect: true,
+        source: true,
       },
 
       // nest “details” and everything under it
