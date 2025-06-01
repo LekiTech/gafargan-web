@@ -62,8 +62,18 @@ BEGIN
     OLD.created_by, OLD.updated_by, OLD.created_at, OLD.updated_at,
     OLD.updated_at, CURRENT_TIMESTAMP -- valid_from, valid_to
   INTO full_row;
-  INSERT INTO history_source OVERRIDING SYSTEM VALUE VALUES (full_row.*);
-  RETURN NEW;
+
+  BEGIN
+    INSERT INTO history_source OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
 END;
 $$;
 
@@ -80,10 +90,21 @@ BEGIN
     OLD.updated_at, CURRENT_TIMESTAMP, -- valid_from, valid_to
 	OLD.source_id
   INTO full_row;
-  INSERT INTO history_word OVERRIDING SYSTEM VALUE VALUES (full_row.*);
-  RETURN NEW;
+
+  BEGIN
+    INSERT INTO history_word OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
 END;
 $$;
+
 
 CREATE OR REPLACE FUNCTION history_spelling_variant_trigger()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
@@ -96,8 +117,18 @@ BEGIN
     OLD.updated_at, CURRENT_TIMESTAMP, -- valid_from, valid_to
 	OLD.source_id
   INTO full_row;
-  INSERT INTO history_spelling_variant OVERRIDING SYSTEM VALUE VALUES (full_row.*);
-  RETURN NEW;
+
+  BEGIN
+    INSERT INTO history_spelling_variant OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
 END;
 $$;
 
@@ -113,8 +144,18 @@ BEGIN
     OLD.created_by, OLD.updated_by, OLD.created_at, OLD.updated_at,
     OLD.updated_at, CURRENT_TIMESTAMP -- valid_from, valid_to
   INTO full_row;
-  INSERT INTO history_word_details OVERRIDING SYSTEM VALUE VALUES (full_row.*);
-  RETURN NEW;
+  
+  BEGIN
+    INSERT INTO history_word_details OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
 END;
 $$;
 
@@ -130,8 +171,18 @@ BEGIN
     OLD.created_by, OLD.updated_by, OLD.created_at, OLD.updated_at,
     OLD.updated_at, CURRENT_TIMESTAMP -- valid_from, valid_to
   INTO full_row;
-  INSERT INTO history_definition OVERRIDING SYSTEM VALUE VALUES (full_row.*);
-  RETURN NEW;
+  
+  BEGIN
+    INSERT INTO history_definition OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
 END;
 $$;
 
@@ -147,8 +198,18 @@ BEGIN
     OLD.created_by, OLD.updated_by, OLD.created_at, OLD.updated_at,
     OLD.updated_at, CURRENT_TIMESTAMP -- valid_from, valid_to
   INTO full_row;
-  INSERT INTO history_translations OVERRIDING SYSTEM VALUE VALUES (full_row.*);
-  RETURN NEW;
+  
+  BEGIN
+    INSERT INTO history_translations OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
 END;
 $$;
 
@@ -162,8 +223,18 @@ BEGIN
     OLD.created_by, OLD.created_at,
     OLD.created_at, CURRENT_TIMESTAMP -- valid_from, valid_to
   INTO full_row;
-  INSERT INTO history_word_details_example OVERRIDING SYSTEM VALUE VALUES (full_row.*);
-  RETURN NEW;
+
+  BEGIN
+    INSERT INTO history_word_details_example OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
 END;
 $$;
 
@@ -177,8 +248,18 @@ BEGIN
     OLD.created_by, OLD.created_at,
     OLD.created_at, CURRENT_TIMESTAMP -- valid_from, valid_to
   INTO full_row;
-  INSERT INTO history_definition_example OVERRIDING SYSTEM VALUE VALUES (full_row.*);
-  RETURN NEW;
+  
+  BEGIN
+    INSERT INTO history_definition_example OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
 END;
 $$;
 
