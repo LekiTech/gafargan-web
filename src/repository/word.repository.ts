@@ -8,6 +8,7 @@ import { LangToId } from '@api/languages';
 import { Source } from './entities/Source';
 import { SourceSchema, WordSchema } from './entities/schemas';
 import { WordSearchType } from './enums';
+import { In } from 'typeorm';
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
@@ -15,29 +16,29 @@ import { WordSearchType } from './enums';
 
 interface SearchSpellingQuery {
   spelling: string;
-  wordLangDialectId: number;
-  definitionsLangDialectId: number;
+  wordLangDialectIds: number[];
+  definitionsLangDialectIds: number[];
   limit?: number;
 }
 
 export async function suggestionsFuzzy({
   spelling,
-  wordLangDialectId,
-  definitionsLangDialectId,
+  wordLangDialectIds,
+  definitionsLangDialectIds,
   limit = 10,
 }: SearchSpellingQuery): Promise<FoundSpelling[]> {
-  const queryParameters = [spelling, wordLangDialectId, definitionsLangDialectId, limit];
+  const queryParameters = [spelling, wordLangDialectIds, definitionsLangDialectIds, limit];
   const findSpellingsQuery = `
     WITH combined AS (
       (SELECT spelling AS word_spelling, id, NULL AS variant_spelling, NULL AS variant_id FROM word
-        WHERE lang_dialect_id = $2
+        WHERE lang_dialect_id  = ANY($2)
         ORDER BY spelling <-> $1
         LIMIT $4
       )
       UNION ALL
       (SELECT word.spelling AS word_spelling, word_id AS id, spelling_variant.spelling AS variant_spelling, spelling_variant.id AS variant_id FROM spelling_variant
         JOIN word ON word.id = spelling_variant.word_id
-        WHERE spelling_variant.lang_dialect_id = $2
+        WHERE spelling_variant.lang_dialect_id = ANY($2)
         ORDER BY spelling_variant.spelling <-> $1
         LIMIT $4
       )
@@ -46,7 +47,7 @@ export async function suggestionsFuzzy({
         word_spelling <-> $1 AS distance
       FROM combined 
       INNER JOIN (SELECT DISTINCT word_id  FROM word_details 
-        WHERE lang_dialect_id = $3
+        WHERE lang_dialect_id = ANY($3)
       ) AS wd 
         ON wd.word_id = combined.id
     ),
@@ -74,8 +75,8 @@ export async function suggestionsFuzzy({
 // TODO: return always distinct list of `word_spelling`s
 export async function suggestions({
   spelling,
-  wordLangDialectId,
-  definitionsLangDialectId,
+  wordLangDialectIds: wordLangDialectId,
+  definitionsLangDialectIds: definitionsLangDialectId,
   limit = 10,
 }: SearchSpellingQuery) {
   //Promise<FoundSpelling[]> {
@@ -158,13 +159,13 @@ function createSpellingPartQuery(
 
 export type SearchQuery = {
   spelling: string;
-  wordLangDialectId: number;
-  definitionsLangDialectId: number;
+  wordLangDialectIds: number[];
+  definitionsLangDialectIds: number[];
 };
 export async function search({
   spelling,
-  wordLangDialectId,
-  definitionsLangDialectId,
+  wordLangDialectIds,
+  definitionsLangDialectIds,
 }: SearchQuery): Promise<Word[] | null> {
   const AppDataSource = await getDataSource();
   const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
@@ -172,16 +173,16 @@ export async function search({
     where: [
       {
         spelling: spelling.toUpperCase(),
-        langDialect: { id: wordLangDialectId },
-        details: { langDialect: { id: definitionsLangDialectId } },
+        langDialect: { id: In(wordLangDialectIds) },
+        details: { langDialect: { id: In(definitionsLangDialectIds) } },
       },
       {
         spellingVariants: {
           spelling: spelling.toUpperCase(),
-          langDialect: { id: wordLangDialectId },
+          langDialect: { id: In(wordLangDialectIds) },
         },
-        langDialect: { id: wordLangDialectId },
-        details: { langDialect: { id: definitionsLangDialectId } },
+        langDialect: { id: In(wordLangDialectIds) },
+        details: { langDialect: { id: In(definitionsLangDialectIds) } },
       },
     ],
     relations: {
@@ -214,8 +215,8 @@ export async function search({
 
 export async function searchInExamples({
   spelling: searchTerm,
-  wordLangDialectId,
-  definitionsLangDialectId,
+  wordLangDialectIds,
+  definitionsLangDialectIds,
   limit = 10,
 }: SearchSpellingQuery): Promise<FoundExample[]> {
   const findExamplesQuery = `
@@ -227,16 +228,16 @@ export async function searchInExamples({
       JOIN mv_word_definition_translation AS mv ON t.id = mv.translation_id
       JOIN word w ON w.id = word_id
     WHERE raw ILIKE '%' || $1 || '%'
-          -- check that the JSONB object has both language‐keys
-          AND t.phrases_per_lang_dialect ? $2
-          AND t.phrases_per_lang_dialect ? $3
+          -- check that the JSONB object has all keys of both languages (multiple dialects)
+          AND t.phrases_per_lang_dialect ?| $2
+          AND t.phrases_per_lang_dialect ?| $3
     LIMIT $4;`;
 
   const AppDataSource = await getDataSource();
   const res = await AppDataSource.query(findExamplesQuery, [
     searchTerm,
-    wordLangDialectId,
-    definitionsLangDialectId,
+    wordLangDialectIds.map(String),
+    definitionsLangDialectIds.map(String),
     limit,
   ]);
   // console.log('searchInExamples', res);
@@ -245,8 +246,8 @@ export async function searchInExamples({
 
 export async function searchInDefinitions({
   spelling: searchTerm,
-  wordLangDialectId,
-  definitionsLangDialectId,
+  wordLangDialectIds,
+  definitionsLangDialectIds,
   limit = 10,
 }: SearchSpellingQuery): Promise<FoundDefinition[]> {
   const findDefinitionsQuery = `
@@ -266,16 +267,16 @@ export async function searchInDefinitions({
       -- 2) Search inside each JSON object’s "value" field:
       v.elem ->> 'value' ILIKE '%' || $1 || '%'
       -- 3) Compare your dialect IDs as normal integers:
-      AND mv.word_lang_dialect_id = $3 
-      AND mv.definitions_lang_dialect_id = $2
+      AND mv.word_lang_dialect_id = ANY($3) 
+      AND mv.definitions_lang_dialect_id = ANY($2)
     ORDER BY value, d.id DESC
     LIMIT $4;`;
 
   const AppDataSource = await getDataSource();
   const res = await AppDataSource.query(findDefinitionsQuery, [
     searchTerm,
-    wordLangDialectId,
-    definitionsLangDialectId,
+    wordLangDialectIds,
+    definitionsLangDialectIds,
     limit,
   ]);
   // console.log('searchInDefinitions', res);
@@ -288,8 +289,8 @@ export async function getWordOfTheDay(): Promise<Word | null> {
     const wordIndex = filterWordsOfTheDay.length <= dayOfTheYear ? 0 : dayOfTheYear;
     const searchQuery: SearchQuery = {
       spelling: filterWordsOfTheDay[wordIndex],
-      wordLangDialectId: LangToId['lez'],
-      definitionsLangDialectId: LangToId['rus'],
+      wordLangDialectIds: LangToId['lez'],
+      definitionsLangDialectIds: LangToId['rus'],
     };
     const result = await search(searchQuery);
     return result?.[0] ?? null;

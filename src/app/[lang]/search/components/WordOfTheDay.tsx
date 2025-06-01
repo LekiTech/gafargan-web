@@ -77,7 +77,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
                 <Chip
                   key={`exp_det_${tag}_${i}`}
                   sx={{ maxWidth: '250px', width: 'wrap-content' }}
-                  label={tag}
+                  label={t(tag, { ns: 'tags' })}
                 />
               ))}
           </Stack>
@@ -108,10 +108,19 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
                   paddingLeft: '10px',
                 }}
               >
-                {example.phrasesPerLangDialect[LangToId['lez']].phrase}
+                {
+                  LangToId['lez']
+                    .map((langId) => example.phrasesPerLangDialect[langId])
+                    .filter((p) => p)[0].phrase
+                }
                 <br />
                 <i style={{ color: 'GrayText' }}>
-                  {example.phrasesPerLangDialect[LangToId['rus']].phrase}
+                  {/* {example.phrasesPerLangDialect[LangToId['rus']].phrase} */}
+                  {
+                    LangToId['rus']
+                      .map((langId) => example.phrasesPerLangDialect[langId])
+                      .filter((p) => p)[0].phrase
+                  }
                 </i>
               </Typography>
             ))}

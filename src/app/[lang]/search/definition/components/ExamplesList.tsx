@@ -32,16 +32,37 @@ export const ExamplesList: FC<{
   return examples && examples.length > 0 ? (
     <List sx={{ width: '100%' }}>
       {examples.flatMap((ex, i) => {
-        const srcExample = ex.phrasesPerLangDialect[LangToId[fromLang]];
-        const trgExample = ex.phrasesPerLangDialect[LangToId[toLang]];
-        if (ex.phrasesPerLangDialect && srcExample && trgExample) {
+        // const srcExample = ex.phrasesPerLangDialect[LangToId[fromLang]];
+        // const trgExample = ex.phrasesPerLangDialect[LangToId[toLang]];
+        const srcExamples = LangToId[fromLang]
+          .map((langId) => ex.phrasesPerLangDialect[langId])
+          .filter((p) => p);
+        const trgExamples = LangToId[toLang]
+          .map((langId) => ex.phrasesPerLangDialect[langId])
+          .filter((p) => p);
+
+        if (ex.phrasesPerLangDialect && srcExamples && trgExamples) {
           return [
             <Divider key={`divider_${parentIdx}_${i}`} component="li" />,
             <ListItem key={`${parentIdx}_${i}`}>
               <Stack direction="column">
                 <ListItemText
-                  primary={<ParsedTextComp text={srcExample.phrase} />}
-                  secondary={<ParsedTextComp text={trgExample.phrase} />}
+                  primary={
+                    <span style={{ display: 'flex', flexDirection: 'column' }}>
+                      {/* TODO: show tags */}
+                      {srcExamples.map((srcExample, i) => (
+                        <ParsedTextComp key={srcExample.phrase + i} text={srcExample.phrase} />
+                      ))}
+                    </span>
+                  }
+                  secondary={
+                    <span style={{ display: 'flex', flexDirection: 'column' }}>
+                      {/* TODO: show tags */}
+                      {trgExamples.map((trgExample, i) => (
+                        <ParsedTextComp key={trgExample.phrase + i} text={trgExample.phrase} />
+                      ))}
+                    </span>
+                  }
                   // primary={ex.src}
                   // secondary={ex.trl}
                 />

@@ -56,8 +56,9 @@ type ParsedTextCompProps = {
 };
 
 export const ParsedTextComp: FC<ParsedTextCompProps> = ({ text, highlightOptions }) => {
-  return text && text.length > 0
-    ? definitionToFormatJson(text).map((textObj, i) => {
+  return text && text.length > 0 ? (
+    <span>
+      {definitionToFormatJson(text).map((textObj, i) => {
         const key = `${textObj.text}_${i}_${Math.random()}`;
         const style: React.CSSProperties = {};
         if (textObj.types.includes(TextType.TAG)) {
@@ -78,6 +79,7 @@ export const ParsedTextComp: FC<ParsedTextCompProps> = ({ text, highlightOptions
             />
           </span>
         );
-      })
-    : null;
+      })}
+    </span>
+  ) : null;
 };

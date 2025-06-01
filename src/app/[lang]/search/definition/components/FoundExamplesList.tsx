@@ -23,7 +23,7 @@ import { useSearchParams } from 'next/navigation';
 import { ExpressionExampleResponseDto } from '@api/types.dto';
 import { SpellingListItem } from '../../../components/SpellingListItem';
 import { FoundExample } from '@repository/types.model';
-import { IdToLang, LangToId } from '@api/languages';
+import { IdToLang } from '@api/languages';
 
 // This is a default highlight style of <mark> tag. If needed, it can be changed and applied to all of the ParsedTextComp components.
 const highlightStyles = { color: 'black', backgroundColor: 'yellow' };

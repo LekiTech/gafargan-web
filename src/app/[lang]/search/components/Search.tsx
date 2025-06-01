@@ -306,8 +306,8 @@ const SimpleSearchInput: FC<{
     useDebounceFn(async (value: string, expLang: DictionaryLang, defLang: DictionaryLang) => {
       const foundSpellings = await suggestionsFuzzy({
         spelling: value,
-        wordLangDialectId: LangToId[expLang],
-        definitionsLangDialectId: LangToId[defLang],
+        wordLangDialectIds: LangToId[expLang],
+        definitionsLangDialectIds: LangToId[defLang],
       });
 
       setOptions(foundSpellings);

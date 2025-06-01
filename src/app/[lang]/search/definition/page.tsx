@@ -29,8 +29,8 @@ export async function generateMetadata(
   // fetch data
   const searchQuery = {
     spelling: exp,
-    wordLangDialectId: LangToId[fromLang],
-    definitionsLangDialectId: LangToId[toLang],
+    wordLangDialectIds: LangToId[fromLang],
+    definitionsLangDialectIds: LangToId[toLang],
   };
   const data = await search(searchQuery);
 
@@ -84,8 +84,8 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
   // const toLang = toLang as DictionaryLang;
   const data = await search({
     spelling: normalizedExpValue,
-    wordLangDialectId: LangToId[fromLang],
-    definitionsLangDialectId: LangToId[toLang],
+    wordLangDialectIds: LangToId[fromLang],
+    definitionsLangDialectIds: LangToId[toLang],
   });
 
   // true if found, false if not
@@ -95,8 +95,8 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
     ? []
     : await suggestionsFuzzy({
         spelling: normalizedExpValue,
-        wordLangDialectId: LangToId[fromLang],
-        definitionsLangDialectId: LangToId[toLang],
+        wordLangDialectIds: LangToId[fromLang],
+        definitionsLangDialectIds: LangToId[toLang],
         limit: 5,
       });
 
@@ -104,8 +104,8 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
     ? undefined
     : await searchInExamples({
         spelling: normalizedExpValue,
-        wordLangDialectId: LangToId[fromLang],
-        definitionsLangDialectId: LangToId[toLang],
+        wordLangDialectIds: LangToId[fromLang],
+        definitionsLangDialectIds: LangToId[toLang],
         limit: 100,
       });
 
@@ -113,8 +113,8 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
     ? undefined
     : await searchInDefinitions({
         spelling: normalizedExpValue,
-        wordLangDialectId: LangToId[fromLang],
-        definitionsLangDialectId: LangToId[toLang],
+        wordLangDialectIds: LangToId[fromLang],
+        definitionsLangDialectIds: LangToId[toLang],
         limit: 100,
       });
 
