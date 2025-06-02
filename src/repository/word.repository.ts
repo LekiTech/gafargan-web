@@ -170,7 +170,7 @@ export async function search({
 }: SearchQuery): Promise<Word[] | null> {
   const AppDataSource = await getDataSource();
   const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
-  const word = await wordRepo.find({
+  const wordWithDefinitions = await wordRepo.find({
     where: [
       {
         spelling: spelling.toUpperCase(),
@@ -212,8 +212,23 @@ export async function search({
       },
     },
   });
+  const sortedWords = wordWithDefinitions.sort((a, b) => {
+    // Sort by spelling match first
+    const aSpellingMatch = a.spelling.toUpperCase() === spelling.toUpperCase();
+    const bSpellingMatch = b.spelling.toUpperCase() === spelling.toUpperCase();
+    if (aSpellingMatch && !bSpellingMatch) {
+      // a matches, b does not
+      return -1;
+    }
+    if (!aSpellingMatch && bSpellingMatch) {
+      // b matches, a does not
+      return 1;
+    }
+    // If both match or neither matches, sort by createdAt date
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
   // console.log('search', JSON.stringify(word, null, 2));
-  return JSON.parse(JSON.stringify(word));
+  return JSON.parse(JSON.stringify(wordWithDefinitions));
 }
 
 export async function searchInExamples({
