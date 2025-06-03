@@ -30,6 +30,17 @@ export interface FoundDefinition {
   created_at: string;
 }
 
+export interface AdvancedSearchQuery {
+  starts?: string;
+  ends?: string;
+  contains?: string;
+  minLength?: number;
+  maxLength?: number;
+  tag?: [string, string];
+  wordLangDialectIds: number[];
+  definitionsLangDialectIds: number[];
+}
+
 // export interface Word {
 //   spelling: string;
 //   details: WordDetails[];

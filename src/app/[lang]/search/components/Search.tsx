@@ -17,9 +17,10 @@ import {
 import Autocomplete, { autocompleteClasses } from '@mui/material/Autocomplete';
 import SwitchIcon from '@mui/icons-material/SyncAlt';
 import SearchIcon from '@mui/icons-material/Search';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ClearIcon from '@mui/icons-material/Clear';
-import { suggestions, suggestionsFuzzy } from '@repository/word.repository';
+import { searchAdvanced, suggestionsFuzzy } from '@repository/word.repository';
 import { DictionaryPairs } from '@/store/constants';
 import { colors } from '@/colors';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
@@ -30,7 +31,7 @@ import { useDebounceFn } from '../../../use/useDebounceFn';
 import BaseLoader from '../../../../ui/BaseLoader';
 import { useTranslation } from 'react-i18next';
 import { trackTranslationSearch } from '@api/mixpanel';
-import { FoundSpelling } from '@repository/types.model';
+import { AdvancedSearchQuery, FoundSpelling } from '@repository/types.model';
 import { flipAndMergeTags } from '../definition/utils';
 
 const MOBILE_INPUT_HEIGHT = 30;
@@ -469,7 +470,7 @@ const SimpleSearchInput: FC<{
           );
         }}
       />
-      {/* <IconButton
+      <IconButton
         sx={(theme) => ({
           height: '100%',
           backgroundColor: '#fff',
@@ -498,7 +499,7 @@ const SimpleSearchInput: FC<{
             },
           })}
         />
-      </IconButton> */}
+      </IconButton>
       <Button
         variant="contained"
         sx={(theme) => ({
@@ -548,6 +549,7 @@ const SimpleSearchInput: FC<{
 const advancedInputSlotProps: TextFieldProps['slotProps'] = {
   input: {
     disableUnderline: true,
+    autoComplete: 'off',
     sx: (theme) => ({
       [theme.breakpoints.down('md')]: {
         '& .MuiInputBase-input': {
@@ -566,14 +568,7 @@ const advancedInputSlotProps: TextFieldProps['slotProps'] = {
     }),
   },
 };
-interface AdvancedSearchParams {
-  starts?: string;
-  ends?: string;
-  contains?: string;
-  minLength?: number;
-  maxLength?: number;
-  tag?: [string, string];
-}
+
 const AdvancedSearchInput: FC<{
   searchLang: SearchLang;
   websiteLang: WebsiteLang;
@@ -584,7 +579,10 @@ const AdvancedSearchInput: FC<{
   const allTags = Object.entries(
     flipAndMergeTags(i18n.getResourceBundle(websiteLang, 'tags')),
   ).filter((kv) => kv != null && kv[0] != null && kv[1] != null) as [string, string][];
-  const [inputValues, setInputValues] = useState<AdvancedSearchParams>({});
+  const [inputValues, setInputValues] = useState<AdvancedSearchQuery>({
+    wordLangDialectIds: LangToId[searchLang.from],
+    definitionsLangDialectIds: LangToId[searchLang.to],
+  });
 
   console.log('AdvancedSearchInput > inputValues', inputValues);
 
@@ -803,6 +801,7 @@ const AdvancedSearchInput: FC<{
             onClick={(e) => {
               e.currentTarget.blur();
               e.preventDefault();
+              searchAdvanced(inputValues).then((r) => console.log(r));
               // goToDefinition(inputValue, pathname, searchLang, router);
               // setShouldPerformSearch(true);
               // trackTranslationSearch({

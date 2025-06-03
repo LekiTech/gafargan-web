@@ -3,12 +3,12 @@
 import { getDataSource } from './dataSource';
 import { filterWordsOfTheDay } from './wordsOfTheDay';
 import { Word } from './entities/Word';
-import { FoundDefinition, FoundExample, FoundSpelling } from './types.model';
+import { AdvancedSearchQuery, FoundDefinition, FoundExample, FoundSpelling } from './types.model';
 import { LangToId } from '@api/languages';
 import { Source } from './entities/Source';
 import { SourceSchema, WordSchema } from './entities/schemas';
 import { WordSearchType } from './enums';
-import { In } from 'typeorm';
+import { FindOperator, ILike, In } from 'typeorm';
 import { sources } from 'next/dist/compiled/webpack/webpack';
 
 // Initialize a shared PG client
@@ -32,7 +32,7 @@ export async function suggestionsFuzzy({
   const findSpellingsQuery = `
     WITH combined AS (
       (SELECT spelling AS word_spelling, id, NULL AS variant_spelling, NULL AS variant_id FROM word
-        WHERE lang_dialect_id  = ANY($2)
+        WHERE lang_dialect_id = ANY($2)
         ORDER BY spelling <-> $1
         LIMIT $4
       )
@@ -74,88 +74,87 @@ export async function suggestionsFuzzy({
 }
 
 // TODO: return always distinct list of `word_spelling`s
-export async function suggestions({
-  spelling,
-  wordLangDialectIds: wordLangDialectId,
-  definitionsLangDialectIds: definitionsLangDialectId,
-  limit = 10,
-}: SearchSpellingQuery) {
-  //Promise<FoundSpelling[]> {
-  // const queryParameters = [spelling, wordLangDialectId, definitionsLangDialectId, limit];
-  // const spellingQuery = createSpellingPartQuery(wordSearchType, 'spelling', {
-  //   spellingIdx: '$1',
-  //   limitIdx: '$4',
-  // });
-  // const wordSpellingAliasQuery = createSpellingPartQuery(wordSearchType, 'word_spelling', {
-  //   spellingIdx: '$1',
-  //   limitIdx: '$4',
-  // });
-  // const variantSpellingQuery = createSpellingPartQuery(
-  //   wordSearchType,
-  //   'spelling_variant.spelling',
-  //   {
-  //     spellingIdx: '$1',
-  //     limitIdx: '$4',
-  //   },
-  // );
-  // const findSpellingsQuery = `
-  //   WITH combined AS (
-  //     (SELECT spelling AS word_spelling, id, NULL AS variant_spelling, NULL AS variant_id FROM word
-  //     WHERE lang_dialect_id = $2
-  //       AND id NOT IN (
-  //         SELECT word_id FROM spelling_variant WHERE lang_dialect_id = 1
-  //       )
-  //     ${spellingQuery})
-  //   UNION ALL
-  //     (SELECT word.spelling AS word_spelling, word_id AS id, spelling_variant.spelling AS variant_spelling, spelling_variant.id AS variant_id FROM spelling_variant
-  //     JOIN word ON word.id = spelling_variant.word_id
-  //     WHERE spelling_variant.lang_dialect_id = $2
-  //     ${variantSpellingQuery})
-  //   )
-  //   SELECT combined.word_spelling, combined.id, combined.variant_spelling, combined.variant_id FROM combined
-  //   INNER JOIN (SELECT DISTINCT word_id, lang_dialect_id FROM word_details) AS wd
-  //     ON wd.word_id = combined.id
-  //   WHERE wd.lang_dialect_id = $3
-  //   ${wordSpellingAliasQuery};
-  // `;
-  // const AppDataSource = await getDataSource();
-  // const res = await AppDataSource.query(findSpellingsQuery, queryParameters);
-  // // console.log('searchSpelling', res);
-  // return JSON.parse(JSON.stringify(res));
-}
+export async function searchAdvanced({
+  starts,
+  ends,
+  contains,
+  minLength,
+  maxLength,
+  tag,
+  wordLangDialectIds,
+  definitionsLangDialectIds,
+}: AdvancedSearchQuery) {
+  const AppDataSource = await getDataSource();
+  const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
+  const query = wordRepo
+    .createQueryBuilder('word')
+    // top-level relations
+    .leftJoinAndSelect('word.langDialect', 'wordLangDialect')
+    .leftJoinAndSelect('word.source', 'wordSource')
+    .leftJoinAndSelect('word.createdBy', 'wordCreatedBy')
+    .leftJoinAndSelect('word.updatedBy', 'wordUpdatedBy')
 
-function createSpellingPartQuery(
-  wordSearchType: WordSearchType,
-  columnName: 'spelling' | 'word_spelling' | 'spelling_variant.spelling',
-  paramIdxs: { spellingIdx: string; limitIdx: string },
-): string {
-  const { spellingIdx, limitIdx } = paramIdxs;
-  switch (wordSearchType) {
-    case WordSearchType.PREFIX:
-      return `
-        AND spelling ILIKE ${spellingIdx} || '%'
-        ORDER BY ${columnName}
-        LIMIT ${limitIdx}`;
-    case WordSearchType.SUFFIX:
-      return `
-        AND spelling ILIKE '%' || ${spellingIdx}
-        ORDER BY ${columnName}
-        LIMIT ${limitIdx}`;
-    case WordSearchType.CONTAINS:
-      return `
-        AND spelling ILIKE '%' || ${spellingIdx} || '%'
-        ORDER BY ${columnName}
-        LIMIT ${limitIdx}`;
-    case WordSearchType.FUZZY:
-      return `
-        ORDER BY ${columnName} <-> ${spellingIdx}
-        LIMIT ${limitIdx}`;
-    default:
-      return `
-        AND spelling ILIKE '%' || ${spellingIdx} || '%'
-        ORDER BY ${columnName}
-        LIMIT ${limitIdx}`;
+    // spellingVariants and their relations
+    .leftJoinAndSelect('word.spellingVariants', 'variant')
+    .leftJoinAndSelect('variant.langDialect', 'variantLangDialect')
+    .leftJoinAndSelect('variant.source', 'variantSource')
+
+    // details and their nested relations
+    .leftJoinAndSelect('word.details', 'detail')
+    .leftJoinAndSelect('detail.langDialect', 'detailLangDialect')
+    .leftJoinAndSelect('detail.source', 'detailSource')
+    .leftJoinAndSelect('detail.createdBy', 'detailCreatedBy')
+    .leftJoinAndSelect('detail.updatedBy', 'detailUpdatedBy')
+    // detail.examples (M:N)
+    .leftJoinAndSelect('detail.examples', 'detailExamples')
+    // detail.definitions and their nested relations
+    .leftJoinAndSelect('detail.definitions', 'definition')
+    .leftJoinAndSelect('definition.createdBy', 'definitionCreatedBy')
+    .leftJoinAndSelect('definition.updatedBy', 'definitionUpdatedBy')
+    .leftJoinAndSelect('definition.examples', 'definitionExamples')
+    .where(
+      '(word.lang_dialect_id = ANY(:wordLangDialectIds) OR variant.lang_dialect_id = ANY(:wordLangDialectIds))',
+      { wordLangDialectIds },
+    )
+    .andWhere('detail.lang_dialect_id = ANY(:definitionsLangDialectIds)', {
+      definitionsLangDialectIds,
+    });
+
+  if (minLength !== undefined) {
+    query.andWhere(
+      'LENGTH(word.spelling) >= :minLength OR LENGTH(variant.spelling) >= :minLength',
+      { minLength },
+    );
   }
+  if (maxLength !== undefined) {
+    query.andWhere(
+      'LENGTH(word.spelling) <= :maxLength OR LENGTH(variant.spelling) <= :maxLength',
+      { maxLength },
+    );
+  }
+  if (starts != undefined && starts.trim().length > 0) {
+    query.andWhere('word.spelling ILIKE :starts OR variant.spelling ILIKE :starts', {
+      starts: `${starts}%`,
+    });
+  }
+  if (contains != undefined && contains.trim().length > 0) {
+    query.andWhere('word.spelling ILIKE :contains OR variant.spelling ILIKE :contains', {
+      contains: `%${contains}%`,
+    });
+  }
+  if (ends != undefined && ends.trim().length > 0) {
+    query.andWhere('word.spelling ILIKE :ends OR variant.spelling ILIKE :ends', {
+      ends: `%${ends}`,
+    });
+  }
+  if (tag != undefined) {
+    query.andWhere(`array_to_string(definition.tags, ',') = :tag`, {
+      tag: tag[1],
+    });
+  }
+  console.log(query.getSql());
+  const res = await query.getMany();
+  return JSON.parse(JSON.stringify(res));
 }
 
 export type SearchQuery = {
@@ -212,7 +211,7 @@ export async function search({
       },
     },
   });
-  const sortedWords = wordWithDefinitions.sort((a, b) => {
+  wordWithDefinitions.sort((a, b) => {
     // Sort by spelling match first
     const aSpellingMatch = a.spelling.toUpperCase() === spelling.toUpperCase();
     const bSpellingMatch = b.spelling.toUpperCase() === spelling.toUpperCase();
