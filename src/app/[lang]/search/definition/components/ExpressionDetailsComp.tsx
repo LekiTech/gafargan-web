@@ -1,11 +1,10 @@
 'use client';
 import React, { FC } from 'react';
-import { ExpressionDetails, WebsiteLang } from '../../../../../api/types.model';
-// Adding '/index' helps to avoid Nextjs 14.0.4 error. See: https://github.com/mui/material-ui/issues/40214#issuecomment-1866196893
-import { Box, Divider, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+import { WebsiteLang } from '../../../../../api/types.model';
+import { Divider, Stack, Typography } from '@mui/material';
 import { expressionFont } from '@/fonts';
 import { DefinitionDetailsComp } from './DefinitionComp';
-import { createOtherExamplesId, createSpellingId, langDialectToString } from '../utils';
+import { createOtherExamplesId, createSpellingId } from '../utils';
 import { ExamplesComp } from './ExampleComp';
 import { useTranslation } from 'react-i18next';
 import { toLowerCaseLezgi } from '../../../../utils';
@@ -14,6 +13,7 @@ import { EBreakpoints } from '../../../../utils/BreakPoints';
 import { WordDetail } from '@repository/entities/WordDetail';
 import { SpellingVariant } from '@repository/entities/SpellingVariant';
 import { LangDialect } from '@repository/entities/LangDialect';
+import { SpellingVariantsList } from './SpellingVariantsList';
 
 type ExpressionDetailsCompProps = {
   idx: number;
@@ -54,6 +54,7 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         spellingVariants={spellingVariants}
         websiteLang={websiteLang}
         wordLangDialect={wordLangDialect}
+        isRow={true}
       />
       <Stack
         key={`ExpressionDetailsComp_${idx}_${spelling}`}
@@ -112,122 +113,5 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         {!isLast && <Divider sx={{ mt: '30px' }} />}
       </Stack>
     </Stack>
-  );
-};
-
-type SpellingVariantsListProps = {
-  spelling: string;
-  spellingVariants: SpellingVariant[];
-  websiteLang: WebsiteLang;
-  wordLangDialect: LangDialect;
-};
-
-const SpellingVariantsList: FC<SpellingVariantsListProps> = ({
-  spelling,
-  spellingVariants,
-  websiteLang,
-  wordLangDialect,
-}) => {
-  const { t } = useTranslation(websiteLang);
-  return (
-    (spellingVariants.length ?? 0) > 0 && (
-      <Box
-        sx={(theme) => ({
-          minWidth: '250px',
-          // [theme.breakpoints.down('md')]: {
-          // order: 2,
-          width: '100%',
-          ml: '0px !important',
-          pt: '15px',
-          boxSizing: 'border-box',
-          '&.MuiBox-root': {
-            ml: '0px !important',
-            mt: '10px',
-          },
-          // },
-        })}
-      >
-        <Typography
-          variant="h6"
-          sx={(theme) => ({
-            // [theme.breakpoints.down('md')]: {
-            pl: '15px',
-            // }
-          })}
-        >
-          {t(`wordVariants`, { ns: 'common' })}
-        </Typography>
-        <List
-          sx={(theme) => ({
-            display: 'flex',
-            // flexDirection: 'column',
-            // [theme.breakpoints.down('md')]: {
-            flexDirection: 'row',
-            p: 0,
-            overflow: 'auto',
-            maxWidth: '100vw',
-            // },
-          })}
-        >
-          <Divider
-            sx={(theme) => ({
-              // [theme.breakpoints.down('md')]: {
-              display: 'none',
-              // }
-            })}
-          />
-          <ListItem
-            sx={(theme) => ({
-              pt: 0,
-              mb: '10px',
-              pl: '15px',
-              pr: '15px',
-              ml: 0,
-              width: 'fit-content',
-              // [theme.breakpoints.down('md')]: {
-              borderRightWidth: '1px',
-              borderRightStyle: 'solid',
-              borderRightColor: '#ccc',
-              // },
-            })}
-          >
-            <ListItemText
-              primary={toLowerCaseLezgi(spelling)}
-              secondary={langDialectToString(wordLangDialect, t, {
-                showOnlyDialect: true,
-              })}
-            />
-          </ListItem>
-          {spellingVariants.map((variant, i) => (
-            <ListItem
-              key={`variant_${i}`}
-              sx={(theme) => ({
-                pt: 0,
-                mb: '10px',
-                pl: '15px',
-                pr: '15px',
-                ml: 0,
-                width: 'fit-content',
-                // [theme.breakpoints.down('md')]:
-                ...(i < spellingVariants.length - 1
-                  ? {
-                      borderRightWidth: '1px',
-                      borderRightStyle: 'solid',
-                      borderRightColor: '#ccc',
-                    }
-                  : {}),
-              })}
-            >
-              <ListItemText
-                primary={toLowerCaseLezgi(variant.spelling)}
-                secondary={langDialectToString(variant.langDialect!, t, {
-                  showOnlyDialect: true,
-                })}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Box>
-    )
   );
 };

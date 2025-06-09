@@ -118,3 +118,37 @@ export function langDialectToString(
   }
   return langName + ' ' + dialectName;
 }
+
+export function buildSpellingRegex({
+  starts,
+  contains,
+  ends,
+}: {
+  starts?: string;
+  contains?: string;
+  ends?: string;
+}): RegExp {
+  let pattern = '';
+
+  if (starts) {
+    pattern += `^${escapeRegExp(starts)}`;
+  } else {
+    pattern += '.*';
+  }
+
+  if (contains) {
+    pattern += `(?=.*${escapeRegExp(contains)})`;
+  }
+
+  if (ends) {
+    pattern += `${ends ? `.*${escapeRegExp(ends)}$` : ''}`;
+  } else {
+    pattern += '.*';
+  }
+
+  return new RegExp(pattern, 'i'); // case-insensitive
+}
+
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}

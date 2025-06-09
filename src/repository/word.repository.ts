@@ -3,7 +3,13 @@
 import { getDataSource } from './dataSource';
 import { filterWordsOfTheDay } from './wordsOfTheDay';
 import { Word } from './entities/Word';
-import { AdvancedSearchQuery, FoundDefinition, FoundExample, FoundSpelling } from './types.model';
+import {
+  AdvancedSearchQuery,
+  FoundDefinition,
+  FoundExample,
+  FoundSpelling,
+  PaginatedResponse,
+} from './types.model';
 import { LangToId } from '@api/languages';
 import { Source } from './entities/Source';
 import { SourceSchema, WordSchema } from './entities/schemas';
@@ -73,7 +79,6 @@ export async function suggestionsFuzzy({
   return JSON.parse(JSON.stringify(res));
 }
 
-// TODO: return always distinct list of `word_spelling`s
 export async function searchAdvanced({
   page: inputPage,
   pageSize: inputLimit,
@@ -85,7 +90,7 @@ export async function searchAdvanced({
   tag,
   wordLangDialectIds,
   definitionsLangDialectIds,
-}: AdvancedSearchQuery) {
+}: AdvancedSearchQuery): Promise<PaginatedResponse<Word>> {
   const AppDataSource = await getDataSource();
   const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
 
@@ -137,21 +142,6 @@ export async function searchAdvanced({
       { maxLength },
     );
   }
-  // if (starts != undefined && starts.trim().length > 0) {
-  //   query.andWhere('(word.spelling ILIKE :starts OR variant.spelling ILIKE :starts)', {
-  //     starts: `${starts}%`,
-  //   });
-  // }
-  // if (contains != undefined && contains.trim().length > 0) {
-  //   query.andWhere('(word.spelling ILIKE :contains OR variant.spelling ILIKE :contains)', {
-  //     contains: `%${contains}%`,
-  //   });
-  // }
-  // if (ends != undefined && ends.trim().length > 0) {
-  //   query.andWhere('(word.spelling ILIKE :ends OR variant.spelling ILIKE :ends)', {
-  //     ends: `%${ends}`,
-  //   });
-  // }
   const wordConditions: string[] = [];
   const variantConditions: string[] = [];
   const params: Record<string, any> = {};
@@ -173,7 +163,7 @@ export async function searchAdvanced({
   }
   if (wordConditions.length > 0) {
     query.andWhere(
-      `(${wordConditions.join(' AND ')}) OR (${variantConditions.join(' AND ')})`,
+      `((${wordConditions.join(' AND ')}) OR (${variantConditions.join(' AND ')}))`,
       params,
     );
   }
@@ -188,23 +178,40 @@ export async function searchAdvanced({
       { tag: tag },
     );
   }
-
+  const sortExpr = `
+    CASE
+      WHEN (:starts IS NOT NULL AND variant.spelling ILIKE :starts AND word.spelling NOT ILIKE :starts)
+        THEN variant.spelling
+      WHEN (:contains IS NOT NULL AND variant.spelling ILIKE :contains AND word.spelling NOT ILIKE :contains)
+        THEN variant.spelling
+      WHEN (:ends IS NOT NULL AND variant.spelling ILIKE :ends AND word.spelling NOT ILIKE :ends)
+        THEN variant.spelling
+      ELSE word.spelling
+    END
+  `;
+  params.starts = starts ? `${starts}%` : null;
+  params.contains = contains ? `%${contains}%` : null;
+  params.ends = ends ? `%${ends}` : null;
+  query.addSelect(sortExpr, 'sort_spelling');
+  query.setParameters(params);
   query
-    .orderBy('word.id', 'ASC') // (important for consistent pagination)
+    .orderBy('sort_spelling', 'ASC')
+    // .orderBy('word.spelling', 'ASC')
+    // .addOrderBy('variant.spelling', 'ASC')
     .skip((page - 1) * limit)
     .take(limit);
 
   // console.log(query.getSql());
 
-  const [dataRaw, total] = await query.getManyAndCount();
+  const [dataRaw, totalItems] = await query.getManyAndCount();
 
-  const data = JSON.parse(JSON.stringify(dataRaw));
+  const items = JSON.parse(JSON.stringify(dataRaw)) as Word[];
   return {
-    data,
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
+    items,
+    totalItems,
+    currentPage: page,
+    pageSize: limit,
+    totalPages: Math.ceil(totalItems / limit),
   };
 
   // const res = await query.getMany();

@@ -5,15 +5,17 @@ import {
   searchInExamples,
   searchInDefinitions,
   suggestionsFuzzy,
+  searchAdvanced,
 } from '@repository/word.repository';
 import { ResolvingMetadata, Metadata } from 'next';
 import { DictionaryLang, WebsiteLang } from '../../../../api/types.model';
 import { initTranslations } from '@i18n/index';
 import { ExpressionView } from './components/ExpressionView';
-import { normalizeLezgiString, toLowerCaseLezgi } from '../../../utils';
+import { normalizeLezgiString, toLowerCaseLezgi, toNumber } from '../../../utils';
 import { LangToId } from '@api/languages';
-import { Params, SearchParams } from '../../types';
+import { AdvancedSearchParams, Params, SearchParams } from '../../types';
 import { redirect } from 'next/navigation';
+import { AdvancedSearchResults } from './components/AdvancedSearchResults';
 
 export async function generateMetadata(
   { params, searchParams }: ExpressionPageProps,
@@ -70,8 +72,26 @@ type ExpressionPageProps = {
 
 const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams }) => {
   const { lang } = await params;
-  const { fromLang, toLang, exp } = await searchParams;
+  const searchParamValues = await searchParams;
+  const { fromLang, toLang, exp, adv } = searchParamValues;
   const { t } = await initTranslations(lang);
+
+  if (adv == '1') {
+    const { page, pageSize, s, c, e, tag, minl, maxl } = searchParamValues as AdvancedSearchParams;
+    const paginatedWords = await searchAdvanced({
+      page: toNumber(page),
+      pageSize: toNumber(pageSize),
+      starts: s,
+      contains: c,
+      ends: e,
+      minLength: minl,
+      maxLength: maxl,
+      tag: tag,
+      wordLangDialectIds: LangToId[fromLang],
+      definitionsLangDialectIds: LangToId[toLang],
+    });
+    return <AdvancedSearchResults lang={lang} paginatedWords={paginatedWords} />;
+  }
 
   if (exp == undefined) {
     redirect(`/${lang}`);

@@ -2,13 +2,13 @@
 import { DictionaryLang, Expression } from './types.model';
 
 // === GENERAL ===
-export type PaginatedResponse<T> = {
-  totalItems: number;
-  totalPages: number;
-  currentPage: number;
-  pageSize: number;
-  items: T[];
-};
+// export type PaginatedResponse<T> = {
+//   totalItems: number;
+//   totalPages: number;
+//   currentPage: number;
+//   pageSize: number;
+//   items: T[];
+// };
 
 // === QUERIES ===
 

@@ -1,6 +1,22 @@
 'use server';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { TranslationPhrases } from './entities/Translation';
+
+// export interface PaginatedResponse<T> {
+//   data: T[];
+//   total: number;
+//   page: number;
+//   limit: number;
+//   totalPages: number;
+// }
+export type PaginatedResponse<T> = {
+  totalItems: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+  items: T[];
+};
+
 export interface FoundSpelling {
   id: number;
   word_spelling: string;

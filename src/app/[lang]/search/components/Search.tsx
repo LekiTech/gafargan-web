@@ -26,7 +26,7 @@ import { colors } from '@/colors';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
 import { DictionaryLangs, LangToId } from '@api/languages';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { normalizeLezgiString, toLowerCaseLezgi } from '../../../utils';
+import { normalizeLezgiString, toLowerCaseLezgi, toNumber } from '../../../utils';
 import { useDebounceFn } from '../../../use/useDebounceFn';
 import BaseLoader from '../../../../ui/BaseLoader';
 import { useTranslation } from 'react-i18next';
@@ -146,7 +146,6 @@ export const Search: FC<{
     DictionaryLang,
     string
   >;
-  const [isAdvancedSearch, setIsAdvancedSearch] = useState(false);
   // const langs = {
   //   lez: 'Lezgi',
   //   rus: 'Russian',
@@ -159,6 +158,7 @@ export const Search: FC<{
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [isAdvancedSearch, setIsAdvancedSearch] = useState(searchParams.get('adv') === '1');
   const [searchLang, setSearchLang] = useState<SearchLang>({
     from: 'lez' as DictionaryLang,
     to: 'rus' as DictionaryLang,
@@ -629,14 +629,25 @@ const AdvancedSearchInput: FC<{
   setIsLoading,
 }) => {
   const { t, i18n } = useTranslation(searchLang.from);
-  const exp = searchParams.get('exp');
+  const starts = searchParams.get('s') ?? undefined;
+  const contains = searchParams.get('c') ?? undefined;
+  const ends = searchParams.get('e') ?? undefined;
+  const minLengthStr = searchParams.get('minl') ?? undefined;
+  const maxLengthStr = searchParams.get('maxl') ?? undefined;
+  const tag = searchParams.get('tag') ?? undefined;
   const tagEntries = i18n.getResourceBundle(websiteLang, 'tags');
   const allTags = Object.entries(flipAndMergeTags(tagEntries)).filter(
     (kv) => kv != null && kv[0] != null && kv[1] != null,
   ) as [string, string][];
   const [inputValues, setInputValues] = useState<AdvancedSearchQuery>({
-    page: 1,
-    pageSize: 10,
+    page: toNumber(searchParams.get('page') ?? 1),
+    pageSize: toNumber(searchParams.get('pageSize') ?? 10),
+    starts,
+    contains,
+    ends,
+    minLength: minLengthStr ? toNumber(minLengthStr) : undefined,
+    maxLength: maxLengthStr ? toNumber(maxLengthStr) : undefined,
+    tag,
     wordLangDialectIds: LangToId[searchLang.from],
     definitionsLangDialectIds: LangToId[searchLang.to],
   });

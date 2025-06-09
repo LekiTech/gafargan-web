@@ -14,7 +14,7 @@ export const TagComp: FC<{
       sx={{
         maxWidth: '250px',
         fontSize: '12px',
-        width: 'wrap-content',
+        width: 'fit-content',
         cursor: 'pointer',
         ':hover': { backgroundColor: red[50], color: colors.secondary },
         marginLeft: styles?.marginLeft,
