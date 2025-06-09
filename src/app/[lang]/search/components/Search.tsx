@@ -60,6 +60,45 @@ const goToDefinition = (
   router.push(href);
 };
 
+const goToPaginatedResult = (
+  searchQuery: AdvancedSearchQuery,
+  pathname: string,
+  searchLang: SearchLang,
+  router: AppRouterInstance,
+) => {
+  if (searchQuery === undefined || searchQuery === null || Object.keys(searchQuery).length === 0) {
+    return;
+  }
+  const prefix = pathname.includes('definition') ? pathname : pathname + '/definition';
+  const queryParams = [
+    `fromLang=${searchLang.from}`,
+    `toLang=${searchLang.to}`,
+    `adv=1`,
+    `page=${searchQuery.page}`,
+    `pageSize=${searchQuery.pageSize}`,
+  ];
+  if (searchQuery.starts) {
+    queryParams.push(`&s=${searchQuery.starts}`);
+  }
+  if (searchQuery.contains) {
+    queryParams.push(`&c=${searchQuery.contains}`);
+  }
+  if (searchQuery.ends) {
+    queryParams.push(`&e=${searchQuery.ends}`);
+  }
+  if (searchQuery.minLength) {
+    queryParams.push(`&minl=${searchQuery.minLength}`);
+  }
+  if (searchQuery.maxLength) {
+    queryParams.push(`&maxl=${searchQuery.maxLength}`);
+  }
+  if (searchQuery.tag) {
+    queryParams.push(`&tag=${searchQuery.tag}`);
+  }
+  const href = `${prefix}?${queryParams.join('&')}`;
+  router.push(href);
+};
+
 const changeDictLang = (args: {
   lang: DictionaryLang;
   isFrom: boolean;
@@ -149,6 +188,9 @@ export const Search: FC<{
 
       {isAdvancedSearch ? (
         <AdvancedSearchInput
+          router={router}
+          pathname={pathname}
+          searchParams={searchParams}
           searchLang={searchLang}
           websiteLang={lang}
           setIsLoading={setIsLoading}
@@ -570,21 +612,46 @@ const advancedInputSlotProps: TextFieldProps['slotProps'] = {
 };
 
 const AdvancedSearchInput: FC<{
+  router: AppRouterInstance;
+  pathname: string;
+  searchParams: ReadonlyURLSearchParams;
   searchLang: SearchLang;
   websiteLang: WebsiteLang;
   setIsAdvancedSearch: (isAdvancedSearch: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
-}> = ({ searchLang, websiteLang, setIsAdvancedSearch, setIsLoading }) => {
+}> = ({
+  router,
+  pathname,
+  searchParams,
+  searchLang,
+  websiteLang,
+  setIsAdvancedSearch,
+  setIsLoading,
+}) => {
   const { t, i18n } = useTranslation(searchLang.from);
-  const allTags = Object.entries(
-    flipAndMergeTags(i18n.getResourceBundle(websiteLang, 'tags')),
-  ).filter((kv) => kv != null && kv[0] != null && kv[1] != null) as [string, string][];
+  const exp = searchParams.get('exp');
+  const tagEntries = i18n.getResourceBundle(websiteLang, 'tags');
+  const allTags = Object.entries(flipAndMergeTags(tagEntries)).filter(
+    (kv) => kv != null && kv[0] != null && kv[1] != null,
+  ) as [string, string][];
   const [inputValues, setInputValues] = useState<AdvancedSearchQuery>({
+    page: 1,
+    pageSize: 10,
     wordLangDialectIds: LangToId[searchLang.from],
     definitionsLangDialectIds: LangToId[searchLang.to],
   });
 
-  console.log('AdvancedSearchInput > inputValues', inputValues);
+  useEffect(() => {
+    setInputValues((prevValue) => ({
+      ...prevValue,
+      wordLangDialectIds: LangToId[searchLang.from],
+      definitionsLangDialectIds: LangToId[searchLang.to],
+    }));
+  }, [searchLang]);
+
+  // useEffect(() => {
+  //   goToPaginatedResult(inputValues, pathname, searchLang, router);
+  // }, [inputValues, pathname, router, searchLang])
 
   return (
     <Grid container spacing={0.5} columns={{ xs: 6, lg: 8 }}>
@@ -717,10 +784,14 @@ const AdvancedSearchInput: FC<{
             // display the tag name
             return parsedSelected[0];
           }}
-          value={JSON.stringify(inputValues.tag) ?? '[]'}
-          onChange={(e) =>
-            setInputValues({ ...inputValues, tag: JSON.parse(e.target.value) ?? [] })
+          value={
+            inputValues.tag ? JSON.stringify([tagEntries[inputValues.tag], inputValues.tag]) : '[]'
           }
+          onChange={(e) => {
+            const value = JSON.parse(e.target.value);
+            console.log('selected tag value:', value);
+            setInputValues({ ...inputValues, tag: value[1] ?? undefined });
+          }}
           size="small"
           sx={(theme) => ({
             backgroundColor: '#fff',
@@ -801,7 +872,8 @@ const AdvancedSearchInput: FC<{
             onClick={(e) => {
               e.currentTarget.blur();
               e.preventDefault();
-              searchAdvanced(inputValues).then((r) => console.log(r));
+              // searchAdvanced(inputValues).then((r) => console.log(r));
+              goToPaginatedResult(inputValues, pathname, searchLang, router);
               // goToDefinition(inputValue, pathname, searchLang, router);
               // setShouldPerformSearch(true);
               // trackTranslationSearch({

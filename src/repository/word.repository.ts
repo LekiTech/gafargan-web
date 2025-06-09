@@ -75,6 +75,8 @@ export async function suggestionsFuzzy({
 
 // TODO: return always distinct list of `word_spelling`s
 export async function searchAdvanced({
+  page: inputPage,
+  pageSize: inputLimit,
   starts,
   ends,
   contains,
@@ -86,6 +88,9 @@ export async function searchAdvanced({
 }: AdvancedSearchQuery) {
   const AppDataSource = await getDataSource();
   const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
+
+  const page = Math.max(1, inputPage || 1); // ensure page >= 1
+  const limit = Math.min(inputLimit || 20, 100); // optional max cap
   const query = wordRepo
     .createQueryBuilder('word')
     // top-level relations
@@ -122,39 +127,88 @@ export async function searchAdvanced({
 
   if (minLength !== undefined) {
     query.andWhere(
-      'LENGTH(word.spelling) >= :minLength OR LENGTH(variant.spelling) >= :minLength',
+      '(LENGTH(word.spelling) >= :minLength OR LENGTH(variant.spelling) >= :minLength)',
       { minLength },
     );
   }
   if (maxLength !== undefined) {
     query.andWhere(
-      'LENGTH(word.spelling) <= :maxLength OR LENGTH(variant.spelling) <= :maxLength',
+      '(LENGTH(word.spelling) <= :maxLength OR LENGTH(variant.spelling) <= :maxLength)',
       { maxLength },
     );
   }
-  if (starts != undefined && starts.trim().length > 0) {
-    query.andWhere('word.spelling ILIKE :starts OR variant.spelling ILIKE :starts', {
-      starts: `${starts}%`,
-    });
+  // if (starts != undefined && starts.trim().length > 0) {
+  //   query.andWhere('(word.spelling ILIKE :starts OR variant.spelling ILIKE :starts)', {
+  //     starts: `${starts}%`,
+  //   });
+  // }
+  // if (contains != undefined && contains.trim().length > 0) {
+  //   query.andWhere('(word.spelling ILIKE :contains OR variant.spelling ILIKE :contains)', {
+  //     contains: `%${contains}%`,
+  //   });
+  // }
+  // if (ends != undefined && ends.trim().length > 0) {
+  //   query.andWhere('(word.spelling ILIKE :ends OR variant.spelling ILIKE :ends)', {
+  //     ends: `%${ends}`,
+  //   });
+  // }
+  const wordConditions: string[] = [];
+  const variantConditions: string[] = [];
+  const params: Record<string, any> = {};
+
+  if (starts?.trim()) {
+    wordConditions.push('word.spelling ILIKE :starts');
+    variantConditions.push('variant.spelling ILIKE :starts');
+    params.starts = `${starts}%`;
   }
-  if (contains != undefined && contains.trim().length > 0) {
-    query.andWhere('word.spelling ILIKE :contains OR variant.spelling ILIKE :contains', {
-      contains: `%${contains}%`,
-    });
+  if (contains?.trim()) {
+    wordConditions.push('word.spelling ILIKE :contains');
+    variantConditions.push('variant.spelling ILIKE :contains');
+    params.contains = `%${contains}%`;
   }
-  if (ends != undefined && ends.trim().length > 0) {
-    query.andWhere('word.spelling ILIKE :ends OR variant.spelling ILIKE :ends', {
-      ends: `%${ends}`,
-    });
+  if (ends?.trim()) {
+    wordConditions.push('word.spelling ILIKE :ends');
+    variantConditions.push('variant.spelling ILIKE :ends');
+    params.ends = `%${ends}`;
   }
+  if (wordConditions.length > 0) {
+    query.andWhere(
+      `(${wordConditions.join(' AND ')}) OR (${variantConditions.join(' AND ')})`,
+      params,
+    );
+  }
+
   if (tag != undefined) {
-    query.andWhere(`array_to_string(definition.tags, ',') = :tag`, {
-      tag: tag[1],
-    });
+    query.andWhere(
+      `(:tag = ANY(definition.tags)
+        OR EXISTS (
+          SELECT 1 FROM unnest(definition.values) AS val
+          WHERE val::jsonb ? 'tags' AND val::jsonb -> 'tags' @> to_jsonb(ARRAY[:tag]::text[])
+        ))`,
+      { tag: tag },
+    );
   }
-  console.log(query.getSql());
-  const res = await query.getMany();
-  return JSON.parse(JSON.stringify(res));
+
+  query
+    .orderBy('word.id', 'ASC') // (important for consistent pagination)
+    .skip((page - 1) * limit)
+    .take(limit);
+
+  // console.log(query.getSql());
+
+  const [dataRaw, total] = await query.getManyAndCount();
+
+  const data = JSON.parse(JSON.stringify(dataRaw));
+  return {
+    data,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
+
+  // const res = await query.getMany();
+  // return JSON.parse(JSON.stringify(res));
 }
 
 export type SearchQuery = {

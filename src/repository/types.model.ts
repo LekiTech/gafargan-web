@@ -31,12 +31,14 @@ export interface FoundDefinition {
 }
 
 export interface AdvancedSearchQuery {
+  page: number;
+  pageSize: number;
   starts?: string;
   ends?: string;
   contains?: string;
   minLength?: number;
   maxLength?: number;
-  tag?: [string, string];
+  tag?: string;
   wordLangDialectIds: number[];
   definitionsLangDialectIds: number[];
 }

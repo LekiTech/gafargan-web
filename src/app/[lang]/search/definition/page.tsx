@@ -3,7 +3,6 @@ import React, { FC } from 'react';
 import {
   search,
   searchInExamples,
-  suggestions,
   searchInDefinitions,
   suggestionsFuzzy,
 } from '@repository/word.repository';
