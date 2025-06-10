@@ -35,6 +35,14 @@
     "tab": "Tabasaran",
     "tur": "Turkish"
   },
+  "advancedSearch": {
+    "starts": "Starts",
+    "contains": "Contains",
+    "ends": "Ends",
+    "minLength": "Min length",
+    "maxLength": "Max length",
+    "tags": "Tags"
+  },
   "dialects": {
     "Literary": "Literary",
     "Neologism": "Neologism",

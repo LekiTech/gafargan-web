@@ -35,6 +35,14 @@
     "tab": "Tabasaran dili",
     "tur": "Türkçe"
   },
+  "advancedSearch": {
+    "starts": "İle başlar",
+    "contains": "İçerir",
+    "ends": "İle biter",
+    "minLength": "En az uzunluk",
+    "maxLength": "En fazla uzunluk",
+    "tags": "Etiketler"
+  },
   "dialects": {
     "Literary": "Edebi",
     "Neologism": "Neolojizm",

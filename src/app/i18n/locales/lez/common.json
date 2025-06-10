@@ -35,6 +35,14 @@
     "tab": "Табасаран",
     "tur": "Туьрк"
   },
+  "advancedSearch": {
+    "starts": "Начинается с",
+    "contains": "Содержит",
+    "ends": "Заканчивается на",
+    "minLength": "Мин. длина",
+    "maxLength": "Макс. длина",
+    "tags": "Теги"
+  },
   "dialects": {
     "Literary": "Литературадин",
     "Neologism": "Неологизм",

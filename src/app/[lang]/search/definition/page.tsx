@@ -90,6 +90,14 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
       wordLangDialectIds: LangToId[fromLang],
       definitionsLangDialectIds: LangToId[toLang],
     });
+    if (page > paginatedWords.totalPages) {
+      redirect(
+        `/${lang}/search/definition?` +
+          Object.entries({ ...searchParamValues, page: paginatedWords.totalPages })
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value ?? '')}`)
+            .join('&'),
+      );
+    }
     return <AdvancedSearchResults lang={lang} paginatedWords={paginatedWords} />;
   }
 

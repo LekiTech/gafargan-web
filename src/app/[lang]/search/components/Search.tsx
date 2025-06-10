@@ -1,5 +1,12 @@
 'use client';
-import React, { FC, SyntheticEvent, useCallback, useEffect, useState } from 'react';
+import React, {
+  FC,
+  KeyboardEventHandler,
+  SyntheticEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
 import { ReadonlyURLSearchParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   Box,
@@ -660,6 +667,11 @@ const AdvancedSearchInput: FC<{
     }));
   }, [searchLang]);
 
+  const onEnterPressSearch: KeyboardEventHandler<HTMLDivElement> = (e) => {
+    if (e.key === 'Enter') {
+      goToPaginatedResult(inputValues, pathname, searchLang, router);
+    }
+  };
   // useEffect(() => {
   //   goToPaginatedResult(inputValues, pathname, searchLang, router);
   // }, [inputValues, pathname, router, searchLang])
@@ -672,7 +684,7 @@ const AdvancedSearchInput: FC<{
           variant="filled"
           slotProps={advancedInputSlotProps}
           size="small"
-          label={'Starts'}
+          label={t('advancedSearch.starts')}
           sx={(theme) => ({
             backgroundColor: '#fff',
             borderEndStartRadius: roundingRadiusPx,
@@ -683,6 +695,7 @@ const AdvancedSearchInput: FC<{
           })}
           value={inputValues.starts ?? ''}
           onChange={(e) => setInputValues({ ...inputValues, starts: e.target.value })}
+          onKeyDown={onEnterPressSearch}
         />
       </Grid>
       <Grid size={{ xs: 3, lg: 2 }} order={{ xs: 2, lg: 3 }}>
@@ -690,7 +703,7 @@ const AdvancedSearchInput: FC<{
           fullWidth
           variant="filled"
           slotProps={advancedInputSlotProps}
-          label={'Ends'}
+          label={t('advancedSearch.ends')}
           size="small"
           sx={(theme) => ({
             backgroundColor: '#fff',
@@ -702,6 +715,7 @@ const AdvancedSearchInput: FC<{
           })}
           value={inputValues.ends ?? ''}
           onChange={(e) => setInputValues({ ...inputValues, ends: e.target.value })}
+          onKeyDown={onEnterPressSearch}
         />
       </Grid>
       <Grid size={{ xs: 4, lg: 4 }} order={{ xs: 3, lg: 2 }}>
@@ -709,7 +723,7 @@ const AdvancedSearchInput: FC<{
           fullWidth
           variant="filled"
           slotProps={advancedInputSlotProps}
-          label={'Contains'}
+          label={t('advancedSearch.contains')}
           size="small"
           sx={(theme) => ({
             backgroundColor: '#fff',
@@ -722,6 +736,7 @@ const AdvancedSearchInput: FC<{
           })}
           value={inputValues.contains ?? ''}
           onChange={(e) => setInputValues({ ...inputValues, contains: e.target.value })}
+          onKeyDown={onEnterPressSearch}
         />
       </Grid>
       <Grid size={2} order={{ xs: 5, lg: 4 }}>
@@ -729,7 +744,7 @@ const AdvancedSearchInput: FC<{
           fullWidth
           variant="filled"
           slotProps={advancedInputSlotProps}
-          label={'Min length'}
+          label={t('advancedSearch.minLength')}
           type="number"
           size="small"
           sx={(theme) => ({
@@ -747,6 +762,7 @@ const AdvancedSearchInput: FC<{
               minLength: e.target.value.length > 0 ? parseInt(e.target.value) : undefined,
             })
           }
+          onKeyDown={onEnterPressSearch}
         />
       </Grid>
       <Grid size={2} order={{ xs: 6, lg: 5 }}>
@@ -754,7 +770,7 @@ const AdvancedSearchInput: FC<{
           fullWidth
           variant="filled"
           slotProps={advancedInputSlotProps}
-          label={'Max length'}
+          label={t('advancedSearch.maxLength')}
           type="number"
           size="small"
           sx={(theme) => ({
@@ -772,6 +788,7 @@ const AdvancedSearchInput: FC<{
               maxLength: e.target.value.length > 0 ? parseInt(e.target.value) : undefined,
             })
           }
+          onKeyDown={onEnterPressSearch}
         />
       </Grid>
       <Grid size={2} order={{ xs: 7, lg: 6 }}>
@@ -788,7 +805,7 @@ const AdvancedSearchInput: FC<{
                     [theme.breakpoints.down('md')]: { fontSize: '0.7rem', lineHeight: '1em' },
                   })}
                 >
-                  Tags
+                  {t('advancedSearch.tags')}
                 </Typography>
               );
             }

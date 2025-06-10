@@ -130,22 +130,28 @@ export async function searchAdvanced({
       definitionsLangDialectIds,
     });
 
-  if (minLength !== undefined) {
-    query.andWhere(
-      '(LENGTH(word.spelling) >= :minLength OR LENGTH(variant.spelling) >= :minLength)',
-      { minLength },
-    );
-  }
-  if (maxLength !== undefined) {
-    query.andWhere(
-      '(LENGTH(word.spelling) <= :maxLength OR LENGTH(variant.spelling) <= :maxLength)',
-      { maxLength },
-    );
-  }
   const wordConditions: string[] = [];
   const variantConditions: string[] = [];
   const params: Record<string, any> = {};
 
+  if (minLength !== undefined) {
+    // query.andWhere(
+    //   '(LENGTH(word.spelling) >= :minLength OR LENGTH(variant.spelling) >= :minLength)',
+    //   { minLength },
+    // );
+    wordConditions.push('LENGTH(word.spelling) >= :minLength');
+    variantConditions.push('LENGTH(variant.spelling) >= :minLength');
+    params.minLength = minLength;
+  }
+  if (maxLength !== undefined) {
+    // query.andWhere(
+    //   '(LENGTH(word.spelling) <= :maxLength OR LENGTH(variant.spelling) <= :maxLength)',
+    //   { maxLength },
+    // );
+    wordConditions.push('LENGTH(word.spelling) <= :maxLength');
+    variantConditions.push('LENGTH(variant.spelling) <= :maxLength');
+    params.maxLength = maxLength;
+  }
   if (starts?.trim()) {
     wordConditions.push('word.spelling ILIKE :starts');
     variantConditions.push('variant.spelling ILIKE :starts');
@@ -178,28 +184,37 @@ export async function searchAdvanced({
       { tag: tag },
     );
   }
+
+  // query
+  //   .orderBy('word.spelling', 'ASC')
+  //   .addOrderBy('variant.spelling', 'ASC')
+  //   .skip((page - 1) * limit)
+  //   .take(limit);
   const sortExpr = `
-    CASE
-      WHEN (:starts IS NOT NULL AND variant.spelling ILIKE :starts AND word.spelling NOT ILIKE :starts)
-        THEN variant.spelling
-      WHEN (:contains IS NOT NULL AND variant.spelling ILIKE :contains AND word.spelling NOT ILIKE :contains)
-        THEN variant.spelling
-      WHEN (:ends IS NOT NULL AND variant.spelling ILIKE :ends AND word.spelling NOT ILIKE :ends)
-        THEN variant.spelling
-      ELSE word.spelling
-    END
-  `;
-  params.starts = starts ? `${starts}%` : null;
-  params.contains = contains ? `%${contains}%` : null;
-  params.ends = ends ? `%${ends}` : null;
-  query.addSelect(sortExpr, 'sort_spelling');
-  query.setParameters(params);
+  CASE
+    WHEN (variant.spelling ILIKE COALESCE(:starts, '') AND word.spelling NOT ILIKE COALESCE(:starts, ''))
+      THEN variant.spelling
+    WHEN (variant.spelling ILIKE COALESCE(:contains, '') AND word.spelling NOT ILIKE COALESCE(:contains, ''))
+      THEN variant.spelling
+    WHEN (variant.spelling ILIKE COALESCE(:ends, '') AND word.spelling NOT ILIKE COALESCE(:ends, ''))
+      THEN variant.spelling
+    ELSE word.spelling
+  END
+`;
+
   query
+    .addSelect(sortExpr, 'sort_spelling')
     .orderBy('sort_spelling', 'ASC')
-    // .orderBy('word.spelling', 'ASC')
-    // .addOrderBy('variant.spelling', 'ASC')
     .skip((page - 1) * limit)
     .take(limit);
+
+  // Set sort params even if null, to ensure proper binding
+  query.setParameters({
+    ...params,
+    starts: params.starts ?? null,
+    contains: params.contains ?? null,
+    ends: params.ends ?? null,
+  });
 
   // console.log(query.getSql());
 
@@ -213,9 +228,6 @@ export async function searchAdvanced({
     pageSize: limit,
     totalPages: Math.ceil(totalItems / limit),
   };
-
-  // const res = await query.getMany();
-  // return JSON.parse(JSON.stringify(res));
 }
 
 export type SearchQuery = {
