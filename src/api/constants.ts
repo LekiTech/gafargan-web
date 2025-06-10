@@ -1,4 +1,6 @@
-import { PaginatedResponse } from './types.dto';
+// import { PaginatedResponse } from './types.dto';
+
+import { PaginatedResponse } from '@repository/types.model';
 
 export const EMPTY_PAGINATION: PaginatedResponse<any> = {
   totalItems: 0,
