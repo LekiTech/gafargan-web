@@ -116,7 +116,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
   });
 
   // true if found, false if not
-  const isExpressionFound = !!data;
+  const isExpressionFound = !!data && data.length > 0;
 
   const similarWords = isExpressionFound
     ? []
@@ -135,6 +135,8 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
         definitionsLangDialectIds: LangToId[toLang],
         limit: 100,
       });
+
+  console.log('data', data);
 
   const foundInDefinitions = isExpressionFound
     ? undefined

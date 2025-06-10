@@ -36,12 +36,12 @@
     "tur": "Туьрк"
   },
   "advancedSearch": {
-    "starts": "Начинается с",
-    "contains": "Содержит",
-    "ends": "Заканчивается на",
-    "minLength": "Мин. длина",
-    "maxLength": "Макс. длина",
-    "tags": "Теги"
+    "starts": "Гафунин эвел",
+    "contains": "Вичик квазва",
+    "ends": "Гафунин эхир",
+    "minLength": "Мин. яргъивал",
+    "maxLength": "Макс. яргъивал",
+    "tags": "Тегар"
   },
   "dialects": {
     "Literary": "Литературадин",
