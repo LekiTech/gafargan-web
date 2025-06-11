@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { colors } from '@/colors';
 import { useTranslation } from 'react-i18next';
 import { trackWebsiteLanguageChange } from '@api/mixpanel';
+import { getUid } from '../../../utils/localstorage';
 
 type WebLanguageSelectProps = {
   currentLang: WebsiteLang;
@@ -35,7 +36,7 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
     const path = pathname.startsWith(`/${currentLang}`)
       ? pathname.replace(`/${currentLang}`, `/${lang}`) + params
       : `/${lang}/${params}`;
-    trackWebsiteLanguageChange(lang)
+    trackWebsiteLanguageChange(lang, getUid()!)
       .then(() => console.log('language changed'))
       .catch((err) => console.error('Error tracking language change:', err));
     // it should be the last action to avoid issues

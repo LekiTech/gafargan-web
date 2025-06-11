@@ -12,6 +12,7 @@ import { trackWordOfTheDay } from '@api/mixpanel';
 import { Word } from '@repository/entities/Word';
 import { LangToId } from '@api/languages';
 import { useTranslation } from 'react-i18next';
+import { getUid } from '../../../utils/localstorage';
 
 type WordOfTheDayProps = {
   word: Word | null;
@@ -130,7 +131,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
           <Link
             href={`${pathname}/definition?fromLang=${DEFAULT_EXPRESSION_LANG}&toLang=${DEFAULT_DEFINITION_LANG}&exp=${word.spelling}`}
             onClick={(e) =>
-              trackWordOfTheDay(word.spelling)
+              trackWordOfTheDay(word.spelling, getUid()!)
                 .then()
                 .catch((err) => console.error(err))
             }

@@ -12,6 +12,7 @@ import { expressionFont } from '@/fonts';
 import { useTranslation } from 'react-i18next';
 import { copyText, toLowerCaseLezgi } from '../../../utils';
 import { trackLezgiToNumbers, trackNumbersToLezgi } from '@api/mixpanel';
+import { getUid } from '../../../utils/localstorage';
 
 function convertToLezgiAndFormat(num: number): string {
   const newResult = numToLezgi(num);
@@ -47,7 +48,7 @@ export const NumbersToLezgi: FC = () => {
             max: '9007199254740991',
           }}
           onFocus={(e) => {
-            trackNumbersToLezgi()
+            trackNumbersToLezgi(getUid()!)
               .then()
               .catch((err) => console.error(err));
           }}
@@ -149,7 +150,7 @@ export const LezgiToNumbers: FC = () => {
             pattern: '[ 1iI\u0400-\u04ff]*',
           }}
           onFocus={(e) => {
-            trackLezgiToNumbers()
+            trackLezgiToNumbers(getUid()!)
               .then()
               .catch((err) => console.error(err));
           }}

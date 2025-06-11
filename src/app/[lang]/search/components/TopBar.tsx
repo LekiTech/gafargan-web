@@ -24,6 +24,7 @@ import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { createUserProfile } from '@api/mixpanel';
 import { Routes } from '../../../routes';
+import { createUid, getUid } from '../../../utils/localstorage';
 
 type TopBarProps = {
   currentLang: WebsiteLang;
@@ -46,7 +47,8 @@ const TopBar = (props: TopBarProps) => {
   const pageName = pathSplit[pathSplit.length - 1];
 
   React.useEffect(() => {
-    if (!sessionId) {
+    const uid = getUid();
+    if (!uid) {
       // console.log('Creating new user profile');
       // console.log('params', params);
       const properties: Record<string, string> = {};
@@ -58,7 +60,7 @@ const TopBar = (props: TopBarProps) => {
           properties[key] = value;
         }
       });
-      createUserProfile(properties).then(() => console.log('new user'));
+      createUserProfile(properties, createUid()).then(() => console.log('new user'));
     }
   }, []);
   return (

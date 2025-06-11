@@ -3,6 +3,7 @@ import Mixpanel from 'mixpanel';
 import { cookies } from 'next/headers';
 import { headers } from 'next/headers';
 import { randomUUID } from 'crypto';
+import { AdvancedSearchQuery } from '@repository/types.model';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -25,57 +26,48 @@ async function IP() {
 }
 
 class MixpanelClient {
-  async createUserProfile(properties: Record<string, string>) {
+  async createUserProfile(properties: Record<string, string>, uid: string) {
     if (isDev) {
       return;
     }
-    const newSessionId = randomUUID();
-    const cookieStore = await cookies();
-    cookieStore.set('sessionid', newSessionId, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV !== 'development',
-      path: '/',
-      sameSite: 'lax',
-    });
     const ip = await IP();
     console.log('createUserProfile ip', ip);
-    _mixpanel?.people.set(newSessionId, {
+    _mixpanel?.people.set(uid, {
       $created: new Date().toISOString(),
       ip,
       ...properties,
     });
   }
 
-  async trackWebsiteLanguageChange(lang: string) {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('sessionid');
-    if (isDev || !sessionId) {
+  async trackWebsiteLanguageChange(lang: string, uid: string) {
+    if (isDev || !uid) {
       return;
     }
     const ip = await IP();
     console.log('trackWebsiteLanguageChange ip', ip);
     _mixpanel?.track('Website Language Change', {
-      distinct_id: sessionId.value,
+      distinct_id: uid,
       ip,
       lang: lang,
     });
   }
 
-  async trackTranslationSearch(search: {
-    searchQuery: string;
-    fromLang: string;
-    toLang: string;
-    searchType: 'enter_key' | 'search_button' | 'option_select';
-  }) {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('sessionid');
-    if (isDev || !sessionId) {
+  async trackTranslationSearch(
+    search: {
+      searchQuery: string;
+      fromLang: string;
+      toLang: string;
+      searchType: 'enter_key' | 'search_button' | 'option_select';
+    },
+    uid: string,
+  ) {
+    if (isDev || !uid) {
       return;
     }
     const ip = await IP();
     console.log('trackTranslationSearch ip', ip);
     _mixpanel?.track('Translation Search', {
-      distinct_id: sessionId.value,
+      distinct_id: uid,
       ip,
       searchQuery: search.searchQuery,
       fromLang: search.fromLang,
@@ -84,44 +76,58 @@ class MixpanelClient {
     });
   }
 
-  async trackNumbersToLezgi() {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('sessionid');
-    if (isDev || !sessionId) {
+  async trackAdvancedSearch(
+    search: {
+      searchQuery: AdvancedSearchQuery;
+      searchType: 'enter_key' | 'search_button';
+    },
+    uid: string,
+  ) {
+    if (isDev || !uid) {
+      return;
+    }
+    const ip = await IP();
+    console.log('trackAdvancedSearch ip', ip);
+    _mixpanel?.track('Advanced Search', {
+      distinct_id: uid,
+      ip,
+      ...search.searchQuery,
+      searchType: search.searchType,
+    });
+  }
+
+  async trackNumbersToLezgi(uid: string) {
+    if (isDev || !uid) {
       return;
     }
     const ip = await IP();
     console.log('trackNumbersToLezgi ip', ip);
     _mixpanel?.track('Numbers to Lezgi', {
-      distinct_id: sessionId.value,
+      distinct_id: uid,
       ip,
     });
   }
 
-  async trackLezgiToNumbers() {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('sessionid');
-    if (isDev || !sessionId) {
+  async trackLezgiToNumbers(uid: string) {
+    if (isDev || !uid) {
       return;
     }
     const ip = await IP();
     console.log('trackLezgiToNumbers ip', ip);
     _mixpanel?.track('Lezgi to Numbers', {
-      distinct_id: sessionId.value,
+      distinct_id: uid,
       ip,
     });
   }
 
-  async trackWordOfTheDay(wordOfTheDay: string) {
-    const cookieStore = await cookies();
-    const sessionId = cookieStore.get('sessionid');
-    if (isDev || !sessionId) {
+  async trackWordOfTheDay(wordOfTheDay: string, uid: string) {
+    if (isDev || !uid) {
       return;
     }
     const ip = await IP();
     console.log('trackWordOfTheDay ip', ip);
     _mixpanel?.track('Word of the Day', {
-      distinct_id: sessionId.value,
+      distinct_id: uid,
       ip,
       wordOfTheDay: wordOfTheDay,
     });
@@ -133,6 +139,7 @@ const mixpanel = new MixpanelClient();
 export const createUserProfile = mixpanel.createUserProfile;
 export const trackWebsiteLanguageChange = mixpanel.trackWebsiteLanguageChange;
 export const trackTranslationSearch = mixpanel.trackTranslationSearch;
+export const trackAdvancedSearch = mixpanel.trackAdvancedSearch;
 export const trackNumbersToLezgi = mixpanel.trackNumbersToLezgi;
 export const trackLezgiToNumbers = mixpanel.trackLezgiToNumbers;
 export const trackWordOfTheDay = mixpanel.trackWordOfTheDay;

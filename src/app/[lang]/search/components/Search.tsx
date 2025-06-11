@@ -37,9 +37,10 @@ import { normalizeLezgiString, toLowerCaseLezgi, toNumber } from '../../../utils
 import { useDebounceFn } from '../../../use/useDebounceFn';
 import BaseLoader from '../../../../ui/BaseLoader';
 import { useTranslation } from 'react-i18next';
-import { trackTranslationSearch } from '@api/mixpanel';
+import { trackAdvancedSearch, trackTranslationSearch } from '@api/mixpanel';
 import { AdvancedSearchQuery, FoundSpelling } from '@repository/types.model';
 import { flipAndMergeTags } from '../definition/utils';
+import { getUid } from '../../../utils/localstorage';
 
 const MOBILE_INPUT_HEIGHT = 30;
 const MOBILE_FILLED_INPUT_HEIGHT = 35;
@@ -375,12 +376,15 @@ const SimpleSearchInput: FC<{
   const onEnterPressSearch = (e: SyntheticEvent<Element, Event>) => {
     e.preventDefault();
     setShouldPerformSearch(true);
-    trackTranslationSearch({
-      fromLang: searchLang.from,
-      toLang: searchLang.to,
-      searchQuery: inputValue,
-      searchType: 'enter_key',
-    })
+    trackTranslationSearch(
+      {
+        fromLang: searchLang.from,
+        toLang: searchLang.to,
+        searchQuery: inputValue,
+        searchType: 'enter_key',
+      },
+      getUid()!,
+    )
       .then()
       .catch((err) => console.error(err));
   };
@@ -502,12 +506,15 @@ const SimpleSearchInput: FC<{
                 event.currentTarget.blur();
                 event.preventDefault();
                 setShouldPerformSearch(true);
-                trackTranslationSearch({
-                  fromLang: searchLang.from,
-                  toLang: searchLang.to,
-                  searchQuery: option.word_spelling,
-                  searchType: 'option_select',
-                })
+                trackTranslationSearch(
+                  {
+                    fromLang: searchLang.from,
+                    toLang: searchLang.to,
+                    searchQuery: option.word_spelling,
+                    searchType: 'option_select',
+                  },
+                  getUid()!,
+                )
                   .then()
                   .catch((err) => console.error(err));
                 if (props.onClick) {
@@ -570,12 +577,15 @@ const SimpleSearchInput: FC<{
           e.preventDefault();
           // goToDefinition(inputValue, pathname, searchLang, router);
           setShouldPerformSearch(true);
-          trackTranslationSearch({
-            fromLang: searchLang.from,
-            toLang: searchLang.to,
-            searchQuery: inputValue,
-            searchType: 'search_button',
-          })
+          trackTranslationSearch(
+            {
+              fromLang: searchLang.from,
+              toLang: searchLang.to,
+              searchQuery: inputValue,
+              searchType: 'search_button',
+            },
+            getUid()!,
+          )
             .then()
             .catch((err) => console.error(err));
           //@ts-ignore
@@ -697,6 +707,9 @@ const AdvancedSearchInput: FC<{
   const onEnterPressSearch: KeyboardEventHandler<HTMLDivElement> = (e) => {
     if (e.key === 'Enter') {
       setShouldPerformSearch(true);
+      trackAdvancedSearch({ searchQuery: inputValues, searchType: 'enter_key' }, getUid()!)
+        .then()
+        .catch((err) => console.error(err));
       // goToPaginatedResult(inputValues, pathname, searchLang, router);
     }
   };
@@ -935,6 +948,12 @@ const AdvancedSearchInput: FC<{
               e.preventDefault();
               // searchAdvanced(inputValues).then((r) => console.log(r));
               setShouldPerformSearch(true);
+              trackAdvancedSearch(
+                { searchQuery: inputValues, searchType: 'search_button' },
+                getUid()!,
+              )
+                .then()
+                .catch((err) => console.error(err));
               // goToDefinition(inputValue, pathname, searchLang, router);
               // setShouldPerformSearch(true);
               // trackTranslationSearch({
