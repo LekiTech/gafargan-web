@@ -175,14 +175,36 @@ export async function searchAdvanced({
   }
 
   if (tag != undefined) {
-    query.andWhere(
-      `(:tag = ANY(definition.tags)
+    if (tag.includes(';')) {
+      const tags = tag
+        .split(';')
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      query.andWhere(
+        `(
+        EXISTS (
+          SELECT 1 FROM unnest(:tags::text[]) AS t
+          WHERE t = ANY(definition.tags)
+        )
         OR EXISTS (
-          SELECT 1 FROM unnest(definition.values) AS val
-          WHERE val::jsonb ? 'tags' AND val::jsonb -> 'tags' @> to_jsonb(ARRAY[:tag]::text[])
-        ))`,
-      { tag: tag },
-    );
+          SELECT 1 FROM unnest(definition.values) AS val,
+                       unnest(:tags::text[]) AS t
+          WHERE val::jsonb ? 'tags' AND val::jsonb -> 'tags' @> to_jsonb(ARRAY[t])
+        )
+      )`,
+        { tags },
+      );
+    } else {
+      query.andWhere(
+        `(:tag = ANY(definition.tags)
+          OR EXISTS (
+            SELECT 1 FROM unnest(definition.values) AS val
+            WHERE val::jsonb ? 'tags' AND val::jsonb -> 'tags' @> to_jsonb(ARRAY[:tag]::text[])
+          ))`,
+        { tag: tag },
+      );
+    }
   }
 
   // query
@@ -221,6 +243,7 @@ export async function searchAdvanced({
   const [dataRaw, totalItems] = await query.getManyAndCount();
 
   const items = JSON.parse(JSON.stringify(dataRaw)) as Word[];
+  console.log(items);
   return {
     items,
     totalItems,

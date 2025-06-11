@@ -37,11 +37,11 @@
   },
   "advancedSearch": {
     "starts": "Гафунин эвел",
-    "contains": "Вичик квазва",
+    "contains": "Вичик ква",
     "ends": "Гафунин эхир",
-    "minLength": "Мин. яргъивал",
-    "maxLength": "Макс. яргъивал",
-    "tags": "Тегар"
+    "minLength": "Агъа яргъ",
+    "maxLength": "Вини яргъ",
+    "tags": "Яржар"
   },
   "dialects": {
     "Literary": "Литературадин",

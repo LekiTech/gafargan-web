@@ -618,6 +618,13 @@ const advancedInputSlotProps: TextFieldProps['slotProps'] = {
   },
 };
 
+function getSingleInputTagValue(inputTag: string): string {
+  if (inputTag.includes(';')) {
+    return inputTag.split(';')[0];
+  }
+  return inputTag;
+}
+
 const AdvancedSearchInput: FC<{
   router: AppRouterInstance;
   pathname: string;
@@ -813,7 +820,12 @@ const AdvancedSearchInput: FC<{
             return parsedSelected[0];
           }}
           value={
-            inputValues.tag ? JSON.stringify([tagEntries[inputValues.tag], inputValues.tag]) : '[]'
+            inputValues.tag
+              ? JSON.stringify([
+                  tagEntries[getSingleInputTagValue(inputValues.tag)],
+                  inputValues.tag,
+                ])
+              : '[]'
           }
           onChange={(e) => {
             const value = JSON.parse(e.target.value);

@@ -90,11 +90,11 @@ export function flipAndMergeTags(input: Record<string, string>): Record<string, 
   for (const [key, value] of Object.entries(input)) {
     if (result[value]) {
       result[value] += `;${key}`;
+      // console.warn('duplicate tag values:', value, result[value]);
     } else {
       result[value] = key;
     }
   }
-
   return result;
 }
 
