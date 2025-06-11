@@ -41,6 +41,7 @@ import { trackAdvancedSearch, trackTranslationSearch } from '@api/mixpanel';
 import { AdvancedSearchQuery, FoundSpelling } from '@repository/types.model';
 import { flipAndMergeTags } from '../definition/utils';
 import { getUid } from '../../../utils/localstorage';
+import { replaceVerticalBar } from '../../../utils/normalizeLezgi';
 
 const MOBILE_INPUT_HEIGHT = 30;
 const MOBILE_FILLED_INPUT_HEIGHT = 35;
@@ -86,13 +87,13 @@ const goToPaginatedResult = (
     `pageSize=${searchQuery.pageSize}`,
   ];
   if (searchQuery.starts) {
-    queryParams.push(`&s=${searchQuery.starts}`);
+    queryParams.push(`&s=${replaceVerticalBar(searchQuery.starts)}`);
   }
   if (searchQuery.contains) {
-    queryParams.push(`&c=${searchQuery.contains}`);
+    queryParams.push(`&c=${replaceVerticalBar(searchQuery.contains)}`);
   }
   if (searchQuery.ends) {
-    queryParams.push(`&e=${searchQuery.ends}`);
+    queryParams.push(`&e=${replaceVerticalBar(searchQuery.ends)}`);
   }
   if (searchQuery.minLength) {
     queryParams.push(`&minl=${searchQuery.minLength}`);
@@ -103,6 +104,7 @@ const goToPaginatedResult = (
   if (searchQuery.tag) {
     queryParams.push(`&tag=${searchQuery.tag}`);
   }
+  console.log('queryParams', queryParams);
   const href = `${prefix}?${queryParams.join('&')}`;
   router.push(href);
 };
