@@ -1,7 +1,7 @@
 'use client';
-import React, { FC } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { WebsiteLang } from '@api/types.model';
-import { Box, Pagination } from '@mui/material';
+import { Backdrop, Box, CircularProgress, Pagination } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { Word } from '@repository/entities/Word';
 import { FoundWordsList } from './FoundWordsList';
@@ -16,12 +16,17 @@ type AdvancedSearchResultsProps = {
 
 export const AdvancedSearchResults: FC<AdvancedSearchResultsProps> = ({ lang, paginatedWords }) => {
   const { t } = useTranslation(lang);
+  const [isLoading, setIsLoading] = useState(false);
+  useEffect(() => {
+    setIsLoading(false);
+  }, [paginatedWords]);
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = toNumber(searchParams.get('page') ?? 1);
   const handleChange = (event: React.ChangeEvent<unknown>, newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', newPage.toString());
+    setIsLoading(true);
     router.replace(`?${params.toString()}`);
   };
   return (
@@ -67,6 +72,12 @@ export const AdvancedSearchResults: FC<AdvancedSearchResultsProps> = ({ lang, pa
           onChange={handleChange}
         />
       </Box>
+      <Backdrop
+        sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+        open={isLoading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Box>
   );
 };

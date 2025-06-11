@@ -200,6 +200,7 @@ export const Search: FC<{
           searchParams={searchParams}
           searchLang={searchLang}
           websiteLang={lang}
+          areSearchParamsAllowingNewSearch={areSearchParamsAllowingNewSearch}
           setIsLoading={setIsLoading}
           setIsAdvancedSearch={setIsAdvancedSearch}
         />
@@ -631,6 +632,7 @@ const AdvancedSearchInput: FC<{
   searchParams: ReadonlyURLSearchParams;
   searchLang: SearchLang;
   websiteLang: WebsiteLang;
+  areSearchParamsAllowingNewSearch: boolean;
   setIsAdvancedSearch: (isAdvancedSearch: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
 }> = ({
@@ -639,6 +641,7 @@ const AdvancedSearchInput: FC<{
   searchParams,
   searchLang,
   websiteLang,
+  areSearchParamsAllowingNewSearch,
   setIsAdvancedSearch,
   setIsLoading,
 }) => {
@@ -665,6 +668,7 @@ const AdvancedSearchInput: FC<{
     wordLangDialectIds: LangToId[searchLang.from],
     definitionsLangDialectIds: LangToId[searchLang.to],
   });
+  const [prevInputValues, setPrevInputValues] = useState<AdvancedSearchQuery>(inputValues);
 
   useEffect(() => {
     setInputValues((prevValue) => ({
@@ -674,9 +678,26 @@ const AdvancedSearchInput: FC<{
     }));
   }, [searchLang]);
 
+  const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
+  useEffect(() => {
+    if (shouldPerformSearch) {
+      console.log('areSearchParamsAllowingNewSearch', areSearchParamsAllowingNewSearch);
+      if (
+        areSearchParamsAllowingNewSearch ||
+        JSON.stringify(prevInputValues) != JSON.stringify(inputValues)
+      ) {
+        setIsLoading(true);
+      }
+      goToPaginatedResult(inputValues, pathname, searchLang, router);
+      setPrevInputValues(inputValues);
+      setShouldPerformSearch(false);
+    }
+  }, [inputValues, areSearchParamsAllowingNewSearch, searchLang, shouldPerformSearch]);
+
   const onEnterPressSearch: KeyboardEventHandler<HTMLDivElement> = (e) => {
     if (e.key === 'Enter') {
-      goToPaginatedResult(inputValues, pathname, searchLang, router);
+      setShouldPerformSearch(true);
+      // goToPaginatedResult(inputValues, pathname, searchLang, router);
     }
   };
   // useEffect(() => {
@@ -913,7 +934,7 @@ const AdvancedSearchInput: FC<{
               e.currentTarget.blur();
               e.preventDefault();
               // searchAdvanced(inputValues).then((r) => console.log(r));
-              goToPaginatedResult(inputValues, pathname, searchLang, router);
+              setShouldPerformSearch(true);
               // goToDefinition(inputValue, pathname, searchLang, router);
               // setShouldPerformSearch(true);
               // trackTranslationSearch({
