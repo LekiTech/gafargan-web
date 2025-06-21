@@ -4,7 +4,7 @@ import { WebsiteLang } from '../../../../../api/types.model';
 import { Divider, Stack, Typography } from '@mui/material';
 import { expressionFont } from '@/fonts';
 import { DefinitionDetailsComp } from './DefinitionComp';
-import { createOtherExamplesId, createSpellingId } from '../utils';
+import { createOtherExamplesId, createSpellingId, langDialectToString } from '../utils';
 import { ExamplesComp } from './ExampleComp';
 import { useTranslation } from 'react-i18next';
 import { toLowerCaseLezgi } from '../../../../utils';
@@ -83,6 +83,11 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
         </Typography>
         <Typography variant="h6" color="text.secondary" sx={{ mb: '10px' }}>
           {data.inflection}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ mb: '10px' }}>
+          {langDialectToString(wordLangDialect!, t, {
+            showOnlyDialect: true,
+          })}
         </Typography>
         {data.definitions.map((dd, i) => (
           <DefinitionDetailsComp
