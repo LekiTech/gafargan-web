@@ -1,31 +1,60 @@
 import { FC } from 'react';
 import { CustomPaginationActionsTable } from './crud-table';
-import { getPaginatedWords } from '@repository/word.repository';
+import { getPaginatedWords, searchAdvanced } from '@repository/word.repository';
 import { redirect } from 'next/navigation';
 import { Routes } from '../../routes';
-import { Params, SearchParams } from '@/types';
+import { AdvancedSearchParams, Params, SearchParams } from '@/types';
 import { FoundDefinitionsList } from './FoundDefinitionsList';
+import { initTranslations } from '@i18n/index';
+import { LangToId } from '@api/languages';
+import { toNumber } from '../../utils';
 
 const EmployeesCrudPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
-  params: paramsPromise,
+  params,
+  searchParams,
 }) => {
-  const { lang } = await paramsPromise;
+  const { lang } = await params;
+  const searchParamValues = await searchParams;
+  const { fromLang, toLang, page, pageSize, s, c, e, tag, minl, maxl } =
+    searchParamValues as AdvancedSearchParams;
+  const { t } = await initTranslations(lang);
+
+  const paginatedWords = await searchAdvanced({
+    page: toNumber(page),
+    pageSize: toNumber(pageSize),
+    starts: s,
+    contains: c,
+    ends: e,
+    minLength: minl,
+    maxLength: maxl,
+    tag: tag,
+    wordLangDialectIds: LangToId[fromLang],
+    definitionsLangDialectIds: LangToId[toLang],
+  });
+  if (page > paginatedWords.totalPages) {
+    redirect(
+      `/${lang}/dashboard?` +
+        Object.entries({ ...searchParamValues, page: paginatedWords.totalPages })
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value ?? '')}`)
+          .join('&'),
+    );
+  }
 
   // Temporary disabled in prod until finishd with development
   if (process.env.NODE_ENV === 'production') {
     redirect(`/${lang}/${Routes.UserSearchPage}`);
   }
 
-  const words = await getPaginatedWords({
-    page: 0,
-    size: 100,
-    wordLangDialectId: 1,
-    definitionsLangDialectId: 25,
-  });
+  // const words = await getPaginatedWords({
+  //   page: 0,
+  //   size: 100,
+  //   wordLangDialectId: 1,
+  //   definitionsLangDialectId: 25,
+  // });
   return (
     // <div>Hello world!</div>
     // <CustomPaginationActionsTable words={words} />
-    <FoundDefinitionsList lang={lang} words={words} />
+    <FoundDefinitionsList lang={lang} paginatedWords={paginatedWords} />
   );
 };
 

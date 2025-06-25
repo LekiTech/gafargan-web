@@ -5,29 +5,33 @@ import { DashboardLayout, PageContainer, Navigation, Branding } from '@toolpad/c
 import { usePathname, useParams } from 'next/navigation';
 import LinearProgress from '@mui/material/LinearProgress';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import SpellcheckIcon from '@mui/icons-material/Spellcheck';
+import TextIncreaseIcon from '@mui/icons-material/TextIncrease';
 import PersonIcon from '@mui/icons-material/Person';
 import { WebsiteLang } from '@api/types.model';
 import { useTranslation } from 'react-i18next';
 import images from '@/store/images';
 import { useTheme } from '@mui/material';
 
-const NAVIGATION = (lang: WebsiteLang): Navigation => [
-  {
-    kind: 'header',
-    title: 'Main items',
-  },
-  {
-    segment: `${lang}/dashboard`,
-    title: 'Dashboard',
-    icon: <DashboardIcon />,
-  },
-  {
-    segment: `${lang}/employees`,
-    title: 'Employees',
-    icon: <PersonIcon />,
-    pattern: 'employees{/:employeeId}*',
-  },
-];
+const NAVIGATION = (lang: WebsiteLang): Navigation => {
+  return [
+    {
+      kind: 'header',
+      title: 'Main items',
+    },
+    {
+      segment: `${lang}/dashboard`,
+      title: 'Review',
+      icon: <SpellcheckIcon />,
+    },
+    {
+      segment: `${lang}/employees`,
+      title: 'Add Word',
+      icon: <TextIncreaseIcon />,
+      // pattern: 'employees{/:employeeId}*',
+    },
+  ];
+};
 
 const BRANDING = (lang: WebsiteLang): Branding => ({
   title: 'Gafargan Dashboard',

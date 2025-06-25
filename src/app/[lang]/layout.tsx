@@ -8,6 +8,7 @@ import { colors } from './colors';
 import { Params, RootLayoutProps } from './types';
 import { initTranslations } from '@i18n/index';
 import { headers } from 'next/headers';
+import Providers from './Providers';
 
 const languages = ['eng', 'rus', 'lez'];
 
@@ -60,7 +61,7 @@ export default async function RootLayout(props: RootLayoutProps) {
         style={{ backgroundColor: colors.background, margin: 0, overflowX: 'hidden' }}
       >
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
-          {children}
+          <Providers locale={lang}>{children}</Providers>
         </AppRouterCacheProvider>
       </body>
     </html>

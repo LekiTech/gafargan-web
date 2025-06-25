@@ -11,7 +11,7 @@ import {
   useScrollTrigger,
   useTheme,
 } from '@mui/material';
-import { Search } from './Search';
+import { Search } from '../../components/Search';
 import { DictionaryLang, WebsiteLang } from '../../../../api/types.model';
 import images from '@/store/images';
 import { ElevationScroll } from './ElevateScroll';
@@ -180,7 +180,7 @@ const TopBar = (props: TopBarProps) => {
                     },
                   })}
                 >
-                  <Search lang={currentLang} />
+                  <Search lang={currentLang} colors={colors} />
                 </Grid>
               )}
               <Grid size={{ xs: 6, md: 2 }} order={{ xs: 2, md: 3 }}>

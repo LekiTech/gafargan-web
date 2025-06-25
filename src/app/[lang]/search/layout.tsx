@@ -48,7 +48,8 @@ export default async function RootLayout(props: RootLayoutProps) {
   const message = t('tryGafarganOffline');
   const imageLang = lang === 'lez' ? 'rus' : lang;
   return (
-    <Providers locale={lang}>
+    // <Providers locale={lang}>
+    <>
       <TopBar currentLang={lang as WebsiteLang} sessionId={sessionId?.value} />
       {children}
       {/* TODO: add popup with link to App Store and Play Store */}
@@ -81,6 +82,6 @@ export default async function RootLayout(props: RootLayoutProps) {
           </a>
         )}
       </PromoSnackbar>
-    </Providers>
+    </>
   );
 }

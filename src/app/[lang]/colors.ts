@@ -9,3 +9,5 @@ export const colors = {
     dark: '#333',
   },
 };
+
+export type Colors = typeof colors;
