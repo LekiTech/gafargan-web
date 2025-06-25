@@ -25,7 +25,7 @@ const NAVIGATION = (lang: WebsiteLang): Navigation => {
       icon: <SpellcheckIcon />,
     },
     {
-      segment: `${lang}/employees`,
+      segment: `${lang}/dashboard/add-word`,
       title: 'Add Word',
       icon: <TextIncreaseIcon />,
       // pattern: 'employees{/:employeeId}*',
