@@ -3,7 +3,8 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Responsive iOS-style Lezgi Keyboard</title>
   <style>
     :root {
@@ -360,6 +361,21 @@
 
       function hideCallout() { if (callout) { callout.remove(); callout = null; } }
       document.addEventListener('pointerdown', e => { if (callout && !e.target.closest('.callout-option') && !e.target.closest('.key')) hideCallout(); }, { passive: true });
+    })();
+  </script>
+  <script>
+    // ---- Prevent iOS Safari double‑tap zoom ----
+    (function () {
+      let lastTap = 0;
+      function cancelZoom(e) {
+        const now = Date.now();
+        if (now - lastTap < 350) { e.preventDefault(); }
+        lastTap = now;
+      }
+      document.addEventListener('touchstart', cancelZoom, { passive: false });
+      document.addEventListener('dblclick', e => e.preventDefault(), { passive: false });
+      // block pinch gesture zoom
+      document.addEventListener('gesturestart', e => e.preventDefault());
     })();
   </script>
 </body>
