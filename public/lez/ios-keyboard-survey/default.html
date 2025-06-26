@@ -62,6 +62,40 @@
       color: #fff;
     }
 
+
+    /* ——— floating feedback ——— */
+    .feedback {
+      position: fixed;
+      right: 1rem;
+      bottom: calc(env(keyboard-inset-bottom, 0px) + 15.5rem);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 300;
+      pointer-events: auto;
+    }
+
+    .fb-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid #ccc;
+      background: #fff;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+      user-select: none;
+    }
+
+    .fb-btn.disabled {
+      opacity: .4;
+      pointer-events: none;
+    }
+
+
     /* Multiline textarea that autogrows */
     #textInput {
       margin: 1rem;
@@ -200,6 +234,16 @@
     <a href="./email.html" class="mode-btn" data-mode="email">email</a>
   </nav>
   <textarea id="textInput" rows="1" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+
+
+  <!-- Disabled for now, needs connection to analytics tool or something similar -->
+  <!-- floating like / dislike -->
+  <!-- <div class="feedback">
+    <button id="likeBtn" class="fb-btn" aria-label="Like">👍</button>
+    <button id="dislikeBtn" class="fb-btn" aria-label="Dislike">👎</button>
+  </div> -->
+
+
   <div class="keyboard" id="keyboard">
     <!-- Row 1 -->
     <div class="row">
