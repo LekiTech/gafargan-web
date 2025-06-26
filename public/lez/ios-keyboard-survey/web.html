@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Responsive iOS-style Russian Keyboard</title>
+  <title>Responsive iOS-style Lezgi Keyboard</title>
   <style>
     :root {
       --key-min: 24px;
@@ -13,6 +13,7 @@
       --factor-return: 1.5;
       --gap: 6px;
       --pad-h: 8px;
+      --accent: #007aff;
     }
 
     @font-face {
@@ -57,8 +58,8 @@
 
     .mode-btn.active {
       background: var(--accent);
-      /* border-color: var(--accent); */
-      /* color: #fff; */
+      border-color: var(--accent);
+      color: #fff;
     }
 
     /* Multiline textarea that autogrows */
