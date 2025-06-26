@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Responsive iOS-style Russian Keyboard</title>
+  <style>
+    :root {
+      --key-min: 24px;
+      --factor-letter: 1;
+      --factor-func: 1.25;
+      --factor-return: 1.5;
+      --gap: 6px;
+      --pad-h: 8px;
+    }
+
+    @font-face {
+      font-family: "SF Pro";
+      src: local("SF Pro Display"), local("SF Pro Text"), local("-apple-system")
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      margin: 0;
+      padding: 0
+    }
+
+    body {
+      font-family: "SF Pro", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+      background: #f2f2f2;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* mode toggle */
+    .mode-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 1rem 0 0;
+    }
+
+    .mode-btn {
+      padding: 6px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: #fff;
+      text-decoration: none;
+      color: #000;
+      font-size: 0.9rem;
+      user-select: none;
+      cursor: pointer;
+    }
+
+    .mode-btn.active {
+      background: var(--accent);
+      /* border-color: var(--accent); */
+      /* color: #fff; */
+    }
+
+    /* Multiline textarea that autogrows */
+    #textInput {
+      margin: 1rem;
+      padding: .6rem .8rem;
+      font-size: 1.5rem;
+      width: calc(100% - 2rem);
+      min-height: 2.4em;
+      max-height: 40vh;
+      line-height: 1.2em;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: none;
+      overflow: hidden;
+      background: #fff;
+      inputmode: none;
+    }
+
+    .keyboard {
+      position: relative;
+      margin-top: auto;
+      padding: 4px;
+      background: #d1d3d8;
+      border-top: 1px solid #a9aaac;
+      box-shadow: 0 -2px 4px rgba(0, 0, 0, .1);
+    }
+
+    .row {
+      display: flex;
+      gap: var(--gap);
+      width: 100%;
+      margin-bottom: 6px;
+      justify-content: center
+    }
+
+    .row-last {
+      justify-content: flex-start
+    }
+
+    .key {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      height: calc(var(--key-min)*1.7);
+      font-size: 1.25rem;
+      cursor: pointer;
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, .25);
+      transition: background .05s, box-shadow .05s;
+      flex: var(--factor-letter) 1 var(--key-min);
+      min-width: var(--key-min);
+      position: relative;
+    }
+
+    .key:active {
+      background: #c7c9ce;
+      box-shadow: none
+    }
+
+    .key.pressed {
+      background: #c7c9ce;
+      box-shadow: none
+    }
+
+    .key.action {
+      background: #c7c9ce;
+      font-size: 1rem;
+      flex: var(--factor-func) 1 calc(var(--key-min)*var(--factor-func));
+    }
+
+    .key[data-value="shift"] {
+      font-size: 1.4rem
+    }
+
+    .key[data-value="return"] {
+      flex: var(--factor-return) 1 calc(var(--key-min)*var(--factor-return));
+    }
+
+    .key.space {
+      flex: 4 1 calc(var(--key-min)*4);
+      font-size: 0.8rem
+    }
+
+    /* callout */
+    .callout {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: flex;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, .25);
+      padding: 6px;
+      z-index: 100;
+      --arrow-pos: 50%;
+    }
+
+    .callout:after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: var(--arrow-pos);
+      transform: translateX(-50%);
+      width: 12px;
+      height: 6px;
+      background: #fff;
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+    }
+
+    .callout-option {
+      padding: 8px 12px;
+      font-size: 1.25rem;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .callout-option:hover,
+    .callout-option.pressed {
+      background: #e0e0e0;
+    }
+
+    .key,
+    .callout-option {
+      -webkit-user-select: none;
+      user-select: none;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- toggle buttons -->
+  <nav class="mode-toggle" id="modeToggle">
+    <a href="#" class="mode-btn active" data-mode="default">default</a>
+    <a href="./web.html" class="mode-btn" data-mode="safari">safari</a>
+    <a href="./email.html" class="mode-btn" data-mode="email">email</a>
+  </nav>
+  <textarea id="textInput" rows="1" autocomplete="off" autocorrect="off" spellcheck="false"></textarea>
+  <div class="keyboard" id="keyboard">
+    <!-- Row 1 -->
+    <div class="row">
+      <div class="key">й</div>
+      <div class="key" data-alt="цӏ">ц</div>
+      <div class="key" data-alt="уь">у</div>
+      <div class="key" data-alt="кь,къ,кӏ">к</div>
+      <div class="key">е</div>
+      <div class="key">н</div>
+      <div class="key" data-alt="гъ,гь">г</div>
+      <div class="key">ш</div>
+      <div class="key">щ</div>
+      <div class="key">з</div>
+      <div class="key" data-alt="хь,хъ">х</div>
+    </div>
+    <!-- Row 2 -->
+    <div class="row">
+      <div class="key">ф</div>
+      <div class="key">ы</div>
+      <div class="key">в</div>
+      <div class="key">а</div>
+      <div class="key" data-alt="пӏ">п</div>
+      <div class="key">р</div>
+      <div class="key">о</div>
+      <div class="key">л</div>
+      <div class="key">д</div>
+      <div class="key">ж</div>
+      <div class="key">э</div>
+    </div>
+    <!-- Row 3 -->
+    <div class="row">
+      <div class="key action" data-value="shift">⇧</div>
+      <div class="key">я</div>
+      <div class="key" data-alt="чӏ">ч</div>
+      <div class="key">с</div>
+      <div class="key">м</div>
+      <div class="key">и</div>
+      <div class="key" data-alt="тӏ">т</div>
+      <div class="key">ь</div>
+      <div class="key">б</div>
+      <div class="key">ю</div>
+      <div class="key action" data-value="delete">⌫</div>
+    </div>
+    <!-- Row 4 -->
+    <div class="row row-last">
+      <div class="key action" data-value="numbers">123</div>
+      <div class="key action" data-value="emoji">😊</div>
+      <div class="key space" data-value="space">Ахъагъун</div>
+      <div class="key">ъ</div>
+      <div class="key">ӏ</div>
+      <div class="key action" data-value="return">Ттун</div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const input = document.getElementById('textInput');
+      const keyboard = document.getElementById('keyboard');
+      let isShift = false;
+      let holdTimer = null, callout = null;
+      const LONG_PRESS = 400;
+
+      // Auto‑grow textarea height
+      const autoGrow = () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, window.innerHeight * 0.4) + 'px'; };
+      autoGrow();
+
+      // prevent OS keyboard
+      input.addEventListener('focus', e => e.target.blur(), { passive: true });
+
+      input.addEventListener('input', autoGrow);
+
+      // visual feedback
+      ['pointerdown', 'pointerup', 'pointercancel', 'pointerleave'].forEach(evt => keyboard.addEventListener(evt, e => {
+        const k = e.target.closest('.key'); if (!k) return; (evt === 'pointerdown') ? k.classList.add('pressed') : k.classList.remove('pressed');
+      }, { passive: true }));
+      // functional
+      ['pointerdown', 'pointerup'].forEach(evt => keyboard.addEventListener(evt, handleKey, { passive: false }));
+
+      function handleKey(e) {
+        const key = e.target.closest('.key'); if (!key) return;
+        if (e.type === 'pointerdown') {
+          const alt = key.dataset.alt; if (alt) holdTimer = setTimeout(() => showCallout(key, alt.split(',')), LONG_PRESS);
+          return;
+        }
+        clearTimeout(holdTimer);
+        if (callout) return; // wait for callout selection
+        insertKey(key);
+      }
+
+      function insertKey(key, charOverride) {
+        if (charOverride !== undefined) { input.value += charOverride; autoGrow(); return; }
+        const val = key.dataset.value || key.textContent.trim();
+        switch (val) {
+          case 'delete': input.value = input.value.slice(0, -1); break;
+          case 'shift': toggleShift(); break;
+          case 'space': input.value += ' '; break;
+          case 'return':
+          case 'ввод': input.value += '\n'; break;
+          case 'numbers': break;
+          default:
+            input.value += isShift ? val.toUpperCase() : val.toLowerCase();
+            if (isShift) toggleShift();
+        }
+        autoGrow();
+      }
+
+      function toggleShift() {
+        isShift = !isShift;
+        document.querySelectorAll('.row .key:not(.action)').forEach(k => { const b = k.textContent.toLowerCase(); k.textContent = isShift ? b.toUpperCase() : b; });
+        document.querySelector('[data-value="shift"]').style.background = isShift ? '#ffffff' : '#c7c9ce';
+      }
+
+      // callout formatting helper
+      function formatOption(opt) {
+        if (opt.length === 1) { return isShift ? opt.toUpperCase() : opt.toLowerCase(); }
+        const first = isShift ? opt[0].toUpperCase() : opt[0].toLowerCase();
+        const secondRaw = opt[1];
+        const second = secondRaw === 'ӏ' ? (isShift ? 'Ӏ' : 'ӏ') : secondRaw.toLowerCase();
+        return first + second + (opt.length > 2 ? opt.slice(2).toLowerCase() : '');
+      }
+
+      // callout display
+      function showCallout(origin, options) {
+        hideCallout();
+        callout = document.createElement('div'); callout.className = 'callout';
+        options.forEach(o => { const el = document.createElement('div'); el.className = 'callout-option'; el.textContent = formatOption(o); callout.appendChild(el); });
+        keyboard.appendChild(callout);
+        positionCallout(origin);
+        callout.addEventListener('pointerdown', ev => { const opt = ev.target.closest('.callout-option'); if (opt) opt.classList.add('pressed'); }, { passive: true });
+        callout.addEventListener('pointerup', ev => { const opt = ev.target.closest('.callout-option'); if (!opt) return; insertKey(origin, opt.textContent); hideCallout(); }, { passive: true });
+      }
+
+      function positionCallout(origin) {
+        const kRect = origin.getBoundingClientRect(); const kbRect = keyboard.getBoundingClientRect(); const coRect = callout.getBoundingClientRect();
+        let left = kRect.left + kRect.width / 2 - coRect.width / 2;
+        left = Math.max(kbRect.left + 4, Math.min(left, kbRect.right - coRect.width - 4));
+        callout.style.left = (left - kbRect.left) + 'px';
+        callout.style.top = (kRect.top - kbRect.top - coRect.height - 4) + 'px';
+        const arrowCenter = (kRect.left + kRect.width / 2) - left;
+        callout.style.setProperty('--arrow-pos', arrowCenter + 'px');
+      }
+
+      function hideCallout() { if (callout) { callout.remove(); callout = null; } }
+      document.addEventListener('pointerdown', e => { if (callout && !e.target.closest('.callout-option') && !e.target.closest('.key')) hideCallout(); }, { passive: true });
+    })();
+  </script>
+</body>
+
+</html>
