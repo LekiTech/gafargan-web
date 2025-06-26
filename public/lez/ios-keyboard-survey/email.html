@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Responsive iOS-style Lezgi Keyboard</title>
   <style>
     :root {
@@ -31,7 +31,7 @@
     body {
       font-family: "SF Pro", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
       background: #f2f2f2;
-      min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
     }
@@ -79,13 +79,28 @@
       inputmode: none;
     }
 
-    .keyboard {
+    /* .keyboard {
       position: relative;
       margin-top: auto;
       padding: 4px;
       background: #d1d3d8;
       border-top: 1px solid #a9aaac;
       box-shadow: 0 -2px 4px rgba(0, 0, 0, .1);
+    } */
+    .keyboard {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: env(keyboard-inset-bottom, 0);
+      padding: 4px var(--pad-h) 8px;
+      background: #d1d3d8;
+      border-top: 1px solid #a9aaac;
+      box-shadow: 0 -2px 4px rgba(0, 0, 0, .1);
+      touch-action: none;
+    }
+
+    body {
+      padding-bottom: calc(var(--kbd-h)+env(keyboard-inset-bottom, 0));
     }
 
     .row {
