@@ -4,6 +4,7 @@ import { Routes } from '../../../routes';
 import { Params, SearchParams } from '@/types';
 import { FoundDefinitionsList } from '../FoundDefinitionsList';
 import { AddWordForm } from '../components/AddWordForm';
+import { WordEntry } from '../components/WordEntry';
 
 const AddWordPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
   params,
@@ -26,7 +27,8 @@ const AddWordPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
   return (
     // <div>Hello world!</div>
     // <CustomPaginationActionsTable words={words} />
-    <AddWordForm />
+    // <AddWordForm />
+    <WordEntry />
   );
 };
 
