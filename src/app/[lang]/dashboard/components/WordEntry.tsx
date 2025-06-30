@@ -224,10 +224,6 @@ export const WordEntry: React.FC = () => {
 
   return (
     <Box sx={{ maxWidth: 1000, width: 1000, mx: 'auto', p: 2 }}>
-      <Typography variant="h4" align="center" gutterBottom>
-        Word Entry (React / MUI)
-      </Typography>
-
       {/* global selectors */}
       <Paper sx={{ p: 3, mb: 4 }} elevation={3}>
         <Grid container spacing={2}>
@@ -332,19 +328,10 @@ export const WordEntry: React.FC = () => {
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Autocomplete
                     multiple
+                    sx={{ height: '100%' }}
                     options={TAGS}
                     value={entry.wordDetails[0].tags}
                     onChange={(_, v) => updateDetail(idx, { tags: v })}
-                    renderValue={(value: string[], getTagProps) =>
-                      value.map((option: string, index: number) => (
-                        <Chip
-                          variant="outlined"
-                          label={option}
-                          {...getTagProps({ index })}
-                          key={option}
-                        />
-                      ))
-                    }
                     renderInput={(params) => <TextField {...params} label="Tags" size="small" />}
                   />
                 </Grid>
@@ -400,18 +387,18 @@ export const WordEntry: React.FC = () => {
                         options={TAGS}
                         value={def.tags}
                         onChange={(_, v) => updateDefinition(idx, dIdx, { tags: v })}
-                        renderTags={(value, getTagProps) =>
-                          value.map((option, index) => (
-                            <Chip
-                              variant="outlined"
-                              label={option}
-                              {...getTagProps({ index })}
-                              key={option}
-                            />
-                          ))
-                        }
+                        // renderTags={(value, getTagProps) =>
+                        //   value.map((option, index) => (
+                        //     <Chip
+                        //       variant="outlined"
+                        //       label={option}
+                        //       {...getTagProps({ index })}
+                        //       key={option}
+                        //     />
+                        //   ))
+                        // }
                         renderInput={(params) => (
-                          <TextField {...params} label="Tags" size="small" />
+                          <TextField {...params} label="Tags" size="medium" />
                         )}
                       />
                     </Grid>
@@ -450,7 +437,7 @@ export const WordEntry: React.FC = () => {
         </Paper>
       ))}
 
-      <Box textAlign="center" my={2}>
+      <Box textAlign="left" my={2}>
         <Button variant="contained" startIcon={<AddIcon />} onClick={addRow}>
           Add word
         </Button>
