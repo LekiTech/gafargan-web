@@ -13,6 +13,7 @@ import {
   Stack,
   useTheme,
   useMediaQuery,
+  Divider,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -105,19 +106,39 @@ const TagSelector: React.FC<TagSelectorProps> = ({
 };
 
 /* ---------------- ExampleLine ---------------- */
-const ExampleLine: React.FC<{ value: string; onChange: (v: string) => void }> = ({
-  value,
-  onChange,
-}) => (
-  <Box display="flex" alignItems="center" gap={1} mt={0.5} ml={3}>
-    <Typography color="text.secondary">—</Typography>
+const ExampleLine: React.FC<{
+  value: string;
+  onChange: (v: string) => void;
+  isInnerBlockExample: boolean;
+}> = ({ value, onChange, isInnerBlockExample }) => (
+  <Box display="flex" alignItems="center" gap={2} mt={0.5}>
+    {isInnerBlockExample && <Typography color="text.secondary">—</Typography>}
     <TextField
       variant="standard"
       fullWidth
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="example"
-      InputProps={{ disableUnderline: true }}
+      slotProps={{
+        input: {
+          disableUnderline: true,
+          style: { borderBottom: '1px dashed #000' },
+        },
+      }}
+    />
+    <Typography color="text.secondary">:</Typography>
+    <TextField
+      variant="standard"
+      fullWidth
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder="example translation"
+      slotProps={{
+        input: {
+          disableUnderline: true,
+          style: { borderBottom: '1px dashed #000' },
+        },
+      }}
     />
   </Box>
 );
@@ -168,26 +189,30 @@ const DefinitionBlock: React.FC<{
           value={def.txt}
           onChange={(e) => patch({ txt: e.target.value })}
         />
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2.5 }}>
+        {def.ex.map((ex, i) => (
+          <ExampleLine
+            key={i}
+            value={ex}
+            isInnerBlockExample={true}
+            onChange={(v) => {
+              const copy = [...def.ex];
+              copy[i] = v;
+              patch({ ex: copy });
+            }}
+          />
+        ))}
         <Chip
           label="example"
           icon={<AddIcon />}
           variant="outlined"
           color="primary"
           size="small"
+          sx={{ width: 'fit-content', mt: 1.5 }}
           onClick={() => patch({ ex: [...def.ex, ''] })}
         />
       </Box>
-      {def.ex.map((ex, i) => (
-        <ExampleLine
-          key={i}
-          value={ex}
-          onChange={(v) => {
-            const copy = [...def.ex];
-            copy[i] = v;
-            patch({ ex: copy });
-          }}
-        />
-      ))}
     </Box>
   );
 };
@@ -216,7 +241,7 @@ const WordDetailBlock: React.FC<{
           placeholder="inflection"
           value={data.inf}
           onChange={(e) => patch({ inf: e.target.value })}
-          sx={{ width: 100 }}
+          sx={{ width: 200 }}
         />
         {/* tags */}
         <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
@@ -247,14 +272,16 @@ const WordDetailBlock: React.FC<{
       </Stack>
       {/* definitions */}
       {data.defs.map((d, i) => (
-        <DefinitionBlock
-          key={i}
-          idx={i}
-          def={d}
-          onChange={(def) => updateDef(i, def)}
-          tagEntries={tagEntries}
-          allTags={allTags}
-        />
+        <Box key={i}>
+          {i > 0 && <Divider sx={{ mt: 1.5 }} />}
+          <DefinitionBlock
+            idx={i}
+            def={d}
+            onChange={(def) => updateDef(i, def)}
+            tagEntries={tagEntries}
+            allTags={allTags}
+          />
+        </Box>
       ))}
 
       {/* word‑detail examples */}
@@ -262,6 +289,7 @@ const WordDetailBlock: React.FC<{
         <ExampleLine
           key={i}
           value={ex}
+          isInnerBlockExample={false}
           onChange={(v) => {
             const copy = [...data.extraEx];
             copy[i] = v;
@@ -317,10 +345,10 @@ const Entry: React.FC<{
   const addWD = () =>
     onChange({ ...entry, wordDetails: [...entry.wordDetails, emptyWD()], open: true });
   return (
-    <Box mb={2} ml={1.5}>
+    <Box mb={2}>
       {/* top line */}
       <Box display="flex" alignItems="flex-end" gap={1} sx={{ width: '100%' }}>
-        <IconButton size="small" onClick={toggleOpen} sx={{ ml: '-20px' }}>
+        <IconButton size="small" onClick={toggleOpen}>
           {entry.open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
         <TextField
