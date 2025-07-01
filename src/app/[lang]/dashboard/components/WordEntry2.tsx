@@ -11,6 +11,8 @@ import {
   Popover,
   Button,
   Stack,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -70,7 +72,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
 }) => {
   const [filter, setFilter] = useState('');
   // const matches = TAG_OPTIONS.filter((t) => t.includes(filter));
-  const matches = allTags.filter((t) => t[1].includes(filter));
+  const matches = allTags.filter((t) => t[0].toLowerCase().includes(filter.toLowerCase()));
   const toggle = (t: string) => {
     onChange(selected.includes(t) ? selected.filter((x) => x !== t) : [...selected, t]);
   };
@@ -132,7 +134,7 @@ const DefinitionBlock: React.FC<{
   const patch = (p: Partial<Definition>) => onChange({ ...def, ...p });
   return (
     <Box mt={1}>
-      <Box display="flex" gap={1} alignItems="flex-start">
+      <Box display="flex" gap={1} alignItems="center">
         <Typography fontWeight={600}>{idx + 1}.</Typography>
         <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
           {def.tags.map((t) => (
@@ -269,11 +271,24 @@ const WordDetailBlock: React.FC<{
       ))}
 
       {/* controls */}
-      <Box mt={1}>
-        <Button size="small" onClick={() => patch({ defs: [...data.defs, emptyDef()] })}>
+      <Box
+        mt={2}
+        mb={1}
+        gap={1}
+        sx={{ display: 'flex', flexDirection: 'column', width: 'fit-content' }}
+      >
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => patch({ defs: [...data.defs, emptyDef()] })}
+        >
           ＋ add definition
         </Button>
-        <Button size="small" onClick={() => patch({ extraEx: [...data.extraEx, ''] })}>
+        <Button
+          variant="outlined"
+          size="small"
+          onClick={() => patch({ extraEx: [...data.extraEx, ''] })}
+        >
           ＋ other examples
         </Button>
       </Box>
@@ -288,6 +303,8 @@ const Entry: React.FC<{
   onRemove: () => void;
   lang: WebsiteLang;
 }> = ({ entry, onChange, onRemove, lang }) => {
+  // const theme = useTheme();
+  // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
   const toggleOpen = () => {
     if (!entry.open && entry.wordDetails.length === 0) {
       onChange({ ...entry, open: true, wordDetails: [emptyWD(entry.quick)] });
@@ -300,7 +317,7 @@ const Entry: React.FC<{
   const addWD = () =>
     onChange({ ...entry, wordDetails: [...entry.wordDetails, emptyWD()], open: true });
   return (
-    <Box mb={2}>
+    <Box mb={2} ml={1.5}>
       {/* top line */}
       <Box display="flex" alignItems="flex-end" gap={1} sx={{ width: '100%' }}>
         <IconButton size="small" onClick={toggleOpen} sx={{ ml: '-20px' }}>
@@ -342,7 +359,7 @@ const Entry: React.FC<{
           {entry.wordDetails.map((wd, i) => (
             <WordDetailBlock key={i} data={wd} onChange={(d) => updateWD(i, d)} lang={lang} />
           ))}
-          <Button size="small" onClick={addWD} sx={{ mt: 1 }}>
+          <Button variant="outlined" size="small" onClick={addWD} sx={{ mt: 1, ml: 1.5 }}>
             ＋ add word details block
           </Button>
         </Box>
@@ -362,7 +379,7 @@ export const WordEntry2: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
     setEntries((prev) => prev.map((en, idx) => (idx === i ? e : en)));
   const removeEntry = (i: number) => setEntries((prev) => prev.filter((_, idx) => idx !== i));
   return (
-    <Box>
+    <Box sx={{ maxWidth: 600 }}>
       {/* header + selectors */}
       <Box display="flex" alignItems="center" gap={1} mb={2}>
         <Select size="small" defaultValue="EN_US">
