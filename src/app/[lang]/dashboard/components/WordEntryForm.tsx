@@ -124,7 +124,13 @@ const ExampleLine: React.FC<{
     <Box display="flex" alignItems="baseline" gap={2} mt={0.5}>
       {isInnerBlockExample && <Typography color="text.secondary">●</Typography>}
       {/* tags */}
-      <Box display="flex" alignItems="baseline" gap={1} flexWrap="wrap">
+      <Box
+        display="flex"
+        alignItems="baseline"
+        gap={1}
+        flexWrap="wrap"
+        sx={{ alignSelf: 'end', mt: '5px' }}
+      >
         {example.tags?.map((t) => (
           <Chip
             key={t}
@@ -205,7 +211,14 @@ const DefinitionBlock: React.FC<{
     <Box mt={1}>
       <Box display="flex" gap={1} alignItems="baseline">
         <Typography fontWeight={600}>{idx + 1}.</Typography>
-        <Box display="flex" alignItems="baseline" gap={1} flexWrap="wrap">
+        {/* tags */}
+        <Box
+          display="flex"
+          alignItems="baseline"
+          gap={1}
+          flexWrap="wrap"
+          sx={{ alignSelf: 'end', mt: '5px' }}
+        >
           {def.tags?.map((t) => (
             <Chip
               key={t}
@@ -437,6 +450,7 @@ const Entry: React.FC<{
     <Box
       sx={{
         border: '1px solid #333',
+        borderBottom: isLast ? undefined : 'unset',
         borderTopLeftRadius: isFirst ? '4px' : 0,
         borderTopRightRadius: isFirst ? '4px' : 0,
         borderBottomLeftRadius: isLast ? '4px' : 0,
@@ -496,7 +510,7 @@ const Entry: React.FC<{
 
       {/* collapsible */}
       {entry.open && (
-        <Box mt={1} mb={1}>
+        <Box mt={1} pb={1}>
           {entry.wordDetails.map((wd, i) => (
             <WordDetailBlock
               key={i}
