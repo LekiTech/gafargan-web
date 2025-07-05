@@ -20,26 +20,31 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { expressionFont } from '@/fonts';
 import { useTranslation } from 'react-i18next';
 import { flipAndMergeTags } from '@/search/definition/utils';
 import { WebsiteLang } from '@api/types.model';
 
 /* ---------------- types ---------------- */
+interface Example {
+  src: string;
+  trl: string;
+  tags?: string[];
+}
 interface Definition {
-  txt: string;
-  tags: string[];
-  ex: string[];
+  value: string;
+  tags?: string[];
+  examples?: Example[];
 }
 interface WordDetail {
-  inf: string;
-  tags: string[];
-  defs: Definition[];
-  extraEx: string[];
+  inflection: string;
+  tags?: string[];
+  definitions: Definition[];
+  examples?: Example[];
 }
 export interface EntryData {
   spelling: string;
-  quick: string;
   open: boolean;
   wordDetails: WordDetail[];
 }
@@ -48,12 +53,10 @@ export interface EntryData {
 // const TAG_OPTIONS = ['noun', 'verb', 'adj', 'formal', 'archaic'] as const;
 
 /* ---------------- helpers ---------------- */
-const emptyDef = (seed = ''): Definition => ({ txt: seed, tags: [], ex: [] });
+const emptyDef = (seed = ''): Definition => ({ value: seed });
 const emptyWD = (seed = ''): WordDetail => ({
-  inf: '',
-  tags: [],
-  defs: [emptyDef(seed)],
-  extraEx: [],
+  inflection: '',
+  definitions: [emptyDef(seed)],
 });
 
 /* ---------------- TagSelector ---------------- */
@@ -84,6 +87,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
           size="small"
           fullWidth
           placeholder="search tag"
+          autoComplete="off"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
         />
@@ -107,63 +111,107 @@ const TagSelector: React.FC<TagSelectorProps> = ({
 
 /* ---------------- ExampleLine ---------------- */
 const ExampleLine: React.FC<{
-  value: string;
-  onChange: (v: string) => void;
+  example: Example;
+  onChange: (v: Example) => void;
+  onDelete: () => void;
   isInnerBlockExample: boolean;
-}> = ({ value, onChange, isInnerBlockExample }) => (
-  <Box display="flex" alignItems="center" gap={2} mt={0.5}>
-    {isInnerBlockExample && <Typography color="text.secondary">—</Typography>}
-    <TextField
-      variant="standard"
-      fullWidth
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder="example"
-      slotProps={{
-        input: {
-          disableUnderline: true,
-          style: { borderBottom: '1px dashed #000' },
-        },
-      }}
-    />
-    <Typography color="text.secondary">:</Typography>
-    <TextField
-      variant="standard"
-      fullWidth
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder="example translation"
-      slotProps={{
-        input: {
-          disableUnderline: true,
-          style: { borderBottom: '1px dashed #000' },
-        },
-      }}
-    />
-  </Box>
-);
+  tagEntries: Record<string, string>;
+  allTags: [string, string][];
+}> = ({ example, onChange, onDelete, isInnerBlockExample, tagEntries, allTags }) => {
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const patch = (p: Partial<Definition>) => onChange({ ...example, ...p });
+  return (
+    <Box display="flex" alignItems="baseline" gap={2} mt={0.5}>
+      {isInnerBlockExample && <Typography color="text.secondary">●</Typography>}
+      {/* tags */}
+      <Box display="flex" alignItems="baseline" gap={1} flexWrap="wrap">
+        {example.tags?.map((t) => (
+          <Chip
+            key={t}
+            label={tagEntries[t.split(';')[0]]}
+            size="small"
+            onDelete={() => patch({ tags: example.tags?.filter((x) => x !== t) })}
+          />
+        ))}
+        <Chip
+          label="tags"
+          icon={<AddIcon />}
+          variant="outlined"
+          color="primary"
+          size="small"
+          onClick={(e) => setAnchor(e.currentTarget)}
+        />
+        <TagSelector
+          anchorEl={anchor}
+          selected={example.tags ?? []}
+          onClose={() => setAnchor(null)}
+          onChange={(tags) => patch({ tags })}
+          allTags={allTags}
+        />
+      </Box>
+      <TextField
+        variant="standard"
+        fullWidth
+        value={example.src}
+        onChange={(e) => onChange({ ...example, src: e.target.value })}
+        placeholder="example"
+        autoComplete="off"
+        slotProps={{
+          input: {
+            disableUnderline: true,
+            style: { borderBottom: '1px dashed #000' },
+          },
+        }}
+      />
+      <Typography color="text.secondary">:</Typography>
+      <TextField
+        variant="standard"
+        fullWidth
+        value={example.trl}
+        onChange={(e) => onChange({ ...example, trl: e.target.value })}
+        placeholder="example translation"
+        autoComplete="off"
+        slotProps={{
+          input: {
+            disableUnderline: true,
+            style: { borderBottom: '1px dashed #000' },
+          },
+        }}
+      />
+      <IconButton size="small" onClick={onDelete} sx={{ alignSelf: 'flex-end' }} color="error">
+        <DeleteOutlineIcon fontSize="small" />
+      </IconButton>
+    </Box>
+  );
+};
 
 /* ---------------- DefinitionBlock ---------------- */
 const DefinitionBlock: React.FC<{
   idx: number;
   def: Definition;
   onChange: (d: Definition) => void;
+  onDelete: () => void;
   tagEntries: Record<string, string>;
   allTags: [string, string][];
-}> = ({ idx, def, onChange, tagEntries, allTags }) => {
+}> = ({ idx, def, onChange, onDelete, tagEntries, allTags }) => {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const patch = (p: Partial<Definition>) => onChange({ ...def, ...p });
+  const deleteEx = (i: number) => {
+    if (def.examples && def.examples.length > 0) {
+      patch({ examples: def.examples.filter((_, idx) => idx !== i) });
+    }
+  };
   return (
     <Box mt={1}>
-      <Box display="flex" gap={1} alignItems="center">
+      <Box display="flex" gap={1} alignItems="baseline">
         <Typography fontWeight={600}>{idx + 1}.</Typography>
-        <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
-          {def.tags.map((t) => (
+        <Box display="flex" alignItems="baseline" gap={1} flexWrap="wrap">
+          {def.tags?.map((t) => (
             <Chip
               key={t}
-              label={t.split(';')[0]}
+              label={tagEntries[t.split(';')[0]]}
               size="small"
-              onDelete={() => patch({ tags: def.tags.filter((x) => x !== t) })}
+              onDelete={() => patch({ tags: def.tags?.filter((x) => x !== t) })}
             />
           ))}
           <Chip
@@ -176,7 +224,7 @@ const DefinitionBlock: React.FC<{
           />
           <TagSelector
             anchorEl={anchor}
-            selected={def.tags}
+            selected={def.tags ?? []}
             onClose={() => setAnchor(null)}
             onChange={(tags) => patch({ tags })}
             allTags={allTags}
@@ -185,22 +233,29 @@ const DefinitionBlock: React.FC<{
         <TextField
           variant="standard"
           placeholder="definition"
+          autoComplete="off"
           fullWidth
-          value={def.txt}
-          onChange={(e) => patch({ txt: e.target.value })}
+          value={def.value}
+          onChange={(e) => patch({ value: e.target.value })}
         />
+        <IconButton size="small" onClick={onDelete} color="error">
+          <DeleteOutlineIcon fontSize="small" />
+        </IconButton>
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2.5 }}>
-        {def.ex.map((ex, i) => (
+        {def.examples?.map((ex, i) => (
           <ExampleLine
             key={i}
-            value={ex}
+            example={ex}
             isInnerBlockExample={true}
             onChange={(v) => {
-              const copy = [...def.ex];
+              const copy = [...(def.examples ?? [])];
               copy[i] = v;
-              patch({ ex: copy });
+              patch({ examples: copy });
             }}
+            onDelete={() => deleteEx(i)}
+            tagEntries={tagEntries}
+            allTags={allTags}
           />
         ))}
         <Chip
@@ -210,7 +265,7 @@ const DefinitionBlock: React.FC<{
           color="primary"
           size="small"
           sx={{ width: 'fit-content', mt: 1.5 }}
-          onClick={() => patch({ ex: [...def.ex, ''] })}
+          onClick={() => patch({ examples: [...(def.examples ?? []), { src: '', trl: '' }] })}
         />
       </Box>
     </Box>
@@ -221,8 +276,9 @@ const DefinitionBlock: React.FC<{
 const WordDetailBlock: React.FC<{
   data: WordDetail;
   onChange: (wd: WordDetail) => void;
+  onDelete: () => void;
   lang: WebsiteLang;
-}> = ({ data, onChange, lang }) => {
+}> = ({ data, onChange, onDelete, lang }) => {
   const { t, i18n } = useTranslation(lang);
   const tagEntries = i18n.getResourceBundle(lang, 'tags');
   const allTags = Object.entries(flipAndMergeTags(tagEntries)).filter(
@@ -232,25 +288,28 @@ const WordDetailBlock: React.FC<{
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const patch = (p: Partial<WordDetail>) => onChange({ ...data, ...p });
   const updateDef = (i: number, def: Definition) =>
-    patch({ defs: data.defs.map((d, idx) => (idx === i ? def : d)) });
+    patch({ definitions: data.definitions.map((d, idx) => (idx === i ? def : d)) });
+  const deleteDef = (i: number) => {
+    if (data.definitions.length > 1) {
+      patch({ definitions: data.definitions.filter((_, idx) => idx !== i) });
+    }
+  };
+  const deleteExtraEx = (i: number) => {
+    if (data.examples && data.examples.length > 0) {
+      patch({ examples: data.examples.filter((_, idx) => idx !== i) });
+    }
+  };
   return (
     <Box mt={2} pl={1} ml={1.5} borderLeft="3px solid rgba(0,0,0,0.54)" className="word-detail">
       <Stack direction="row" gap={2}>
-        <TextField
-          variant="standard"
-          placeholder="inflection"
-          value={data.inf}
-          onChange={(e) => patch({ inf: e.target.value })}
-          sx={{ width: 200 }}
-        />
         {/* tags */}
         <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
-          {data.tags.map((t) => (
+          {data.tags?.map((t) => (
             <Chip
               key={t}
               label={tagEntries[t.split(';')[0]]}
               size="small"
-              onDelete={() => patch({ tags: data.tags.filter((x) => x !== t) })}
+              onDelete={() => patch({ tags: data.tags?.filter((x) => x !== t) })}
             />
           ))}
           <Chip
@@ -263,21 +322,35 @@ const WordDetailBlock: React.FC<{
           />
           <TagSelector
             anchorEl={anchor}
-            selected={data.tags}
+            selected={data.tags ?? []}
             onClose={() => setAnchor(null)}
             onChange={(tags) => patch({ tags })}
             allTags={allTags}
           />
         </Box>
+        {/* inflection */}
+        <TextField
+          variant="standard"
+          placeholder="inflection"
+          autoComplete="off"
+          value={data.inflection}
+          onChange={(e) => patch({ inflection: e.target.value })}
+          sx={{ width: 200 }}
+        />
+        <Box sx={{ width: '100%' }} />
+        <IconButton size="small" onClick={onDelete} color="error">
+          <DeleteOutlineIcon fontSize="small" />
+        </IconButton>
       </Stack>
       {/* definitions */}
-      {data.defs.map((d, i) => (
+      {data.definitions.map((d, i) => (
         <Box key={i}>
-          {i > 0 && <Divider sx={{ mt: 1.5 }} />}
+          <Divider sx={{ mt: 1.5 }} />
           <DefinitionBlock
             idx={i}
             def={d}
             onChange={(def) => updateDef(i, def)}
+            onDelete={() => deleteDef(i)}
             tagEntries={tagEntries}
             allTags={allTags}
           />
@@ -285,16 +358,19 @@ const WordDetailBlock: React.FC<{
       ))}
 
       {/* word‑detail examples */}
-      {data.extraEx.map((ex, i) => (
+      {data.examples?.map((ex, i) => (
         <ExampleLine
           key={i}
-          value={ex}
+          example={ex}
           isInnerBlockExample={false}
           onChange={(v) => {
-            const copy = [...data.extraEx];
+            const copy = [...(data.examples ?? [])];
             copy[i] = v;
-            patch({ extraEx: copy });
+            patch({ examples: copy });
           }}
+          onDelete={() => deleteExtraEx(i)}
+          tagEntries={tagEntries}
+          allTags={allTags}
         />
       ))}
 
@@ -308,16 +384,18 @@ const WordDetailBlock: React.FC<{
         <Button
           variant="outlined"
           size="small"
-          onClick={() => patch({ defs: [...data.defs, emptyDef()] })}
+          startIcon={<AddIcon />}
+          onClick={() => patch({ definitions: [...data.definitions, emptyDef()] })}
         >
-          ＋ add definition
+          definition
         </Button>
         <Button
           variant="outlined"
           size="small"
-          onClick={() => patch({ extraEx: [...data.extraEx, ''] })}
+          startIcon={<AddIcon />}
+          onClick={() => patch({ examples: [...(data.examples ?? []), { src: '', trl: '' }] })}
         >
-          ＋ other examples
+          other examples
         </Button>
       </Box>
     </Box>
@@ -328,24 +406,43 @@ const WordDetailBlock: React.FC<{
 const Entry: React.FC<{
   entry: EntryData;
   onChange: (e: EntryData) => void;
-  onRemove: () => void;
+  onDelete: () => void;
   lang: WebsiteLang;
-}> = ({ entry, onChange, onRemove, lang }) => {
+  isFirst?: boolean;
+  isLast?: boolean;
+}> = ({ entry, onChange, onDelete, lang, isFirst, isLast }) => {
   // const theme = useTheme();
   // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
   const toggleOpen = () => {
     if (!entry.open && entry.wordDetails.length === 0) {
-      onChange({ ...entry, open: true, wordDetails: [emptyWD(entry.quick)] });
+      onChange({
+        ...entry,
+        open: true,
+        wordDetails: [emptyWD(entry.wordDetails[0].definitions[0].value)],
+      });
     } else {
       onChange({ ...entry, open: !entry.open });
     }
   };
-  const updateWD = (i: number, wd: WordDetail) =>
-    onChange({ ...entry, wordDetails: entry.wordDetails.map((w, idx) => (idx === i ? wd : w)) });
   const addWD = () =>
     onChange({ ...entry, wordDetails: [...entry.wordDetails, emptyWD()], open: true });
+  const updateWD = (i: number, wd: WordDetail) =>
+    onChange({ ...entry, wordDetails: entry.wordDetails.map((w, idx) => (idx === i ? wd : w)) });
+  const deleteWD = (i: number) => {
+    if (entry.wordDetails.length > 1) {
+      onChange({ ...entry, wordDetails: entry.wordDetails.filter((_, idx) => idx !== i) });
+    }
+  };
   return (
-    <Box mb={2}>
+    <Box
+      sx={{
+        border: '1px solid #333',
+        borderTopLeftRadius: isFirst ? '4px' : 0,
+        borderTopRightRadius: isFirst ? '4px' : 0,
+        borderBottomLeftRadius: isLast ? '4px' : 0,
+        borderBottomRightRadius: isLast ? '4px' : 0,
+      }}
+    >
       {/* top line */}
       <Box display="flex" alignItems="flex-end" gap={1} sx={{ width: '100%' }}>
         <IconButton size="small" onClick={toggleOpen}>
@@ -355,6 +452,7 @@ const Entry: React.FC<{
           variant="standard"
           value={entry.spelling}
           placeholder="word"
+          autoComplete="off"
           onChange={(e) => onChange({ ...entry, spelling: e.target.value })}
           sx={{
             minWidth: '30%',
@@ -363,32 +461,59 @@ const Entry: React.FC<{
               fontWeight: 'bold',
             },
           }}
+          slotProps={{
+            input: { disableUnderline: !entry.open },
+          }}
         />
-        <Typography>:</Typography>
+        <Box
+          sx={{ height: '34px', p: '5px 0', borderRight: entry.open ? 'unset' : '1px solid #333' }}
+        >
+          {/* {entry.open && <Typography>:</Typography>} */}
+        </Box>
         {!entry.open ? (
           <TextField
             variant="standard"
             fullWidth
-            value={entry.quick}
+            value={entry.wordDetails[0].definitions[0].value}
             placeholder="definition"
-            onChange={(e) => onChange({ ...entry, quick: e.target.value })}
+            autoComplete="off"
+            onChange={(e) => {
+              const copy = { ...entry };
+              copy.wordDetails[0].definitions[0].value = e.target.value;
+              onChange(copy);
+            }}
+            slotProps={{
+              input: { disableUnderline: !entry.open },
+            }}
           />
         ) : (
           <div style={{ flex: 1, width: '100%' }} />
         )}
-        <IconButton size="small" onClick={onRemove} sx={{ alignSelf: 'flex-end' }} color="error">
+        <IconButton size="small" onClick={onDelete} sx={{ alignSelf: 'flex-end' }} color="error">
           <DeleteIcon fontSize="small" />
         </IconButton>
       </Box>
 
       {/* collapsible */}
       {entry.open && (
-        <Box mt={1}>
+        <Box mt={1} mb={1}>
           {entry.wordDetails.map((wd, i) => (
-            <WordDetailBlock key={i} data={wd} onChange={(d) => updateWD(i, d)} lang={lang} />
+            <WordDetailBlock
+              key={i}
+              data={wd}
+              onChange={(d) => updateWD(i, d)}
+              onDelete={() => deleteWD(i)}
+              lang={lang}
+            />
           ))}
-          <Button variant="outlined" size="small" onClick={addWD} sx={{ mt: 1, ml: 1.5 }}>
-            ＋ add word details block
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<AddIcon />}
+            onClick={addWD}
+            sx={{ mt: 1, ml: 1.5 }}
+          >
+            word details block
           </Button>
         </Box>
       )}
@@ -397,15 +522,25 @@ const Entry: React.FC<{
 };
 
 /* ---------------- Root component ---------------- */
-export const WordEntry2: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
+export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
   const [entries, setEntries] = useState<EntryData[]>([
-    { spelling: '', quick: '', open: false, wordDetails: [] },
+    {
+      spelling: '',
+      open: false,
+      wordDetails: [{ inflection: '', definitions: [{ value: '' }] }],
+    },
   ]);
   const addEntry = () =>
-    setEntries((prev) => [...prev, { spelling: '', quick: '', open: false, wordDetails: [] }]);
+    setEntries((prev) => [...prev, { spelling: '', open: false, wordDetails: [emptyWD('')] }]);
   const updateEntry = (i: number, e: EntryData) =>
     setEntries((prev) => prev.map((en, idx) => (idx === i ? e : en)));
-  const removeEntry = (i: number) => setEntries((prev) => prev.filter((_, idx) => idx !== i));
+  const deleteEntry = (i: number) =>
+    setEntries((prev) => {
+      if (prev.length > 1) {
+        return prev.filter((_, idx) => idx !== i);
+      }
+      return prev;
+    });
   return (
     <Box sx={{ maxWidth: 600 }}>
       {/* header + selectors */}
@@ -431,20 +566,36 @@ export const WordEntry2: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
           key={idx}
           entry={en}
           onChange={(e) => updateEntry(idx, e)}
-          onRemove={() => removeEntry(idx)}
+          onDelete={() => deleteEntry(idx)}
           lang={lang}
+          isFirst={idx === 0}
+          isLast={idx === entries.length - 1}
         />
       ))}
-
       <Button
         variant="contained"
         size="small"
-        disableElevation
-        onClick={addEntry}
         startIcon={<AddIcon />}
+        onClick={addEntry}
+        sx={{ mt: '4px' }}
       >
-        Add new word
+        Gaf
       </Button>
+      {/* <IconButton
+        onClick={addEntry}
+        sx={(theme) => ({
+          mt: '4px',
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
+          borderRadius: '4px',
+          ':hover': {
+            backgroundColor: theme.palette.primary.dark,
+            color: theme.palette.primary.contrastText,
+          },
+        })}
+      >
+        <AddIcon />
+      </IconButton> */}
 
       {/* live json */}
       <Box mt={4}>

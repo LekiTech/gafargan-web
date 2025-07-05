@@ -20,13 +20,13 @@ const NAVIGATION = (lang: WebsiteLang): Navigation => {
       title: 'Main items',
     },
     {
-      segment: `${lang}/dashboard`,
+      segment: `${lang}/dashboard/review`,
       title: 'Review',
       icon: <SpellcheckIcon />,
     },
     {
       segment: `${lang}/dashboard/add-word`,
-      title: 'Add Word',
+      title: 'Add Words',
       icon: <TextIncreaseIcon />,
       // pattern: 'employees{/:employeeId}*',
     },
@@ -36,7 +36,7 @@ const NAVIGATION = (lang: WebsiteLang): Navigation => {
 const BRANDING = (lang: WebsiteLang): Branding => ({
   title: 'Gafargan Dashboard',
   logo: <img src={images.logo.src} />,
-  homeUrl: `${lang}/dashboard`,
+  homeUrl: `/${lang}/dashboard`,
 });
 
 export default function DashboardPagesLayout(props: { children: React.ReactNode }) {

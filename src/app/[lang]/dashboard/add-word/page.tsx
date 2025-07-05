@@ -2,10 +2,7 @@ import { FC } from 'react';
 import { redirect } from 'next/navigation';
 import { Routes } from '../../../routes';
 import { Params, SearchParams } from '@/types';
-import { FoundDefinitionsList } from '../FoundDefinitionsList';
-import { AddWordForm } from '../components/AddWordForm';
-import { WordEntry } from '../components/WordEntry';
-import { WordEntry2 } from '../components/WordEntry2';
+import { WordEntryForm } from '../components/WordEntryForm';
 
 const AddWordPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
   params,
@@ -29,7 +26,7 @@ const AddWordPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
     // <div>Hello world!</div>
     // <CustomPaginationActionsTable words={words} />
     // <AddWordForm />
-    <WordEntry2 lang={lang} />
+    <WordEntryForm lang={lang} />
   );
 };
 
