@@ -6,3 +6,7 @@ export const DictionaryPairs: ReadonlyArray<[l1: DictionaryLang, l2: DictionaryL
   ['lez', 'rus'],
   ['tab', 'rus'],
 ];
+
+export function findPairLang(lang: DictionaryLang) {
+  return DictionaryPairs.find((pair) => pair.includes(lang))?.filter((pl) => pl !== lang)[0];
+}

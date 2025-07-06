@@ -1,5 +1,5 @@
 'use client';
-import { DictionaryPairs } from '@/store/constants';
+import { DictionaryPairs, findPairLang } from '@/store/constants';
 import { DictionaryLangs } from '@api/languages';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
 import { Stack, Select, MenuItem, IconButton } from '@mui/material';
@@ -10,10 +10,6 @@ import { FC } from 'react';
 import { SearchLang } from './types';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '@/colors';
-
-function findPairLang(lang: DictionaryLang) {
-  return DictionaryPairs.find((pair) => pair.includes(lang))?.filter((pl) => pl !== lang)[0];
-}
 
 const changeDictLang = (args: {
   lang: DictionaryLang;

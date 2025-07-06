@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -14,6 +14,7 @@ import {
   useTheme,
   useMediaQuery,
   Divider,
+  Grid,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -21,10 +22,13 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import { expressionFont } from '@/fonts';
 import { useTranslation } from 'react-i18next';
 import { flipAndMergeTags } from '@/search/definition/utils';
-import { WebsiteLang } from '@api/types.model';
+import { DictionaryLang, WebsiteLang } from '@api/types.model';
+import { DictionaryLangs } from '@api/languages';
+import { SourcesCreatableSelect, OptionType } from './SearchableCreatableSelect';
 
 /* ---------------- types ---------------- */
 interface Example {
@@ -417,13 +421,14 @@ const WordDetailBlock: React.FC<{
 
 /* ---------------- Entry ---------------- */
 const Entry: React.FC<{
+  idx: number;
   entry: EntryData;
   onChange: (e: EntryData) => void;
   onDelete: () => void;
   lang: WebsiteLang;
   isFirst?: boolean;
   isLast?: boolean;
-}> = ({ entry, onChange, onDelete, lang, isFirst, isLast }) => {
+}> = ({ idx, entry, onChange, onDelete, lang, isFirst, isLast }) => {
   // const theme = useTheme();
   // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
   const toggleOpen = () => {
@@ -449,6 +454,7 @@ const Entry: React.FC<{
   return (
     <Box
       sx={{
+        position: 'relative',
         border: '1px solid #333',
         borderBottom: isLast ? undefined : 'unset',
         borderTopLeftRadius: isFirst ? '4px' : 0,
@@ -458,6 +464,19 @@ const Entry: React.FC<{
       }}
     >
       {/* top line */}
+      <Typography
+        variant="caption"
+        sx={{
+          position: 'absolute',
+          width: '20px',
+          left: '-25px',
+          top: 0,
+          textAlign: 'right',
+          color: '#777',
+        }}
+      >
+        {idx}
+      </Typography>
       <Box display="flex" alignItems="flex-end" gap={1} sx={{ width: '100%' }}>
         <IconButton size="small" onClick={toggleOpen}>
           {entry.open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -537,6 +556,13 @@ const Entry: React.FC<{
 
 /* ---------------- Root component ---------------- */
 export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
+  const { t } = useTranslation(lang);
+  const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
+    DictionaryLang,
+    string
+  >;
+  const addEntryButtonRef = useRef<HTMLButtonElement>(null);
+  // Entries
   const [entries, setEntries] = useState<EntryData[]>([
     {
       spelling: '',
@@ -544,8 +570,10 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
       wordDetails: [{ inflection: '', definitions: [{ value: '' }] }],
     },
   ]);
-  const addEntry = () =>
+  const addEntry = () => {
     setEntries((prev) => [...prev, { spelling: '', open: false, wordDetails: [emptyWD('')] }]);
+    addEntryButtonRef.current?.scrollIntoView({ block: 'start' });
+  };
   const updateEntry = (i: number, e: EntryData) =>
     setEntries((prev) => prev.map((en, idx) => (idx === i ? e : en)));
   const deleteEntry = (i: number) =>
@@ -555,29 +583,56 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
       }
       return prev;
     });
+
+  // Sources
+  const [options, setOptions] = useState<OptionType[]>([
+    { name: 'Лезгинско-Русский Словарь', authors: 'Бабаханов М.М.' },
+    { name: 'Русско-Лезгинский Словарь', authors: 'Гаджиев М.М.' },
+  ]);
+  const [value, setValue] = useState<OptionType | null>(null);
+
+  const handleCreate = (created: OptionType) => {
+    // Persist locally (or via API)
+    setOptions((prev) => [...prev, created]);
+  };
   return (
-    <Box sx={{ maxWidth: 600 }}>
+    <Box sx={(theme) => ({ maxWidth: 600, [theme.breakpoints.down('md')]: { ml: 1.5 } })}>
       {/* header + selectors */}
-      <Box display="flex" alignItems="center" gap={1} mb={2}>
-        <Select size="small" defaultValue="EN_US">
-          <MenuItem value="EN_US">English (US)</MenuItem>
-          <MenuItem value="FR_FR">French (FR)</MenuItem>
-        </Select>
-        <Typography>→</Typography>
-        <Select size="small" defaultValue="FR_FR">
-          <MenuItem value="FR_FR">French (FR)</MenuItem>
-          <MenuItem value="EN_US">English (US)</MenuItem>
-        </Select>
-        <Typography>• Source:</Typography>
-        <Select size="small" defaultValue="Book X, 1992">
-          <MenuItem value="Book X, 1992">Book X (1992)</MenuItem>
-          <MenuItem value="Corpus Y">Corpus Y</MenuItem>
-        </Select>
-      </Box>
+      <Grid container columns={{ xs: 6, md: 7 }} gap={1} mb={5}>
+        <Grid size={{ xs: 6, md: 3 }} display="flex" alignItems="center" gap={1}>
+          <Select size="small" value="lez" sx={{ flex: 1 }}>
+            {DictionaryLangs.map((lang) => (
+              <MenuItem key={lang.toString()} value={lang}>
+                {langs[lang]}
+              </MenuItem>
+            ))}
+          </Select>
+          <Typography>→</Typography>
+          <Select size="small" value="rus" sx={{ flex: 1 }}>
+            {DictionaryLangs.map((lang) => (
+              <MenuItem key={lang.toString()} value={lang}>
+                {langs[lang]}
+              </MenuItem>
+            ))}
+          </Select>
+        </Grid>
+        {/* <Typography>•</Typography> */}
+        <Grid size={{ xs: 6, md: 3 }} display="flex" alignItems="center" gap={1}>
+          <SourcesCreatableSelect
+            label="📚 Source"
+            options={options}
+            value={value}
+            onChange={setValue}
+            onCreate={handleCreate}
+            placeholder="Choose or add"
+          />
+        </Grid>
+      </Grid>
 
       {entries.map((en, idx) => (
         <Entry
           key={idx}
+          idx={idx + 1}
           entry={en}
           onChange={(e) => updateEntry(idx, e)}
           onDelete={() => deleteEntry(idx)}
@@ -587,11 +642,12 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
         />
       ))}
       <Button
+        ref={addEntryButtonRef}
         variant="contained"
         size="small"
         startIcon={<AddIcon />}
         onClick={addEntry}
-        sx={{ mt: '4px' }}
+        sx={{ mt: '4px', mb: 3 }}
       >
         Gaf
       </Button>
@@ -612,14 +668,14 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
       </IconButton> */}
 
       {/* live json */}
-      <Box mt={4}>
+      {/* <Box mt={4}>
         <Typography fontWeight={600} variant="subtitle1">
           Live JSON
         </Typography>
         <pre style={{ background: '#fafaf8', border: '1px solid #ecece6', padding: '0.8rem' }}>
           {JSON.stringify(entries, null, 2)}
         </pre>
-      </Box>
+      </Box> */}
     </Box>
   );
 };
