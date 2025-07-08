@@ -57,7 +57,7 @@ export async function generateMetadata(
       'languages.' + toLang,
     )} ${t('translation').toLowerCase()}`, //.charAt(0).toUpperCase() + spelling.slice(1),
     description:
-      data?.[0]?.details[0].definitions[0]?.values[0].value?.replaceAll(/\{|}|<[^>]*>/g, '') || '',
+      data?.[0]?.details[0].definitions[0]?.values[0]?.value?.replaceAll(/\{|}|<[^>]*>/g, '') || '',
     // openGraph: {
     //   images: ['/some-specific-page-image.jpg', ...previousImages],
     // },
