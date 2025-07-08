@@ -118,34 +118,40 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
   // true if found, false if not
   const isExpressionFound = !!data && data.length > 0;
 
-  const similarWords = isExpressionFound
-    ? []
-    : await suggestionsFuzzy({
-        spelling: normalizedExpValue,
-        wordLangDialectIds: LangToId[fromLang],
-        definitionsLangDialectIds: LangToId[toLang],
-        limit: 5,
-      });
+  const similarWords =
+    // isExpressionFound
+    //   ? []
+    //   :
+    await suggestionsFuzzy({
+      spelling: normalizedExpValue,
+      wordLangDialectIds: LangToId[fromLang],
+      definitionsLangDialectIds: LangToId[toLang],
+      limit: 5,
+    });
 
-  const foundInExamples = isExpressionFound
-    ? undefined
-    : await searchInExamples({
-        spelling: normalizedExpValue,
-        wordLangDialectIds: LangToId[fromLang],
-        definitionsLangDialectIds: LangToId[toLang],
-        limit: 100,
-      });
+  const foundInExamples =
+    // isExpressionFound
+    //   ? []
+    //   :
+    await searchInExamples({
+      spelling: normalizedExpValue,
+      wordLangDialectIds: LangToId[fromLang],
+      definitionsLangDialectIds: LangToId[toLang],
+      limit: 100,
+    });
 
   console.log('data', data);
 
-  const foundInDefinitions = isExpressionFound
-    ? undefined
-    : await searchInDefinitions({
-        spelling: normalizedExpValue,
-        wordLangDialectIds: LangToId[fromLang],
-        definitionsLangDialectIds: LangToId[toLang],
-        limit: 100,
-      });
+  const foundInDefinitions =
+    // isExpressionFound
+    //   ? []
+    //   :
+    await searchInDefinitions({
+      spelling: normalizedExpValue,
+      wordLangDialectIds: LangToId[fromLang],
+      definitionsLangDialectIds: LangToId[toLang],
+      limit: 100,
+    });
 
   return (
     <>

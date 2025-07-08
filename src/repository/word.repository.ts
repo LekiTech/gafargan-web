@@ -366,13 +366,13 @@ export async function searchInDefinitions({
   const findDefinitionsQuery = `
     SELECT DISTINCT ON (d.id, value)
       word_id, spelling, 
-      mv.word_lang_dialect_id AS word_lang_dialect_id,
+      w.lang_dialect_id AS word_lang_dialect_id,
       -- pull out the single matched JSON value
         v.elem->>'value' AS value,
-        mv.definitions_lang_dialect_id AS definitions_lang_dialect_id,
+        wd.lang_dialect_id AS definitions_lang_dialect_id,
       tags, d.created_at
     FROM definition d  
-      JOIN mv_word_definition_translation AS mv ON d.id = mv.definition_id 
+      JOIN word_details AS wd ON d.word_details_id = wd.id 
       JOIN word w ON w.id = word_id
       -- 1) UNNEST the SQL JSON[] array into individual JSON objects:
       CROSS JOIN LATERAL unnest(d.values) AS v(elem)
@@ -380,8 +380,8 @@ export async function searchInDefinitions({
       -- 2) Search inside each JSON object’s "value" field:
       v.elem ->> 'value' ILIKE '%' || $1 || '%'
       -- 3) Compare your dialect IDs as normal integers:
-      AND mv.word_lang_dialect_id = ANY($3) 
-      AND mv.definitions_lang_dialect_id = ANY($2)
+      AND w.lang_dialect_id = ANY($3) 
+      AND wd.lang_dialect_id = ANY($2)
     ORDER BY value, d.id DESC
     LIMIT $4;`;
 

@@ -15,6 +15,8 @@ import {
   useMediaQuery,
   Divider,
   Grid,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -31,34 +33,49 @@ import { DictionaryLangs } from '@api/languages';
 import { SourcesCreatableSelect, OptionType } from './SearchableCreatableSelect';
 
 /* ---------------- types ---------------- */
-interface Example {
+interface ExampleModel {
   src: string;
   trl: string;
   tags?: string[];
 }
-interface Definition {
+interface DefinitionModel {
   value: string;
   tags?: string[];
-  examples?: Example[];
+  examples?: ExampleModel[];
 }
-interface WordDetail {
+interface WordDetailModel {
   inflection: string;
   tags?: string[];
-  definitions: Definition[];
-  examples?: Example[];
+  definitions: DefinitionModel[];
+  examples?: ExampleModel[];
 }
-export interface EntryData {
+interface WordModel {
   spelling: string;
   open: boolean;
-  wordDetails: WordDetail[];
+  wordDetails: WordDetailModel[];
+}
+
+interface SourceShortModel {
+  name: string;
+  authors?: string;
+}
+
+class DictionaryModel {
+  readonly version = 'V3-mini';
+  readonly entries: WordModel[] = [];
+  readonly source: SourceShortModel;
+
+  constructor(source: SourceShortModel) {
+    this.source = source;
+  }
 }
 
 /* ---------------- constants ---------------- */
 // const TAG_OPTIONS = ['noun', 'verb', 'adj', 'formal', 'archaic'] as const;
 
 /* ---------------- helpers ---------------- */
-const emptyDef = (seed = ''): Definition => ({ value: seed });
-const emptyWD = (seed = ''): WordDetail => ({
+const emptyDef = (seed = ''): DefinitionModel => ({ value: seed });
+const emptyWD = (seed = ''): WordDetailModel => ({
   inflection: '',
   definitions: [emptyDef(seed)],
 });
@@ -115,15 +132,15 @@ const TagSelector: React.FC<TagSelectorProps> = ({
 
 /* ---------------- ExampleLine ---------------- */
 const ExampleLine: React.FC<{
-  example: Example;
-  onChange: (v: Example) => void;
+  example: ExampleModel;
+  onChange: (v: ExampleModel) => void;
   onDelete: () => void;
   isInnerBlockExample: boolean;
   tagEntries: Record<string, string>;
   allTags: [string, string][];
 }> = ({ example, onChange, onDelete, isInnerBlockExample, tagEntries, allTags }) => {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const patch = (p: Partial<Definition>) => onChange({ ...example, ...p });
+  const patch = (p: Partial<DefinitionModel>) => onChange({ ...example, ...p });
   return (
     <Box display="flex" alignItems="baseline" gap={2} mt={0.5}>
       {isInnerBlockExample && <Typography color="text.secondary">●</Typography>}
@@ -198,14 +215,14 @@ const ExampleLine: React.FC<{
 /* ---------------- DefinitionBlock ---------------- */
 const DefinitionBlock: React.FC<{
   idx: number;
-  def: Definition;
-  onChange: (d: Definition) => void;
+  def: DefinitionModel;
+  onChange: (d: DefinitionModel) => void;
   onDelete: () => void;
   tagEntries: Record<string, string>;
   allTags: [string, string][];
 }> = ({ idx, def, onChange, onDelete, tagEntries, allTags }) => {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const patch = (p: Partial<Definition>) => onChange({ ...def, ...p });
+  const patch = (p: Partial<DefinitionModel>) => onChange({ ...def, ...p });
   const deleteEx = (i: number) => {
     if (def.examples && def.examples.length > 0) {
       patch({ examples: def.examples.filter((_, idx) => idx !== i) });
@@ -291,8 +308,8 @@ const DefinitionBlock: React.FC<{
 
 /* ---------------- WordDetailBlock ---------------- */
 const WordDetailBlock: React.FC<{
-  data: WordDetail;
-  onChange: (wd: WordDetail) => void;
+  data: WordDetailModel;
+  onChange: (wd: WordDetailModel) => void;
   onDelete: () => void;
   lang: WebsiteLang;
 }> = ({ data, onChange, onDelete, lang }) => {
@@ -303,8 +320,8 @@ const WordDetailBlock: React.FC<{
   ) as [string, string][];
 
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const patch = (p: Partial<WordDetail>) => onChange({ ...data, ...p });
-  const updateDef = (i: number, def: Definition) =>
+  const patch = (p: Partial<WordDetailModel>) => onChange({ ...data, ...p });
+  const updateDef = (i: number, def: DefinitionModel) =>
     patch({ definitions: data.definitions.map((d, idx) => (idx === i ? def : d)) });
   const deleteDef = (i: number) => {
     if (data.definitions.length > 1) {
@@ -422,8 +439,8 @@ const WordDetailBlock: React.FC<{
 /* ---------------- Entry ---------------- */
 const Entry: React.FC<{
   idx: number;
-  entry: EntryData;
-  onChange: (e: EntryData) => void;
+  entry: WordModel;
+  onChange: (e: WordModel) => void;
   onDelete: () => void;
   lang: WebsiteLang;
   isFirst?: boolean;
@@ -431,6 +448,7 @@ const Entry: React.FC<{
 }> = ({ idx, entry, onChange, onDelete, lang, isFirst, isLast }) => {
   // const theme = useTheme();
   // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
+  const [showCannotDeleteMessage, setShowCannotDeleteMessage] = React.useState(false);
   const toggleOpen = () => {
     if (!entry.open && entry.wordDetails.length === 0) {
       onChange({
@@ -444,11 +462,13 @@ const Entry: React.FC<{
   };
   const addWD = () =>
     onChange({ ...entry, wordDetails: [...entry.wordDetails, emptyWD()], open: true });
-  const updateWD = (i: number, wd: WordDetail) =>
+  const updateWD = (i: number, wd: WordDetailModel) =>
     onChange({ ...entry, wordDetails: entry.wordDetails.map((w, idx) => (idx === i ? wd : w)) });
   const deleteWD = (i: number) => {
     if (entry.wordDetails.length > 1) {
       onChange({ ...entry, wordDetails: entry.wordDetails.filter((_, idx) => idx !== i) });
+    } else {
+      setShowCannotDeleteMessage(true);
     }
   };
   return (
@@ -525,6 +545,16 @@ const Entry: React.FC<{
         <IconButton size="small" onClick={onDelete} sx={{ alignSelf: 'flex-end' }} color="error">
           <DeleteIcon fontSize="small" />
         </IconButton>
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          open={showCannotDeleteMessage}
+          autoHideDuration={6000}
+          onClose={() => setShowCannotDeleteMessage(false)}
+        >
+          <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+            Cannot delete the only meanings group
+          </Alert>
+        </Snackbar>
       </Box>
 
       {/* collapsible */}
@@ -546,7 +576,7 @@ const Entry: React.FC<{
             onClick={addWD}
             sx={{ mt: 1, ml: 1.5 }}
           >
-            word details block
+            meanings group
           </Button>
         </Box>
       )}
@@ -563,7 +593,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
   >;
   const addEntryButtonRef = useRef<HTMLButtonElement>(null);
   // Entries
-  const [entries, setEntries] = useState<EntryData[]>([
+  const [entries, setEntries] = useState<WordModel[]>([
     {
       spelling: '',
       open: false,
@@ -574,7 +604,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
     setEntries((prev) => [...prev, { spelling: '', open: false, wordDetails: [emptyWD('')] }]);
     addEntryButtonRef.current?.scrollIntoView({ block: 'start' });
   };
-  const updateEntry = (i: number, e: EntryData) =>
+  const updateEntry = (i: number, e: WordModel) =>
     setEntries((prev) => prev.map((en, idx) => (idx === i ? e : en)));
   const deleteEntry = (i: number) =>
     setEntries((prev) => {
@@ -598,8 +628,18 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
   return (
     <Box sx={(theme) => ({ maxWidth: 600, [theme.breakpoints.down('md')]: { ml: 1.5 } })}>
       {/* header + selectors */}
-      <Grid container columns={{ xs: 6, md: 7 }} gap={1} mb={5}>
-        <Grid size={{ xs: 6, md: 3 }} display="flex" alignItems="center" gap={1}>
+      <Grid container columns={{ xs: 6 }} gap={1} mb={5}>
+        <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
+          <SourcesCreatableSelect
+            label="📚 Source"
+            options={options}
+            value={value}
+            onChange={setValue}
+            onCreate={handleCreate}
+            placeholder="Choose or add"
+          />
+        </Grid>
+        <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
           <Select size="small" value="lez" sx={{ flex: 1 }}>
             {DictionaryLangs.map((lang) => (
               <MenuItem key={lang.toString()} value={lang}>
@@ -617,16 +657,6 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
           </Select>
         </Grid>
         {/* <Typography>•</Typography> */}
-        <Grid size={{ xs: 6, md: 3 }} display="flex" alignItems="center" gap={1}>
-          <SourcesCreatableSelect
-            label="📚 Source"
-            options={options}
-            value={value}
-            onChange={setValue}
-            onCreate={handleCreate}
-            placeholder="Choose or add"
-          />
-        </Grid>
       </Grid>
 
       {entries.map((en, idx) => (
@@ -668,14 +698,14 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
       </IconButton> */}
 
       {/* live json */}
-      {/* <Box mt={4}>
+      <Box mt={4}>
         <Typography fontWeight={600} variant="subtitle1">
           Live JSON
         </Typography>
         <pre style={{ background: '#fafaf8', border: '1px solid #ecece6', padding: '0.8rem' }}>
           {JSON.stringify(entries, null, 2)}
         </pre>
-      </Box> */}
+      </Box>
     </Box>
   );
 };

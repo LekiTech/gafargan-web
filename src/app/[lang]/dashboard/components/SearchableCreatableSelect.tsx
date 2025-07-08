@@ -111,7 +111,7 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
           return filtered;
         }}
         options={options}
-        getOptionLabel={(option) => `"${option.name}" ${option.authors}`}
+        getOptionLabel={(option) => `${option.name} — ${option.authors}`}
         renderOption={(props, option) => (
           <li
             {...props}
