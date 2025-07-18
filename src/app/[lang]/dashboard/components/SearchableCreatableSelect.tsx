@@ -42,6 +42,10 @@ export interface SourcesCreatableSelectProps {
 
 const filter = createFilterOptions<SourceModel>();
 
+function isUserEnteringNewSource(source: SourceModel): boolean {
+  return source.getState() === STATE.ADDED && source.getAuthors() === '';
+}
+
 /**
  * A select component with search + a dialog-based “create new” flow.
  */
@@ -88,9 +92,10 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
         value={value}
         onChange={(event, newValue) => {
           if (newValue) {
-            if ((newValue as SourceModel).getState() === STATE.ADDED) {
+            const newSource = newValue as SourceModel;
+            if (isUserEnteringNewSource(newSource)) {
               // User clicked “Add …” → open dialog.
-              setSourceName((newValue as SourceModel).getName() ?? '');
+              setSourceName(newSource.getName() ?? '');
               setDialogOpen(true);
               return;
             }
@@ -109,7 +114,7 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
             filtered.push(
               new SourceModel({
                 state: STATE.ADDED,
-                name: `Add "${inputValue}"`,
+                name: inputValue,
                 authors: '',
               }),
             );
@@ -124,7 +129,7 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
             key={option.getName() ?? `${option.getName()}_${option.getAuthors()}`}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
           >
-            {option.getName()}
+            {isUserEnteringNewSource(option) ? `Add "${option.getName()}"` : option.getName()}
             <Typography
               key={option.getAuthors()}
               variant="caption"

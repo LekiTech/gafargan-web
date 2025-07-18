@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { CustomPaginationActionsTable } from './crud-table';
 import { getPaginatedWords, searchAdvanced } from '@repository/word.repository';
 import { redirect } from 'next/navigation';
 import { Routes } from '../../routes';
@@ -20,16 +19,16 @@ const EmployeesCrudPage: FC<{ params: Params; searchParams: SearchParams }> = as
   const { t } = await initTranslations(lang);
 
   const paginatedWords = await searchAdvanced({
-    page: toNumber(page),
-    pageSize: toNumber(pageSize),
+    page: toNumber(page || 0),
+    pageSize: toNumber(pageSize || 10),
     starts: s,
     contains: c,
     ends: e,
     minLength: minl,
     maxLength: maxl,
     tag: tag,
-    wordLangDialectIds: LangToId[fromLang],
-    definitionsLangDialectIds: LangToId[toLang],
+    wordLangDialectIds: LangToId[fromLang || 'lez'],
+    definitionsLangDialectIds: LangToId[toLang || 'rus'],
   });
   if (page > paginatedWords.totalPages) {
     redirect(
