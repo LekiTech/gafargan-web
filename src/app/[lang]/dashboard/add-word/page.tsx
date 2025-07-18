@@ -4,7 +4,7 @@ import { Routes } from '../../../routes';
 import { Params, SearchParams } from '@/types';
 import { WordEntryForm } from '../components/WordEntryForm';
 import { getSources } from '@repository/word.repository';
-import { SourceModel, SourceModelType, STATE } from '../models/dictionary.model';
+import { SourceModel, SourceModelType, STATE } from '../models/proposal.model';
 
 const AddWordPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
   params,
@@ -25,13 +25,13 @@ const AddWordPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
       id: source.id,
       name: source.name,
       authors: source.authors ?? undefined,
-      publicationYear: source.publicationYear ?? undefined,
-      providedBy: source.providedBy ?? undefined,
-      providedByUrl: source.providedByUrl ?? undefined,
-      processedBy: source.processedBy ?? undefined,
-      copyright: source.copyright ?? undefined,
-      seeSourceUrl: source.seeSourceUrl ?? undefined,
-      description: source.description ?? undefined,
+      // publicationYear: source.publicationYear ?? undefined,
+      // providedBy: source.providedBy ?? undefined,
+      // providedByUrl: source.providedByUrl ?? undefined,
+      // processedBy: source.processedBy ?? undefined,
+      // copyright: source.copyright ?? undefined,
+      // seeSourceUrl: source.seeSourceUrl ?? undefined,
+      // description: source.description ?? undefined,
     };
   });
   // const words = await getPaginatedWords({

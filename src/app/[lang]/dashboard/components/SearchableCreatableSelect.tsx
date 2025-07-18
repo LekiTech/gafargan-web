@@ -12,7 +12,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { SourceModel, STATE } from '../models/dictionary.model';
+import { SourceModel, STATE } from '../models/proposal.model';
 
 /**
  * The shape of a standard option.

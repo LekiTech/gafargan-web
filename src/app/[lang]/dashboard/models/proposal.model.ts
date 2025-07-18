@@ -651,12 +651,23 @@ export class SourceModel extends Model {
 
 // ============== DictionaryModel ==============
 
-export class DictionaryModel {
+export class DictionaryProposalModel {
   readonly version = 'V3';
   readonly entries: WordModel[];
   readonly source: SourceModel;
 
   constructor(entries: WordModel[], source: SourceModel) {
+    this.entries = entries;
+    this.source = source;
+  }
+}
+
+export class TranslationsProposalModel {
+  readonly version = 'V3';
+  readonly entries: TranslationModel[];
+  readonly source: SourceModel;
+
+  constructor(entries: TranslationModel[], source: SourceModel) {
     this.entries = entries;
     this.source = source;
   }

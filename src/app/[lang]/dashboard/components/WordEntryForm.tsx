@@ -18,7 +18,7 @@ import {
   Snackbar,
   Alert,
 } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import SaveIcon from '@mui/icons-material/Save';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import AddIcon from '@mui/icons-material/Add';
@@ -40,10 +40,10 @@ import {
   DefinitionModelType,
   TranslationModelType,
   WordDetailModelType,
-  DictionaryModel,
+  DictionaryProposalModel,
   SourceModel,
   SourceModelType,
-} from '../models/dictionary.model';
+} from '../models/proposal.model';
 
 /* ---------------- types ---------------- */
 // interface ExampleModel {
@@ -745,11 +745,31 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
 
       {/* live json */}
       <Box mt={4}>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={<SaveIcon />}
+          onClick={async () => {
+            await fetch('add-word/api', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(
+                new DictionaryProposalModel(
+                  entries.filter((e) => !e.isEmpty()),
+                  selectedSource,
+                ),
+              ),
+            });
+          }}
+          sx={{ mt: '4px', mb: 3 }}
+        >
+          Save
+        </Button>
         <Typography fontWeight={600} variant="subtitle1">
           Live JSON
         </Typography>
         <pre style={{ background: '#fafaf8', border: '1px solid #ecece6', padding: '0.8rem' }}>
-          {JSON.stringify(new DictionaryModel(entries, selectedSource), null, 2)}
+          {JSON.stringify(new DictionaryProposalModel(entries, selectedSource), null, 2)}
         </pre>
       </Box>
     </Box>
