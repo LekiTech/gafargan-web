@@ -12,34 +12,35 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
+import { SourceModel, STATE } from '../models/dictionary.model';
 
 /**
  * The shape of a standard option.
  */
-export interface OptionType {
-  name: string;
-  authors: string;
-  /** present only on temporary “Add …” option */
-  inputValue?: string;
-  create?: boolean;
-}
+// export interface OptionType {
+//   name: string;
+//   authors: string;
+//   /** present only on temporary “Add …” option */
+//   inputValue?: string;
+//   create?: boolean;
+// }
 
 export interface SourcesCreatableSelectProps {
   label?: string;
-  options: OptionType[];
-  value: OptionType | null;
-  onChange: (value: OptionType | null) => void;
+  options: SourceModel[];
+  value: SourceModel;
+  onChange: (value: SourceModel) => void;
   /**
    * Called after the user fills in the dialog and saves.
    * Use this to persist the new option in your list.
    */
-  onCreate?: (created: OptionType) => void;
+  onCreate?: (created: SourceModel) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
 }
 
-const filter = createFilterOptions<OptionType>();
+const filter = createFilterOptions<SourceModel>();
 
 /**
  * A select component with search + a dialog-based “create new” flow.
@@ -57,20 +58,21 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const [draftLabel, setDraftLabel] = useState('');
-  const [draftDescription, setDraftDescription] = useState('');
+  const [sourceName, setSourceName] = useState('');
+  const [sourceAuthors, setSourceAuthors] = useState('');
 
   const handleDialogClose = () => {
     setDialogOpen(false);
-    setDraftLabel('');
-    setDraftDescription('');
+    setSourceName('');
+    setSourceAuthors('');
   };
 
   const handleSave = () => {
-    const created: OptionType = {
-      name: draftLabel,
-      authors: draftDescription,
-    };
+    const created: SourceModel = new SourceModel({
+      state: STATE.ADDED,
+      name: sourceName,
+      authors: sourceAuthors,
+    });
     onCreate?.(created);
     onChange(created);
     handleDialogClose();
@@ -85,47 +87,51 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
         disabled={disabled}
         value={value}
         onChange={(event, newValue) => {
-          if (newValue && (newValue as OptionType).create) {
-            // User clicked “Add …” → open dialog.
-            setDraftLabel((newValue as OptionType).inputValue ?? '');
-            setDialogOpen(true);
-            return;
+          if (newValue) {
+            if ((newValue as SourceModel).getState() === STATE.ADDED) {
+              // User clicked “Add …” → open dialog.
+              setSourceName((newValue as SourceModel).getName() ?? '');
+              setDialogOpen(true);
+              return;
+            }
+            onChange(newValue);
           }
-          onChange(newValue);
         }}
         inputValue={inputValue}
         onInputChange={(_, newInputValue) => setInputValue(newInputValue)}
         filterOptions={(opts, params) => {
           const filtered = filter(opts, params);
           const { inputValue } = params;
-          const isExisting = opts.some((o) => o.name.toLowerCase() === inputValue.toLowerCase());
+          const isExisting = opts.some(
+            (o) => o.getName().toLowerCase() === inputValue.toLowerCase(),
+          );
           if (inputValue !== '' && !isExisting) {
-            filtered.push({
-              name: `Add "${inputValue}"`,
-              authors: '',
-
-              inputValue,
-              create: true,
-            });
+            filtered.push(
+              new SourceModel({
+                state: STATE.ADDED,
+                name: `Add "${inputValue}"`,
+                authors: '',
+              }),
+            );
           }
           return filtered;
         }}
         options={options}
-        getOptionLabel={(option) => `${option.name} — ${option.authors}`}
+        getOptionLabel={(option) => `${option.getName()} — ${option.getAuthors()}`}
         renderOption={(props, option) => (
           <li
             {...props}
-            key={option.inputValue ?? `${option.name}_${option.authors}`}
+            key={option.getName() ?? `${option.getName()}_${option.getAuthors()}`}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
           >
-            {option.name}
+            {option.getName()}
             <Typography
-              key={option.authors}
+              key={option.getAuthors()}
               variant="caption"
               ml={1}
               sx={{ minWidth: 'fit-content', alignSelf: 'flex-end' }}
             >
-              {option.authors}
+              {option.getAuthors()}
             </Typography>
           </li>
         )}
@@ -136,27 +142,27 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
 
       {/* Dialog for creating a new option */}
       <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth>
-        <DialogTitle>Add new option</DialogTitle>
+        <DialogTitle>Add new source</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
-              label="Label"
-              value={draftLabel}
-              onChange={(e) => setDraftLabel(e.target.value)}
+              label="Source name"
+              value={sourceName}
+              onChange={(e) => setSourceName(e.target.value)}
               fullWidth
               autoFocus
             />
             <TextField
-              label="Description (optional)"
-              value={draftDescription}
-              onChange={(e) => setDraftDescription(e.target.value)}
+              label="Authors"
+              value={sourceAuthors}
+              onChange={(e) => setSourceAuthors(e.target.value)}
               fullWidth
             />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained" disabled={draftLabel.trim() === ''}>
+          <Button onClick={handleSave} variant="contained" disabled={sourceName.trim() === ''}>
             Save
           </Button>
         </DialogActions>

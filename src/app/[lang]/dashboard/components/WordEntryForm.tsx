@@ -30,55 +30,75 @@ import { useTranslation } from 'react-i18next';
 import { flipAndMergeTags } from '@/search/definition/utils';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
 import { DictionaryLangs } from '@api/languages';
-import { SourcesCreatableSelect, OptionType } from './SearchableCreatableSelect';
+import { SourcesCreatableSelect } from './SearchableCreatableSelect';
+import {
+  DefinitionModel,
+  WordDetailModel,
+  TranslationModel,
+  WordModel,
+  STATE,
+  DefinitionModelType,
+  TranslationModelType,
+  WordDetailModelType,
+  DictionaryModel,
+  SourceModel,
+  SourceModelType,
+} from '../models/dictionary.model';
 
 /* ---------------- types ---------------- */
-interface ExampleModel {
-  src: string;
-  trl: string;
-  tags?: string[];
-}
-interface DefinitionModel {
-  value: string;
-  tags?: string[];
-  examples?: ExampleModel[];
-}
-interface WordDetailModel {
-  inflection: string;
-  tags?: string[];
-  definitions: DefinitionModel[];
-  examples?: ExampleModel[];
-}
-interface WordModel {
-  spelling: string;
-  open: boolean;
-  wordDetails: WordDetailModel[];
-}
+// interface ExampleModel {
+//   src: string;
+//   trl: string;
+//   tags?: string[];
+// }
+// interface DefinitionModel {
+//   value: string;
+//   tags?: string[];
+//   examples?: ExampleModel[];
+// }
+// interface WordDetailModel {
+//   inflection: string;
+//   tags?: string[];
+//   definitions: DefinitionModel[];
+//   examples?: ExampleModel[];
+// }
+// interface WordModel {
+//   spelling: string;
+//   open: boolean;
+//   wordDetails: WordDetailModel[];
+// }
 
-interface SourceShortModel {
-  name: string;
-  authors?: string;
-}
+// interface SourceShortModel {
+//   name: string;
+//   authors?: string;
+// }
 
-class DictionaryModel {
-  readonly version = 'V3-mini';
-  readonly entries: WordModel[] = [];
-  readonly source: SourceShortModel;
+// class DictionaryModel {
+//   readonly version = 'V3-mini';
+//   readonly entries: WordModel[] = [];
+//   readonly source: SourceShortModel;
 
-  constructor(source: SourceShortModel) {
-    this.source = source;
-  }
-}
+//   constructor(source: SourceShortModel) {
+//     this.source = source;
+//   }
+// }
 
 /* ---------------- constants ---------------- */
 // const TAG_OPTIONS = ['noun', 'verb', 'adj', 'formal', 'archaic'] as const;
 
 /* ---------------- helpers ---------------- */
-const emptyDef = (seed = ''): DefinitionModel => ({ value: seed });
-const emptyWD = (seed = ''): WordDetailModel => ({
-  inflection: '',
-  definitions: [emptyDef(seed)],
-});
+const emptyExample = (seedSrc = '', seedTrl = ''): TranslationModel =>
+  new TranslationModel({ state: STATE.ADDED, src: seedSrc, trl: seedTrl });
+const emptyDef = (seed = ''): DefinitionModel =>
+  new DefinitionModel({ state: STATE.ADDED, value: seed });
+const emptyWD = (seed = ''): WordDetailModel =>
+  new WordDetailModel({
+    state: STATE.ADDED,
+    inflection: '',
+    definitions: [emptyDef(seed)],
+  });
+const emptyWordEntry = (seed = ''): WordModel =>
+  new WordModel({ state: STATE.ADDED, spelling: seed, wordDetails: [emptyWD()] });
 
 /* ---------------- TagSelector ---------------- */
 interface TagSelectorProps {
@@ -132,15 +152,15 @@ const TagSelector: React.FC<TagSelectorProps> = ({
 
 /* ---------------- ExampleLine ---------------- */
 const ExampleLine: React.FC<{
-  example: ExampleModel;
-  onChange: (v: ExampleModel) => void;
+  example: TranslationModel;
+  onChange: (v: TranslationModel) => void;
   onDelete: () => void;
   isInnerBlockExample: boolean;
   tagEntries: Record<string, string>;
   allTags: [string, string][];
 }> = ({ example, onChange, onDelete, isInnerBlockExample, tagEntries, allTags }) => {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const patch = (p: Partial<DefinitionModel>) => onChange({ ...example, ...p });
+  const patch = (p: Partial<TranslationModelType>) => onChange(example.merge(p));
   return (
     <Box display="flex" alignItems="baseline" gap={2} mt={0.5}>
       {isInnerBlockExample && <Typography color="text.secondary">●</Typography>}
@@ -152,14 +172,16 @@ const ExampleLine: React.FC<{
         flexWrap="wrap"
         sx={{ alignSelf: 'end', mt: '5px' }}
       >
-        {example.tags?.map((t) => (
-          <Chip
-            key={t}
-            label={tagEntries[t.split(';')[0]]}
-            size="small"
-            onDelete={() => patch({ tags: example.tags?.filter((x) => x !== t) })}
-          />
-        ))}
+        {example
+          .getTags()
+          ?.map((t) => (
+            <Chip
+              key={t}
+              label={tagEntries[t.split(';')[0]]}
+              size="small"
+              onDelete={() => patch({ tags: example.getTags()?.filter((x) => x !== t) })}
+            />
+          ))}
         <Chip
           label="tags"
           icon={<AddIcon />}
@@ -170,7 +192,7 @@ const ExampleLine: React.FC<{
         />
         <TagSelector
           anchorEl={anchor}
-          selected={example.tags ?? []}
+          selected={example.getTags() ?? []}
           onClose={() => setAnchor(null)}
           onChange={(tags) => patch({ tags })}
           allTags={allTags}
@@ -179,8 +201,8 @@ const ExampleLine: React.FC<{
       <TextField
         variant="standard"
         fullWidth
-        value={example.src}
-        onChange={(e) => onChange({ ...example, src: e.target.value })}
+        value={example.getSrc()}
+        onChange={(e) => onChange(example.merge({ src: e.target.value }))}
         placeholder="example"
         autoComplete="off"
         slotProps={{
@@ -194,8 +216,8 @@ const ExampleLine: React.FC<{
       <TextField
         variant="standard"
         fullWidth
-        value={example.trl}
-        onChange={(e) => onChange({ ...example, trl: e.target.value })}
+        value={example.getTrl()}
+        onChange={(e) => onChange(example.merge({ trl: e.target.value }))}
         placeholder="example translation"
         autoComplete="off"
         slotProps={{
@@ -222,10 +244,11 @@ const DefinitionBlock: React.FC<{
   allTags: [string, string][];
 }> = ({ idx, def, onChange, onDelete, tagEntries, allTags }) => {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const patch = (p: Partial<DefinitionModel>) => onChange({ ...def, ...p });
+  const patch = (p: Partial<DefinitionModelType>) => onChange(def.merge(p));
   const deleteEx = (i: number) => {
-    if (def.examples && def.examples.length > 0) {
-      patch({ examples: def.examples.filter((_, idx) => idx !== i) });
+    const defExamples = def.getExamples();
+    if (defExamples && defExamples.length > 0) {
+      patch({ examples: defExamples.filter((_, idx) => idx !== i) });
     }
   };
   return (
@@ -240,14 +263,16 @@ const DefinitionBlock: React.FC<{
           flexWrap="wrap"
           sx={{ alignSelf: 'end', mt: '5px' }}
         >
-          {def.tags?.map((t) => (
-            <Chip
-              key={t}
-              label={tagEntries[t.split(';')[0]]}
-              size="small"
-              onDelete={() => patch({ tags: def.tags?.filter((x) => x !== t) })}
-            />
-          ))}
+          {def
+            .getTags()
+            ?.map((t) => (
+              <Chip
+                key={t}
+                label={tagEntries[t.split(';')[0]]}
+                size="small"
+                onDelete={() => patch({ tags: def.getTags()?.filter((x) => x !== t) })}
+              />
+            ))}
           <Chip
             label="tags"
             icon={<AddIcon />}
@@ -258,7 +283,7 @@ const DefinitionBlock: React.FC<{
           />
           <TagSelector
             anchorEl={anchor}
-            selected={def.tags ?? []}
+            selected={def.getTags() ?? []}
             onClose={() => setAnchor(null)}
             onChange={(tags) => patch({ tags })}
             allTags={allTags}
@@ -269,7 +294,7 @@ const DefinitionBlock: React.FC<{
           placeholder="definition"
           autoComplete="off"
           fullWidth
-          value={def.value}
+          value={def.getValue()}
           onChange={(e) => patch({ value: e.target.value })}
         />
         <IconButton size="small" onClick={onDelete} color="error">
@@ -277,13 +302,13 @@ const DefinitionBlock: React.FC<{
         </IconButton>
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2.5 }}>
-        {def.examples?.map((ex, i) => (
+        {def.getExamples()?.map((ex, i) => (
           <ExampleLine
             key={i}
             example={ex}
             isInnerBlockExample={true}
             onChange={(v) => {
-              const copy = [...(def.examples ?? [])];
+              const copy = [...(def.getExamples() ?? [])];
               copy[i] = v;
               patch({ examples: copy });
             }}
@@ -299,7 +324,11 @@ const DefinitionBlock: React.FC<{
           color="primary"
           size="small"
           sx={{ width: 'fit-content', mt: 1.5 }}
-          onClick={() => patch({ examples: [...(def.examples ?? []), { src: '', trl: '' }] })}
+          onClick={() =>
+            patch({
+              examples: [...(def.getExamples() ?? []), emptyExample()],
+            })
+          }
         />
       </Box>
     </Box>
@@ -320,17 +349,18 @@ const WordDetailBlock: React.FC<{
   ) as [string, string][];
 
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
-  const patch = (p: Partial<WordDetailModel>) => onChange({ ...data, ...p });
+  const patch = (p: Partial<WordDetailModelType>) => onChange(data.merge(p));
   const updateDef = (i: number, def: DefinitionModel) =>
-    patch({ definitions: data.definitions.map((d, idx) => (idx === i ? def : d)) });
+    patch({ definitions: data.getDefinitions().map((d, idx) => (idx === i ? def : d)) });
   const deleteDef = (i: number) => {
-    if (data.definitions.length > 1) {
-      patch({ definitions: data.definitions.filter((_, idx) => idx !== i) });
+    if (data.getDefinitions().length > 1) {
+      patch({ definitions: data.getDefinitions().filter((_, idx) => idx !== i) });
     }
   };
   const deleteExtraEx = (i: number) => {
-    if (data.examples && data.examples.length > 0) {
-      patch({ examples: data.examples.filter((_, idx) => idx !== i) });
+    const defExamples = data.getExamples();
+    if (defExamples && defExamples.length > 0) {
+      patch({ examples: defExamples.filter((_, idx) => idx !== i) });
     }
   };
   return (
@@ -338,14 +368,16 @@ const WordDetailBlock: React.FC<{
       <Stack direction="row" gap={2}>
         {/* tags */}
         <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
-          {data.tags?.map((t) => (
-            <Chip
-              key={t}
-              label={tagEntries[t.split(';')[0]]}
-              size="small"
-              onDelete={() => patch({ tags: data.tags?.filter((x) => x !== t) })}
-            />
-          ))}
+          {data
+            .getTags()
+            ?.map((t) => (
+              <Chip
+                key={t}
+                label={tagEntries[t.split(';')[0]]}
+                size="small"
+                onDelete={() => patch({ tags: data.getTags()?.filter((x) => x !== t) })}
+              />
+            ))}
           <Chip
             label="tags"
             icon={<AddIcon />}
@@ -356,7 +388,7 @@ const WordDetailBlock: React.FC<{
           />
           <TagSelector
             anchorEl={anchor}
-            selected={data.tags ?? []}
+            selected={data.getTags() ?? []}
             onClose={() => setAnchor(null)}
             onChange={(tags) => patch({ tags })}
             allTags={allTags}
@@ -367,7 +399,7 @@ const WordDetailBlock: React.FC<{
           variant="standard"
           placeholder="inflection"
           autoComplete="off"
-          value={data.inflection}
+          value={data.getInflection()}
           onChange={(e) => patch({ inflection: e.target.value })}
           sx={{ width: 200 }}
         />
@@ -377,7 +409,7 @@ const WordDetailBlock: React.FC<{
         </IconButton>
       </Stack>
       {/* definitions */}
-      {data.definitions.map((d, i) => (
+      {data.getDefinitions().map((d, i) => (
         <Box key={i}>
           <Divider sx={{ mt: 1.5 }} />
           <DefinitionBlock
@@ -392,13 +424,13 @@ const WordDetailBlock: React.FC<{
       ))}
 
       {/* word‑detail examples */}
-      {data.examples?.map((ex, i) => (
+      {data.getExamples()?.map((ex, i) => (
         <ExampleLine
           key={i}
           example={ex}
           isInnerBlockExample={false}
           onChange={(v) => {
-            const copy = [...(data.examples ?? [])];
+            const copy = [...(data.getExamples() ?? [])];
             copy[i] = v;
             patch({ examples: copy });
           }}
@@ -419,7 +451,7 @@ const WordDetailBlock: React.FC<{
           variant="outlined"
           size="small"
           startIcon={<AddIcon />}
-          onClick={() => patch({ definitions: [...data.definitions, emptyDef()] })}
+          onClick={() => patch({ definitions: [...data.getDefinitions(), emptyDef()] })}
         >
           definition
         </Button>
@@ -427,7 +459,7 @@ const WordDetailBlock: React.FC<{
           variant="outlined"
           size="small"
           startIcon={<AddIcon />}
-          onClick={() => patch({ examples: [...(data.examples ?? []), { src: '', trl: '' }] })}
+          onClick={() => patch({ examples: [...(data.getExamples() ?? []), emptyExample()] })}
         >
           other examples
         </Button>
@@ -449,24 +481,32 @@ const Entry: React.FC<{
   // const theme = useTheme();
   // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
   const [showCannotDeleteMessage, setShowCannotDeleteMessage] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(false);
   const toggleOpen = () => {
-    if (!entry.open && entry.wordDetails.length === 0) {
-      onChange({
-        ...entry,
-        open: true,
-        wordDetails: [emptyWD(entry.wordDetails[0].definitions[0].value)],
-      });
-    } else {
-      onChange({ ...entry, open: !entry.open });
-    }
+    setIsOpen(!isOpen);
+    // if (!isOpen && entry.getWordDetails().length === 0) {
+    //   // onChange({
+    //   //   ...entry,
+    //   //   open: true,
+    //   //   wordDetails: [emptyWD(entry.getWordDetails()[0].definitions[0].value)],
+    //   // });
+    //   setIsOpen(true);
+    // } else {
+    //   // onChange({ ...entry, open: !entry.open });
+    //   setIsOpen(false);
+    // }
   };
-  const addWD = () =>
-    onChange({ ...entry, wordDetails: [...entry.wordDetails, emptyWD()], open: true });
+  const addWD = () => {
+    onChange(entry.merge({ wordDetails: [...entry.getWordDetails(), emptyWD()] }));
+    setIsOpen(true);
+  };
   const updateWD = (i: number, wd: WordDetailModel) =>
-    onChange({ ...entry, wordDetails: entry.wordDetails.map((w, idx) => (idx === i ? wd : w)) });
+    onChange(
+      entry.merge({ wordDetails: entry.getWordDetails().map((w, idx) => (idx === i ? wd : w)) }),
+    );
   const deleteWD = (i: number) => {
-    if (entry.wordDetails.length > 1) {
-      onChange({ ...entry, wordDetails: entry.wordDetails.filter((_, idx) => idx !== i) });
+    if (entry.getWordDetails().length > 1) {
+      onChange(entry.merge({ wordDetails: entry.getWordDetails().filter((_, idx) => idx !== i) }));
     } else {
       setShowCannotDeleteMessage(true);
     }
@@ -499,14 +539,14 @@ const Entry: React.FC<{
       </Typography>
       <Box display="flex" alignItems="flex-end" gap={1} sx={{ width: '100%' }}>
         <IconButton size="small" onClick={toggleOpen}>
-          {entry.open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          {isOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
         <TextField
           variant="standard"
-          value={entry.spelling}
+          value={entry.getSpelling()}
           placeholder="word"
           autoComplete="off"
-          onChange={(e) => onChange({ ...entry, spelling: e.target.value })}
+          onChange={(e) => onChange(entry.merge({ spelling: e.target.value }))}
           sx={{
             minWidth: '30%',
             '& .MuiInput-root': {
@@ -515,28 +555,26 @@ const Entry: React.FC<{
             },
           }}
           slotProps={{
-            input: { disableUnderline: !entry.open },
+            input: { disableUnderline: !isOpen },
           }}
         />
-        <Box
-          sx={{ height: '34px', p: '5px 0', borderRight: entry.open ? 'unset' : '1px solid #333' }}
-        >
+        <Box sx={{ height: '34px', p: '5px 0', borderRight: isOpen ? 'unset' : '1px solid #333' }}>
           {/* {entry.open && <Typography>:</Typography>} */}
         </Box>
-        {!entry.open ? (
+        {!isOpen ? (
           <TextField
             variant="standard"
             fullWidth
-            value={entry.wordDetails[0].definitions[0].value}
+            value={entry.getWordDetails()[0].getDefinitions()[0].getValue()}
             placeholder="definition"
             autoComplete="off"
             onChange={(e) => {
-              const copy = { ...entry };
-              copy.wordDetails[0].definitions[0].value = e.target.value;
+              const copy = entry.getCopy();
+              copy.getWordDetails()[0].getDefinitions()[0].setValue(e.target.value);
               onChange(copy);
             }}
             slotProps={{
-              input: { disableUnderline: !entry.open },
+              input: { disableUnderline: !isOpen },
             }}
           />
         ) : (
@@ -558,9 +596,9 @@ const Entry: React.FC<{
       </Box>
 
       {/* collapsible */}
-      {entry.open && (
+      {isOpen && (
         <Box mt={1} pb={1}>
-          {entry.wordDetails.map((wd, i) => (
+          {entry.getWordDetails().map((wd, i) => (
             <WordDetailBlock
               key={i}
               data={wd}
@@ -585,7 +623,10 @@ const Entry: React.FC<{
 };
 
 /* ---------------- Root component ---------------- */
-export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
+export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceModelType[] }> = ({
+  lang,
+  sourceModels,
+}) => {
   const { t } = useTranslation(lang);
   const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
     DictionaryLang,
@@ -593,15 +634,9 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
   >;
   const addEntryButtonRef = useRef<HTMLButtonElement>(null);
   // Entries
-  const [entries, setEntries] = useState<WordModel[]>([
-    {
-      spelling: '',
-      open: false,
-      wordDetails: [{ inflection: '', definitions: [{ value: '' }] }],
-    },
-  ]);
+  const [entries, setEntries] = useState<WordModel[]>([emptyWordEntry()]);
   const addEntry = () => {
-    setEntries((prev) => [...prev, { spelling: '', open: false, wordDetails: [emptyWD('')] }]);
+    setEntries((prev) => [...prev, emptyWordEntry()]);
     addEntryButtonRef.current?.scrollIntoView({ block: 'start' });
   };
   const updateEntry = (i: number, e: WordModel) =>
@@ -615,15 +650,26 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
     });
 
   // Sources
-  const [options, setOptions] = useState<OptionType[]>([
-    { name: 'Лезгинско-Русский Словарь', authors: 'Бабаханов М.М.' },
-    { name: 'Русско-Лезгинский Словарь', authors: 'Гаджиев М.М.' },
-  ]);
-  const [value, setValue] = useState<OptionType | null>(null);
+  const [sources, setSources] = useState<SourceModel[]>(
+    sourceModels.map((smt) => new SourceModel(smt)) || [],
+    //   [
+    //   new SourceModel({
+    //     state: STATE.ADDED,
+    //     name: 'Лезгинско-Русский Словарь',
+    //     authors: 'Бабаханов М.М.',
+    //   }),
+    //   new SourceModel({
+    //     state: STATE.ADDED,
+    //     name: 'Русско-Лезгинский Словарь',
+    //     authors: 'Гаджиев М.М.',
+    //   }),
+    // ]
+  );
+  const [selectedSource, setSelectedSource] = useState<SourceModel>(sources[0]);
 
-  const handleCreate = (created: OptionType) => {
+  const handleCreate = (created: SourceModel) => {
     // Persist locally (or via API)
-    setOptions((prev) => [...prev, created]);
+    setSources((prev) => [...prev, created]);
   };
   return (
     <Box sx={(theme) => ({ maxWidth: 600, [theme.breakpoints.down('md')]: { ml: 1.5 } })}>
@@ -632,9 +678,9 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
         <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
           <SourcesCreatableSelect
             label="📚 Source"
-            options={options}
-            value={value}
-            onChange={setValue}
+            options={sources}
+            value={selectedSource}
+            onChange={setSelectedSource}
             onCreate={handleCreate}
             placeholder="Choose or add"
           />
@@ -703,7 +749,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang }> = ({ lang }) => {
           Live JSON
         </Typography>
         <pre style={{ background: '#fafaf8', border: '1px solid #ecece6', padding: '0.8rem' }}>
-          {JSON.stringify(entries, null, 2)}
+          {JSON.stringify(new DictionaryModel(entries, selectedSource), null, 2)}
         </pre>
       </Box>
     </Box>
