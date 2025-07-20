@@ -55,6 +55,8 @@ export type TranslationModelType =
       tags?: string[];
     };
 
+// NOTE: no need to rework to match `phrasesPerLangDialect`,
+//       because `phrasesPerLangDialect` makes sense only for the dedicated `Translations` page.
 export class TranslationModel extends Model {
   private src: string;
   private trl: string;
@@ -134,6 +136,15 @@ export class TranslationModel extends Model {
     return (
       this.src.trim() === '' && this.trl.trim() === '' && (!this.tags || this.tags.length === 0)
     );
+  }
+
+  static createEmpty(): TranslationModel {
+    return new TranslationModel({
+      state: STATE.ADDED,
+      src: '',
+      trl: '',
+      tags: [],
+    });
   }
 }
 
@@ -242,6 +253,15 @@ export class DefinitionModel extends Model {
       (!this.examples || this.examples.length === 0 || this.examples.every((e) => e.isEmpty()))
     );
   }
+
+  static createEmpty(): DefinitionModel {
+    return new DefinitionModel({
+      state: STATE.ADDED,
+      value: '',
+      tags: [],
+      examples: [],
+    });
+  }
 }
 
 // ============== WordDetailModel ==============
@@ -250,6 +270,8 @@ export type WordDetailModelType =
   | {
       state: 'added';
       inflection?: string;
+      langDialectId: number;
+      sourceId: number;
       tags?: string[];
       definitions: DefinitionModel[];
       examples?: TranslationModel[];
@@ -258,6 +280,8 @@ export type WordDetailModelType =
       state: 'unchanged' | 'modified' | 'deleted';
       id: number;
       inflection?: string;
+      langDialectId: number;
+      sourceId: number;
       tags?: string[];
       definitions: DefinitionModel[];
       examples?: TranslationModel[];
@@ -265,6 +289,8 @@ export type WordDetailModelType =
 
 export class WordDetailModel extends Model {
   private inflection?: string;
+  private langDialectId: number;
+  private sourceId: number;
   private tags?: string[];
   private definitions: DefinitionModel[];
   private examples?: TranslationModel[];
@@ -272,12 +298,20 @@ export class WordDetailModel extends Model {
   constructor(data: WordDetailModelType) {
     super(data.state, data.state === 'unchanged' ? data.id : undefined);
     this.inflection = data.inflection;
+    this.langDialectId = data.langDialectId;
+    this.sourceId = data.sourceId;
     this.tags = data.tags;
     this.definitions = data.definitions;
     this.examples = data.examples;
   }
   getInflection(): string | undefined {
     return this.inflection;
+  }
+  getLangDialectId(): number {
+    return this.langDialectId;
+  }
+  getSourceId(): number {
+    return this.sourceId;
   }
   getTags(): string[] | undefined {
     return this.tags;
@@ -290,6 +324,14 @@ export class WordDetailModel extends Model {
   }
   setInflection(inflection: string | undefined): void {
     this.inflection = inflection;
+    this.setModified();
+  }
+  setLangDialectId(langDialectId: number): void {
+    this.langDialectId = langDialectId;
+    this.setModified();
+  }
+  setSourceId(sourceId: number): void {
+    this.sourceId = sourceId;
     this.setModified();
   }
   setTags(tags: string[] | undefined): void {
@@ -337,6 +379,8 @@ export class WordDetailModel extends Model {
       return new WordDetailModel({
         state: this.state,
         inflection: this.inflection,
+        langDialectId: this.langDialectId,
+        sourceId: this.sourceId,
         tags: this.tags,
         definitions: this.definitions.map((d) => d.getCopy()),
         examples: this.examples?.map((e) => e.getCopy()),
@@ -346,6 +390,8 @@ export class WordDetailModel extends Model {
       state: this.state,
       id: this.id!,
       inflection: this.inflection,
+      langDialectId: this.langDialectId,
+      sourceId: this.sourceId,
       tags: this.tags,
       definitions: this.definitions.map((d) => d.getCopy()),
       examples: this.examples?.map((e) => e.getCopy()),
@@ -362,6 +408,18 @@ export class WordDetailModel extends Model {
       (!this.examples || this.examples.length === 0 || this.examples.every((e) => e.isEmpty()))
     );
   }
+
+  static createEmpty(langDialectId: number, sourceId: number): WordDetailModel {
+    return new WordDetailModel({
+      state: STATE.ADDED,
+      inflection: '',
+      langDialectId: langDialectId,
+      sourceId: sourceId,
+      tags: [],
+      definitions: [DefinitionModel.createEmpty()],
+      examples: [],
+    });
+  }
 }
 
 // ============== WordModel ==============
@@ -370,22 +428,34 @@ export type WordModelType =
   | {
       state: 'added';
       spelling: string;
+      langDialectId: number;
+      sourceId: number;
+      spellingVariants: SpellingVariantModel[];
       wordDetails: WordDetailModel[];
     }
   | {
       state: 'unchanged' | 'modified' | 'deleted';
       id: number;
       spelling: string;
+      langDialectId: number;
+      sourceId: number;
+      spellingVariants: SpellingVariantModel[];
       wordDetails: WordDetailModel[];
     };
 
 export class WordModel extends Model {
   private spelling: string;
+  private langDialectId: number;
+  private sourceId: number;
+  private spellingVariants: SpellingVariantModel[];
   private wordDetails: WordDetailModel[];
   constructor(data: WordModelType) {
     super(data.state, data.state === 'unchanged' ? data.id : undefined);
     this.spelling = data.spelling;
+    this.spellingVariants = data.spellingVariants;
     this.wordDetails = data.wordDetails;
+    this.langDialectId = data.langDialectId;
+    this.sourceId = data.sourceId;
   }
 
   getSpelling(): string {
@@ -394,12 +464,33 @@ export class WordModel extends Model {
   getWordDetails(): WordDetailModel[] {
     return this.wordDetails;
   }
+  getSpellingVariants(): SpellingVariantModel[] {
+    return this.spellingVariants;
+  }
+  getLangDialectId(): number {
+    return this.langDialectId;
+  }
+  getSourceId(): number {
+    return this.sourceId;
+  }
   setSpelling(spelling: string): void {
     this.spelling = spelling;
     this.setModified();
   }
   setWordDetails(wordDetails: WordDetailModel[]): void {
     this.wordDetails = wordDetails;
+    this.setModified();
+  }
+  setSpellingVariants(spellingVariants: SpellingVariantModel[]): void {
+    this.spellingVariants = spellingVariants;
+    this.setModified();
+  }
+  setLangDialectId(langDialectId: number): void {
+    this.langDialectId = langDialectId;
+    this.setModified();
+  }
+  setSourceId(sourceId: number): void {
+    this.sourceId = sourceId;
     this.setModified();
   }
 
@@ -429,14 +520,20 @@ export class WordModel extends Model {
       return new WordModel({
         state: this.state,
         spelling: this.spelling,
+        langDialectId: this.langDialectId,
         wordDetails: this.wordDetails.map((wd) => wd.getCopy()),
+        spellingVariants: this.spellingVariants.map((sv) => sv.getCopy()),
+        sourceId: this.sourceId,
       });
     }
     return new WordModel({
       state: this.state,
       id: this.id!,
       spelling: this.spelling,
+      langDialectId: this.langDialectId,
       wordDetails: this.wordDetails.map((wd) => wd.getCopy()),
+      spellingVariants: this.spellingVariants.map((sv) => sv.getCopy()),
+      sourceId: this.sourceId,
     });
   }
 
@@ -448,8 +545,128 @@ export class WordModel extends Model {
         this.wordDetails.every((wd) => wd.isEmpty()))
     );
   }
+
+  static createEmpty(
+    wordMeta: { langDialectId: number; sourceId: number },
+    defMeta: { langDialectId: number; sourceId: number },
+  ): WordModel {
+    return new WordModel({
+      state: STATE.ADDED,
+      spelling: '',
+      langDialectId: wordMeta.langDialectId,
+      sourceId: wordMeta.sourceId,
+      wordDetails: [WordDetailModel.createEmpty(defMeta.langDialectId, defMeta.sourceId)],
+      spellingVariants: [],
+    });
+  }
 }
 
+// ============== SpellingVariantModel ==============
+export type SpellingVariantModelType =
+  | {
+      state: 'added';
+      spelling: string;
+      sourceId: number;
+      langDialectId: number;
+    }
+  | {
+      state: 'unchanged' | 'modified' | 'deleted';
+      id: number;
+      spelling: string;
+      sourceId: number;
+      langDialectId: number;
+    };
+
+export class SpellingVariantModel extends Model {
+  private spelling: string;
+  private sourceId: number;
+  private langDialectId: number;
+  constructor(data: SpellingVariantModelType) {
+    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    this.spelling = data.spelling;
+    this.sourceId = data.sourceId;
+    this.langDialectId = data.langDialectId;
+  }
+
+  getSpelling(): string {
+    return this.spelling;
+  }
+  getSourceId(): number {
+    return this.sourceId;
+  }
+  getLangDialectId(): number | undefined {
+    return this.langDialectId;
+  }
+  setSpelling(spelling: string): void {
+    this.spelling = spelling;
+    this.setModified();
+  }
+  setSourceId(sourceId: number): void {
+    this.sourceId = sourceId;
+    this.setModified();
+  }
+  setLangDialectId(langDialectId: number): void {
+    this.langDialectId = langDialectId;
+    this.setModified();
+  }
+
+  isEmpty(): boolean {
+    return (
+      this.spelling.trim() === '' && this.langDialectId === undefined && this.sourceId === undefined
+    );
+  }
+
+  static createEmpty(langDialectId: number, sourceId: number): SpellingVariantModel {
+    return new SpellingVariantModel({
+      state: STATE.ADDED,
+      spelling: '',
+      sourceId: sourceId,
+      langDialectId: langDialectId,
+    });
+  }
+
+  /**
+   * Merges partial data into the SpellingVariantModel instance in-place. It does not create a new instance.
+   * This method updates the spelling, sourceId, and langDialectId properties based on the provided data.
+   * If the model is in 'added' state, it will update the spelling, sourceId, and langDialectId properties.
+   * If the model is in 'unchanged' state, it will update the spelling, sourceId, and langDialectId properties
+   * and set the state to 'modified'.
+   *
+   * @param data Partial data to merge into the model.
+   * @returns The updated SpellingVariantModel instance.
+   */
+  merge(data: Partial<SpellingVariantModelType>): SpellingVariantModel {
+    this.setModified();
+    if (data.spelling) {
+      this.spelling = data.spelling;
+    }
+    if (data.sourceId) {
+      this.sourceId = data.sourceId;
+    }
+    if (data.langDialectId) {
+      this.langDialectId = data.langDialectId;
+    }
+    return this;
+  }
+
+  getCopy(): SpellingVariantModel {
+    if (this.state === STATE.ADDED) {
+      return new SpellingVariantModel({
+        state: this.state,
+        spelling: this.spelling,
+        sourceId: this.sourceId,
+        langDialectId: this.langDialectId,
+      });
+    }
+    return new SpellingVariantModel({
+      state: this.state,
+      id: this.id!,
+      spelling: this.spelling,
+      sourceId: this.sourceId,
+      langDialectId: this.langDialectId,
+    });
+  }
+}
 // ============== SourceModel ==============
 
 export type SourceModelType =
@@ -665,10 +882,10 @@ export class DictionaryProposalModel {
 export class TranslationsProposalModel {
   readonly version = 'V3';
   readonly entries: TranslationModel[];
-  readonly source: SourceModel;
+  readonly defaultSource: SourceModel;
 
-  constructor(entries: TranslationModel[], source: SourceModel) {
+  constructor(entries: TranslationModel[], defaultSource: SourceModel) {
     this.entries = entries;
-    this.source = source;
+    this.defaultSource = defaultSource;
   }
 }

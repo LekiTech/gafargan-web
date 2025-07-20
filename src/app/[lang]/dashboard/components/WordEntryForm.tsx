@@ -44,6 +44,7 @@ import {
   SourceModel,
   SourceModelType,
 } from '../models/proposal.model';
+import { LangDialects } from '@repository/constants';
 
 /* ---------------- types ---------------- */
 // interface ExampleModel {
@@ -87,18 +88,18 @@ import {
 // const TAG_OPTIONS = ['noun', 'verb', 'adj', 'formal', 'archaic'] as const;
 
 /* ---------------- helpers ---------------- */
-const emptyExample = (seedSrc = '', seedTrl = ''): TranslationModel =>
-  new TranslationModel({ state: STATE.ADDED, src: seedSrc, trl: seedTrl });
-const emptyDef = (seed = ''): DefinitionModel =>
-  new DefinitionModel({ state: STATE.ADDED, value: seed });
-const emptyWD = (seed = ''): WordDetailModel =>
-  new WordDetailModel({
-    state: STATE.ADDED,
-    inflection: '',
-    definitions: [emptyDef(seed)],
-  });
-const emptyWordEntry = (seed = ''): WordModel =>
-  new WordModel({ state: STATE.ADDED, spelling: seed, wordDetails: [emptyWD()] });
+// const emptyExample = (seedSrc = '', seedTrl = ''): TranslationModel =>
+//   new TranslationModel({ state: STATE.ADDED, src: seedSrc, trl: seedTrl });
+// const emptyDef = (seed = ''): DefinitionModel =>
+//   new DefinitionModel({ state: STATE.ADDED, value: seed });
+// const emptyWD = (seed = ''): WordDetailModel =>
+//   new WordDetailModel({
+//     state: STATE.ADDED,
+//     inflection: '',
+//     definitions: [emptyDef(seed)],
+//   });
+// const emptyWordEntry = (seed = ''): WordModel =>
+//   new WordModel({ state: STATE.ADDED, spelling: seed, wordDetails: [emptyWD()] });
 
 /* ---------------- TagSelector ---------------- */
 interface TagSelectorProps {
@@ -326,7 +327,7 @@ const DefinitionBlock: React.FC<{
           sx={{ width: 'fit-content', mt: 1.5 }}
           onClick={() =>
             patch({
-              examples: [...(def.getExamples() ?? []), emptyExample()],
+              examples: [...(def.getExamples() ?? []), TranslationModel.createEmpty()],
             })
           }
         />
@@ -451,7 +452,9 @@ const WordDetailBlock: React.FC<{
           variant="outlined"
           size="small"
           startIcon={<AddIcon />}
-          onClick={() => patch({ definitions: [...data.getDefinitions(), emptyDef()] })}
+          onClick={() =>
+            patch({ definitions: [...data.getDefinitions(), DefinitionModel.createEmpty()] })
+          }
         >
           definition
         </Button>
@@ -459,7 +462,9 @@ const WordDetailBlock: React.FC<{
           variant="outlined"
           size="small"
           startIcon={<AddIcon />}
-          onClick={() => patch({ examples: [...(data.getExamples() ?? []), emptyExample()] })}
+          onClick={() =>
+            patch({ examples: [...(data.getExamples() ?? []), TranslationModel.createEmpty()] })
+          }
         >
           other examples
         </Button>
@@ -475,9 +480,11 @@ const Entry: React.FC<{
   onChange: (e: WordModel) => void;
   onDelete: () => void;
   lang: WebsiteLang;
+  defLangDialectId: number;
+  defSourceId: number;
   isFirst?: boolean;
   isLast?: boolean;
-}> = ({ idx, entry, onChange, onDelete, lang, isFirst, isLast }) => {
+}> = ({ idx, entry, onChange, onDelete, lang, defLangDialectId, defSourceId, isFirst, isLast }) => {
   // const theme = useTheme();
   // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
   const [showCannotDeleteMessage, setShowCannotDeleteMessage] = React.useState(false);
@@ -497,7 +504,14 @@ const Entry: React.FC<{
     // }
   };
   const addWD = () => {
-    onChange(entry.merge({ wordDetails: [...entry.getWordDetails(), emptyWD()] }));
+    onChange(
+      entry.merge({
+        wordDetails: [
+          ...entry.getWordDetails(),
+          WordDetailModel.createEmpty(defLangDialectId, defSourceId),
+        ],
+      }),
+    );
     setIsOpen(true);
   };
   const updateWD = (i: number, wd: WordDetailModel) =>
@@ -633,10 +647,19 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
     string
   >;
   const addEntryButtonRef = useRef<HTMLButtonElement>(null);
+  const [fromLangDialectId, setFromLangDialectId] = useState<number>(1);
+  const [toLangDialectId, setToLangDialectId] = useState<number>(25);
+  // Sources
+  const [sources, setSources] = useState<SourceModel[]>(
+    sourceModels.map((smt) => new SourceModel(smt)) || [],
+  );
+  const [selectedSource, setSelectedSource] = useState<SourceModel>(sources[0]);
   // Entries
-  const [entries, setEntries] = useState<WordModel[]>([emptyWordEntry()]);
+  const wordMeta = { langDialectId: fromLangDialectId, sourceId: selectedSource.getId()! };
+  const defMeta = { langDialectId: toLangDialectId, sourceId: selectedSource.getId()! };
+  const [entries, setEntries] = useState<WordModel[]>([WordModel.createEmpty(wordMeta, defMeta)]);
   const addEntry = () => {
-    setEntries((prev) => [...prev, emptyWordEntry()]);
+    setEntries((prev) => [...prev, WordModel.createEmpty(wordMeta, defMeta)]);
     addEntryButtonRef.current?.scrollIntoView({ block: 'start' });
   };
   const updateEntry = (i: number, e: WordModel) =>
@@ -648,24 +671,6 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
       }
       return prev;
     });
-
-  // Sources
-  const [sources, setSources] = useState<SourceModel[]>(
-    sourceModels.map((smt) => new SourceModel(smt)) || [],
-    //   [
-    //   new SourceModel({
-    //     state: STATE.ADDED,
-    //     name: 'Лезгинско-Русский Словарь',
-    //     authors: 'Бабаханов М.М.',
-    //   }),
-    //   new SourceModel({
-    //     state: STATE.ADDED,
-    //     name: 'Русско-Лезгинский Словарь',
-    //     authors: 'Гаджиев М.М.',
-    //   }),
-    // ]
-  );
-  const [selectedSource, setSelectedSource] = useState<SourceModel>(sources[0]);
 
   const handleCreate = (created: SourceModel) => {
     // Persist locally (or via API)
@@ -681,28 +686,37 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
             options={sources}
             value={selectedSource}
             onChange={setSelectedSource}
-            onCreate={handleCreate}
+            // onCreate={handleCreate}
             placeholder="Choose or add"
           />
         </Grid>
         <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
-          <Select size="small" value="lez" sx={{ flex: 1 }}>
-            {DictionaryLangs.map((lang) => (
-              <MenuItem key={lang.toString()} value={lang}>
-                {langs[lang]}
+          <Select
+            size="small"
+            value={fromLangDialectId}
+            sx={{ flex: 1 }}
+            onChange={(e) => setFromLangDialectId(Number(e.target.value))}
+          >
+            {Object.entries(LangDialects).map(([id, name]) => (
+              <MenuItem key={id} value={id}>
+                {name}
               </MenuItem>
             ))}
           </Select>
           <Typography>→</Typography>
-          <Select size="small" value="rus" sx={{ flex: 1 }}>
-            {DictionaryLangs.map((lang) => (
-              <MenuItem key={lang.toString()} value={lang}>
-                {langs[lang]}
+          <Select
+            size="small"
+            value={toLangDialectId}
+            sx={{ flex: 1 }}
+            onChange={(e) => setToLangDialectId(Number(e.target.value))}
+          >
+            {Object.entries(LangDialects).map(([id, name]) => (
+              <MenuItem key={id} value={id}>
+                {name}
               </MenuItem>
             ))}
           </Select>
         </Grid>
-        {/* <Typography>•</Typography> */}
       </Grid>
 
       {entries.map((en, idx) => (
@@ -713,6 +727,8 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           onChange={(e) => updateEntry(idx, e)}
           onDelete={() => deleteEntry(idx)}
           lang={lang}
+          defLangDialectId={toLangDialectId}
+          defSourceId={selectedSource.getId()!}
           isFirst={idx === 0}
           isLast={idx === entries.length - 1}
         />
@@ -727,24 +743,8 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
       >
         Gaf
       </Button>
-      {/* <IconButton
-        onClick={addEntry}
-        sx={(theme) => ({
-          mt: '4px',
-          backgroundColor: theme.palette.primary.main,
-          color: theme.palette.primary.contrastText,
-          borderRadius: '4px',
-          ':hover': {
-            backgroundColor: theme.palette.primary.dark,
-            color: theme.palette.primary.contrastText,
-          },
-        })}
-      >
-        <AddIcon />
-      </IconButton> */}
-
       {/* live json */}
-      <Box mt={4}>
+      <Box mt={2} mb={2}>
         <Button
           variant="contained"
           size="small"
@@ -765,12 +765,12 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
         >
           Save
         </Button>
-        <Typography fontWeight={600} variant="subtitle1">
+        {/* <Typography fontWeight={600} variant="subtitle1">
           Live JSON
         </Typography>
         <pre style={{ background: '#fafaf8', border: '1px solid #ecece6', padding: '0.8rem' }}>
           {JSON.stringify(new DictionaryProposalModel(entries, selectedSource), null, 2)}
-        </pre>
+        </pre> */}
       </Box>
     </Box>
   );

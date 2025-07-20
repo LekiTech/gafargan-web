@@ -110,7 +110,7 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
           const isExisting = opts.some(
             (o) => o.getName().toLowerCase() === inputValue.toLowerCase(),
           );
-          if (inputValue !== '' && !isExisting) {
+          if (inputValue !== '' && !isExisting && onCreate) {
             filtered.push(
               new SourceModel({
                 state: STATE.ADDED,

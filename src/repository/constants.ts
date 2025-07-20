@@ -1,0 +1,37 @@
+/**
+ * Constants for language dialects.
+ * This file should always match exactly records in the database.
+ */
+export const LangDialects: Record<number, string> = Object.freeze({
+  '1': 'Lezgi Literary',
+  '2': 'Lezgi Neologism',
+  '3': 'Lezgi Guney (Kure)',
+  '4': 'Lezgi Yarki (Kure)',
+  '5': 'Lezgi Khurah (Kure)',
+  '6': 'Lezgi Gelkhen subdialect (Kure)',
+  '7': 'Lezgi Gil subdialect (Kure)',
+  '8': 'Lezgi Akhtseh (Samur)',
+  '9': 'Lezgi Bash Dashaghyl-Filfil subdialect (Samur)',
+  '10': 'Lezgi Doquzpara (Samur)',
+  '11': 'Lezgi Qurush subdialect (Samur)',
+  '12': 'Lezgi Cheper subdialect (Samur)',
+  '13': 'Lezgi Fiy subdialect (Samur)',
+  '14': 'Lezgi Khwepel subdialect (Samur)',
+  '15': 'Lezgi Khulid subdialect (Samur)',
+  '16': 'Lezgi Khurug subdialect (Samur)',
+  '17': 'Lezgi Tsurugh subdialect (Samur)',
+  '18': 'Lezgi Ighir subdialect (Samur)',
+  '19': 'Lezgi Matsar subdialect (Samur)',
+  '20': 'Lezgi Gutum subdialect (Samur)',
+  '21': 'Lezgi Kuba (Kuba)',
+  '22': 'Lezgi Khimil (Kuba)',
+  '23': 'Lezgi Kuzun (Kuba)',
+  '24': 'Tabasaran',
+  '25': 'Russian',
+  '26': 'English',
+  '27': 'Turkish Old',
+  '28': 'Azerbaijani',
+  '29': 'Persian Old',
+  '30': 'Arabic Modern Standard',
+  '31': 'Arabic Old (Quranic)',
+});
