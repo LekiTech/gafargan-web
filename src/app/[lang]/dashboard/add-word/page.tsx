@@ -5,6 +5,8 @@ import { Params, SearchParams } from '@/types';
 import { WordEntryForm } from '../components/WordEntryForm';
 import { getSources } from '@repository/word.repository';
 import { SourceModel, SourceModelType, STATE } from '../models/proposal.model';
+import { PageHeader } from '@toolpad/core';
+import { Container } from '@mui/material';
 
 const AddWordPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
   params,
@@ -44,7 +46,10 @@ const AddWordPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
     // <div>Hello world!</div>
     // <CustomPaginationActionsTable words={words} />
     // <AddWordForm />
-    <WordEntryForm lang={lang} sourceModels={sourceModels} />
+    <Container sx={{ my: 2 }}>
+      <PageHeader />
+      <WordEntryForm lang={lang} sourceModels={sourceModels} />
+    </Container>
   );
 };
 
