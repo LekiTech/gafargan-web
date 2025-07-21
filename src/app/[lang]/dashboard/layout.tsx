@@ -20,6 +20,11 @@ const NAVIGATION = (lang: WebsiteLang): Navigation => {
       title: 'Main items',
     },
     {
+      segment: `${lang}/dashboard`,
+      title: 'Dashboard',
+      icon: <DashboardIcon />,
+    },
+    {
       segment: `${lang}/dashboard/review`,
       title: 'Review',
       icon: <SpellcheckIcon />,

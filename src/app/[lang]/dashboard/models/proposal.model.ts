@@ -102,13 +102,13 @@ export class TranslationModel extends Model {
    */
   merge(data: Partial<TranslationModelType>): TranslationModel {
     this.setModified();
-    if (data.src) {
+    if (data.src !== undefined) {
       this.src = data.src;
     }
-    if (data.trl) {
+    if (data.trl !== undefined) {
       this.trl = data.trl;
     }
-    if (data.tags) {
+    if (data.tags !== undefined) {
       this.tags = data.tags;
     }
     return this;
@@ -216,13 +216,13 @@ export class DefinitionModel extends Model {
    */
   merge(data: Partial<DefinitionModelType>): DefinitionModel {
     this.setModified();
-    if (data.value) {
+    if (data.value !== undefined) {
       this.value = data.value;
     }
-    if (data.tags) {
+    if (data.tags !== undefined) {
       this.tags = data.tags;
     }
-    if (data.examples) {
+    if (data.examples !== undefined) {
       this.examples = data.examples;
     }
     return this;
@@ -359,16 +359,16 @@ export class WordDetailModel extends Model {
    */
   merge(data: Partial<WordDetailModelType>): WordDetailModel {
     this.setModified();
-    if (data.inflection) {
+    if (data.inflection !== undefined) {
       this.inflection = data.inflection;
     }
-    if (data.tags) {
+    if (data.tags !== undefined) {
       this.tags = data.tags;
     }
-    if (data.definitions) {
+    if (data.definitions !== undefined) {
       this.definitions = data.definitions;
     }
-    if (data.examples) {
+    if (data.examples !== undefined) {
       this.examples = data.examples;
     }
     return this;
@@ -506,10 +506,10 @@ export class WordModel extends Model {
    */
   merge(data: Partial<WordModelType>): WordModel {
     this.setModified();
-    if (data.spelling) {
+    if (data.spelling !== undefined) {
       this.spelling = data.spelling;
     }
-    if (data.wordDetails) {
+    if (data.wordDetails !== undefined) {
       this.wordDetails = data.wordDetails;
     }
     return this;
@@ -637,13 +637,13 @@ export class SpellingVariantModel extends Model {
    */
   merge(data: Partial<SpellingVariantModelType>): SpellingVariantModel {
     this.setModified();
-    if (data.spelling) {
+    if (data.spelling !== undefined) {
       this.spelling = data.spelling;
     }
-    if (data.sourceId) {
+    if (data.sourceId !== undefined) {
       this.sourceId = data.sourceId;
     }
-    if (data.langDialectId) {
+    if (data.langDialectId !== undefined) {
       this.langDialectId = data.langDialectId;
     }
     return this;
@@ -797,31 +797,31 @@ export class SourceModel extends Model {
    */
   merge(data: Partial<SourceModelType>): SourceModel {
     this.setModified();
-    if (data.name) {
+    if (data.name !== undefined) {
       this.name = data.name;
     }
-    if (data.authors) {
+    if (data.authors !== undefined) {
       this.authors = data.authors;
     }
-    if (data.publicationYear) {
+    if (data.publicationYear !== undefined) {
       this.publicationYear = data.publicationYear;
     }
-    if (data.providedBy) {
+    if (data.providedBy !== undefined) {
       this.providedBy = data.providedBy;
     }
-    if (data.providedByUrl) {
+    if (data.providedByUrl !== undefined) {
       this.providedByUrl = data.providedByUrl;
     }
-    if (data.processedBy) {
+    if (data.processedBy !== undefined) {
       this.processedBy = data.processedBy;
     }
-    if (data.copyright) {
+    if (data.copyright !== undefined) {
       this.copyright = data.copyright;
     }
-    if (data.seeSourceUrl) {
+    if (data.seeSourceUrl !== undefined) {
       this.seeSourceUrl = data.seeSourceUrl;
     }
-    if (data.description) {
+    if (data.description !== undefined) {
       this.description = data.description;
     }
     return this;

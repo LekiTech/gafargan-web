@@ -46,6 +46,24 @@ import {
 } from '../models/proposal.model';
 import { LangDialects } from '@repository/constants';
 
+const BUTTON_PASTEL_COLORS_BLUE = {
+  bgcolor: 'rgb(220, 240, 250)',
+  color: 'rgb(100, 125, 160)',
+  '&:hover': {
+    bgcolor: 'rgb(170, 205, 240)',
+    color: 'rgb(60, 90, 130)',
+  },
+};
+
+const BUTTON_PASTEL_COLORS_PURPLE = {
+  bgcolor: 'rgb(220, 215, 240)',
+  color: 'rgb(130, 125, 165)',
+  '&:hover': {
+    bgcolor: 'rgb(190, 185, 250)',
+    color: 'rgb(100, 95, 165)',
+  },
+};
+
 /* ---------------- types ---------------- */
 // interface ExampleModel {
 //   src: string;
@@ -165,70 +183,105 @@ const ExampleLine: React.FC<{
   return (
     <Box display="flex" alignItems="baseline" gap={2} mt={0.5}>
       {isInnerBlockExample && <Typography color="text.secondary">●</Typography>}
-      {/* tags */}
       <Box
-        display="flex"
-        alignItems="baseline"
         gap={1}
-        flexWrap="wrap"
-        sx={{ alignSelf: 'end', mt: '5px' }}
+        sx={(theme) => ({
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          [theme.breakpoints.down('md')]: {
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: 1,
+          },
+        })}
       >
-        {example
-          .getTags()
-          ?.map((t) => (
-            <Chip
-              key={t}
-              label={tagEntries[t.split(';')[0]]}
-              size="small"
-              onDelete={() => patch({ tags: example.getTags()?.filter((x) => x !== t) })}
-            />
-          ))}
-        <Chip
-          label="tags"
-          icon={<AddIcon />}
-          variant="outlined"
-          color="primary"
-          size="small"
-          onClick={(e) => setAnchor(e.currentTarget)}
+        {/* tags */}
+        <Box
+          display="flex"
+          alignItems="baseline"
+          gap={1}
+          flexWrap="wrap"
+          sx={(theme) => ({
+            alignSelf: 'end',
+            mt: '5px',
+            [theme.breakpoints.down('md')]: { mt: '0', alignSelf: 'start' },
+            order: 3,
+          })}
+        >
+          {example
+            .getTags()
+            ?.map((t) => (
+              <Chip
+                key={t}
+                label={tagEntries[t.split(';')[0]]}
+                size="small"
+                onDelete={() => patch({ tags: example.getTags()?.filter((x) => x !== t) })}
+              />
+            ))}
+          <Chip
+            label="tags"
+            icon={<AddIcon />}
+            variant="filled"
+            size="small"
+            color="info"
+            sx={{
+              ...BUTTON_PASTEL_COLORS_BLUE,
+            }}
+            onClick={(e) => setAnchor(e.currentTarget)}
+          />
+          <TagSelector
+            anchorEl={anchor}
+            selected={example.getTags() ?? []}
+            onClose={() => setAnchor(null)}
+            onChange={(tags) => patch({ tags })}
+            allTags={allTags}
+          />
+        </Box>
+        <TextField
+          variant="standard"
+          fullWidth
+          value={example.getSrc()}
+          onChange={(e) => onChange(example.merge({ src: e.target.value }))}
+          placeholder="example"
+          autoComplete="off"
+          slotProps={{
+            input: {
+              disableUnderline: true,
+              style: { borderBottom: '1px dashed #000' },
+            },
+          }}
         />
-        <TagSelector
-          anchorEl={anchor}
-          selected={example.getTags() ?? []}
-          onClose={() => setAnchor(null)}
-          onChange={(tags) => patch({ tags })}
-          allTags={allTags}
+        <Typography
+          color="text.secondary"
+          sx={(theme) => ({ [theme.breakpoints.down('md')]: { display: 'none' } })}
+        >
+          →
+        </Typography>
+        <TextField
+          variant="standard"
+          fullWidth
+          value={example.getTrl()}
+          onChange={(e) => onChange(example.merge({ trl: e.target.value }))}
+          placeholder="example translation"
+          autoComplete="off"
+          slotProps={{
+            input: {
+              disableUnderline: true,
+              style: { borderBottom: '1px dashed #000' },
+            },
+          }}
         />
       </Box>
-      <TextField
-        variant="standard"
-        fullWidth
-        value={example.getSrc()}
-        onChange={(e) => onChange(example.merge({ src: e.target.value }))}
-        placeholder="example"
-        autoComplete="off"
-        slotProps={{
-          input: {
-            disableUnderline: true,
-            style: { borderBottom: '1px dashed #000' },
-          },
-        }}
-      />
-      <Typography color="text.secondary">:</Typography>
-      <TextField
-        variant="standard"
-        fullWidth
-        value={example.getTrl()}
-        onChange={(e) => onChange(example.merge({ trl: e.target.value }))}
-        placeholder="example translation"
-        autoComplete="off"
-        slotProps={{
-          input: {
-            disableUnderline: true,
-            style: { borderBottom: '1px dashed #000' },
-          },
-        }}
-      />
-      <IconButton size="small" onClick={onDelete} sx={{ alignSelf: 'flex-end' }} color="error">
+      <IconButton
+        size="small"
+        onClick={onDelete}
+        sx={(theme) => ({
+          alignSelf: 'flex-end',
+          [theme.breakpoints.down('md')]: { alignSelf: 'flex-start' },
+        })}
+        color="error"
+      >
         <DeleteOutlineIcon fontSize="small" />
       </IconButton>
     </Box>
@@ -256,48 +309,69 @@ const DefinitionBlock: React.FC<{
     <Box mt={1}>
       <Box display="flex" gap={1} alignItems="baseline">
         <Typography fontWeight={600}>{idx + 1}.</Typography>
-        {/* tags */}
         <Box
-          display="flex"
-          alignItems="baseline"
           gap={1}
-          flexWrap="wrap"
-          sx={{ alignSelf: 'end', mt: '5px' }}
+          sx={(theme) => ({
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            [theme.breakpoints.down('md')]: {
+              flexDirection: 'column-reverse',
+              alignItems: 'flex-start',
+              gap: 1,
+            },
+          })}
         >
-          {def
-            .getTags()
-            ?.map((t) => (
-              <Chip
-                key={t}
-                label={tagEntries[t.split(';')[0]]}
-                size="small"
-                onDelete={() => patch({ tags: def.getTags()?.filter((x) => x !== t) })}
-              />
-            ))}
-          <Chip
-            label="tags"
-            icon={<AddIcon />}
-            variant="outlined"
-            color="primary"
-            size="small"
-            onClick={(e) => setAnchor(e.currentTarget)}
-          />
-          <TagSelector
-            anchorEl={anchor}
-            selected={def.getTags() ?? []}
-            onClose={() => setAnchor(null)}
-            onChange={(tags) => patch({ tags })}
-            allTags={allTags}
+          {/* tags */}
+          <Box
+            display="flex"
+            alignItems="baseline"
+            gap={1}
+            flexWrap="wrap"
+            sx={(theme) => ({
+              alignSelf: 'end',
+              mt: '5px',
+              [theme.breakpoints.down('md')]: { mt: '0', alignSelf: 'start' },
+            })}
+          >
+            {def
+              .getTags()
+              ?.map((t) => (
+                <Chip
+                  key={t}
+                  label={tagEntries[t.split(';')[0]]}
+                  size="small"
+                  onDelete={() => patch({ tags: def.getTags()?.filter((x) => x !== t) })}
+                />
+              ))}
+            <Chip
+              label="tags"
+              icon={<AddIcon />}
+              variant="filled"
+              size="small"
+              color="info"
+              sx={{
+                ...BUTTON_PASTEL_COLORS_BLUE,
+              }}
+              onClick={(e) => setAnchor(e.currentTarget)}
+            />
+            <TagSelector
+              anchorEl={anchor}
+              selected={def.getTags() ?? []}
+              onClose={() => setAnchor(null)}
+              onChange={(tags) => patch({ tags })}
+              allTags={allTags}
+            />
+          </Box>
+          <TextField
+            variant="standard"
+            placeholder="definition"
+            autoComplete="off"
+            fullWidth
+            value={def.getValue()}
+            onChange={(e) => patch({ value: e.target.value })}
           />
         </Box>
-        <TextField
-          variant="standard"
-          placeholder="definition"
-          autoComplete="off"
-          fullWidth
-          value={def.getValue()}
-          onChange={(e) => patch({ value: e.target.value })}
-        />
         <IconButton size="small" onClick={onDelete} color="error">
           <DeleteOutlineIcon fontSize="small" />
         </IconButton>
@@ -321,10 +395,14 @@ const DefinitionBlock: React.FC<{
         <Chip
           label="example"
           icon={<AddIcon />}
-          variant="outlined"
-          color="primary"
+          variant="filled"
           size="small"
-          sx={{ width: 'fit-content', mt: 1.5 }}
+          color="info"
+          sx={{
+            width: 'fit-content',
+            mt: 1.5,
+            ...BUTTON_PASTEL_COLORS_BLUE,
+          }}
           onClick={() =>
             patch({
               examples: [...(def.getExamples() ?? []), TranslationModel.createEmpty()],
@@ -342,7 +420,8 @@ const WordDetailBlock: React.FC<{
   onChange: (wd: WordDetailModel) => void;
   onDelete: () => void;
   lang: WebsiteLang;
-}> = ({ data, onChange, onDelete, lang }) => {
+  allSources: SourceModel[];
+}> = ({ data, onChange, onDelete, lang, allSources }) => {
   const { t, i18n } = useTranslation(lang);
   const tagEntries = i18n.getResourceBundle(lang, 'tags');
   const allTags = Object.entries(flipAndMergeTags(tagEntries)).filter(
@@ -367,43 +446,60 @@ const WordDetailBlock: React.FC<{
   return (
     <Box mt={2} pl={1} ml={1.5} borderLeft="3px solid rgba(0,0,0,0.54)" className="word-detail">
       <Stack direction="row" gap={2}>
-        {/* tags */}
-        <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
-          {data
-            .getTags()
-            ?.map((t) => (
-              <Chip
-                key={t}
-                label={tagEntries[t.split(';')[0]]}
-                size="small"
-                onDelete={() => patch({ tags: data.getTags()?.filter((x) => x !== t) })}
-              />
-            ))}
-          <Chip
-            label="tags"
-            icon={<AddIcon />}
-            variant="outlined"
-            color="primary"
-            size="small"
-            onClick={(e) => setAnchor(e.currentTarget)}
-          />
-          <TagSelector
-            anchorEl={anchor}
-            selected={data.getTags() ?? []}
-            onClose={() => setAnchor(null)}
-            onChange={(tags) => patch({ tags })}
-            allTags={allTags}
+        <Box
+          gap={1}
+          sx={(theme) => ({
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            [theme.breakpoints.down('md')]: {
+              flexDirection: 'column-reverse',
+              alignItems: 'flex-start',
+              gap: 1,
+            },
+          })}
+        >
+          {/* tags */}
+          <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
+            {data
+              .getTags()
+              ?.map((t) => (
+                <Chip
+                  key={t}
+                  label={tagEntries[t.split(';')[0]]}
+                  size="small"
+                  onDelete={() => patch({ tags: data.getTags()?.filter((x) => x !== t) })}
+                />
+              ))}
+            <Chip
+              label="tags"
+              icon={<AddIcon />}
+              variant="filled"
+              size="small"
+              color="info"
+              sx={{
+                ...BUTTON_PASTEL_COLORS_BLUE,
+              }}
+              onClick={(e) => setAnchor(e.currentTarget)}
+            />
+            <TagSelector
+              anchorEl={anchor}
+              selected={data.getTags() ?? []}
+              onClose={() => setAnchor(null)}
+              onChange={(tags) => patch({ tags })}
+              allTags={allTags}
+            />
+          </Box>
+          {/* inflection */}
+          <TextField
+            variant="standard"
+            placeholder="inflection"
+            autoComplete="off"
+            value={data.getInflection()}
+            onChange={(e) => patch({ inflection: e.target.value })}
+            sx={{ maxWidth: 200, width: '100%' }}
           />
         </Box>
-        {/* inflection */}
-        <TextField
-          variant="standard"
-          placeholder="inflection"
-          autoComplete="off"
-          value={data.getInflection()}
-          onChange={(e) => patch({ inflection: e.target.value })}
-          sx={{ width: 200 }}
-        />
         <Box sx={{ width: '100%' }} />
         <IconButton size="small" onClick={onDelete} color="error">
           <DeleteOutlineIcon fontSize="small" />
@@ -425,6 +521,14 @@ const WordDetailBlock: React.FC<{
       ))}
 
       {/* word‑detail examples */}
+      {data.getExamples() && data.getExamples()!.length > 0 && (
+        <Box sx={{ mt: 1 }}>
+          <Divider sx={{ mt: 1.5, mb: 1 }} />
+          <Typography variant="subtitle2" color="text.secondary">
+            other examples
+          </Typography>
+        </Box>
+      )}
       {data.getExamples()?.map((ex, i) => (
         <ExampleLine
           key={i}
@@ -449,8 +553,12 @@ const WordDetailBlock: React.FC<{
         sx={{ display: 'flex', flexDirection: 'column', width: 'fit-content' }}
       >
         <Button
-          variant="outlined"
+          variant="contained"
           size="small"
+          color="info"
+          sx={{
+            ...BUTTON_PASTEL_COLORS_BLUE,
+          }}
           startIcon={<AddIcon />}
           onClick={() =>
             patch({ definitions: [...data.getDefinitions(), DefinitionModel.createEmpty()] })
@@ -459,8 +567,12 @@ const WordDetailBlock: React.FC<{
           definition
         </Button>
         <Button
-          variant="outlined"
+          variant="contained"
           size="small"
+          color="info"
+          sx={{
+            ...BUTTON_PASTEL_COLORS_BLUE,
+          }}
           startIcon={<AddIcon />}
           onClick={() =>
             patch({ examples: [...(data.getExamples() ?? []), TranslationModel.createEmpty()] })
@@ -469,12 +581,70 @@ const WordDetailBlock: React.FC<{
           other examples
         </Button>
       </Box>
+      <Box
+        sx={(theme) => ({
+          mb: 1,
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 3,
+          [theme.breakpoints.down('md')]: {
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: 1,
+          },
+        })}
+      >
+        <Select
+          size="small"
+          variant="standard"
+          value={data.getLangDialectId()}
+          sx={(theme) => ({
+            flex: 1,
+            fontSize: '0.875rem',
+            color: theme.palette.text.secondary,
+            maxWidth: 200,
+          })}
+          onChange={(e) => {
+            data.setLangDialectId(Number(e.target.value));
+            onChange(data);
+          }}
+        >
+          {Object.entries(LangDialects).map(([id, name]) => (
+            <MenuItem key={id} value={id}>
+              {name}
+            </MenuItem>
+          ))}
+        </Select>
+        <Select
+          size="small"
+          variant="standard"
+          value={allSources.find((s) => s.getId() === data.getSourceId())?.getId() || ''}
+          sx={(theme) => ({
+            flex: 1,
+            maxWidth: 250,
+            width: '90%',
+            fontSize: '0.875rem',
+            color: theme.palette.text.secondary,
+          })}
+          onChange={(e) => {
+            data.setSourceId(e.target.value);
+            onChange(data);
+          }}
+        >
+          {allSources.map((source) => (
+            <MenuItem key={source.getId()} value={source.getId()}>
+              {`${source.getName()} — (${source.getAuthors()})`}
+            </MenuItem>
+          ))}
+        </Select>
+      </Box>
     </Box>
   );
 };
 
 /* ---------------- Entry ---------------- */
-const Entry: React.FC<{
+const WordEntry: React.FC<{
   idx: number;
   entry: WordModel;
   onChange: (e: WordModel) => void;
@@ -482,9 +652,21 @@ const Entry: React.FC<{
   lang: WebsiteLang;
   defLangDialectId: number;
   defSourceId: number;
+  allSources: SourceModel[];
   isFirst?: boolean;
   isLast?: boolean;
-}> = ({ idx, entry, onChange, onDelete, lang, defLangDialectId, defSourceId, isFirst, isLast }) => {
+}> = ({
+  idx,
+  entry,
+  onChange,
+  onDelete,
+  lang,
+  defLangDialectId,
+  defSourceId,
+  allSources,
+  isFirst,
+  isLast,
+}) => {
   // const theme = useTheme();
   // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
   const [showCannotDeleteMessage, setShowCannotDeleteMessage] = React.useState(false);
@@ -559,6 +741,7 @@ const Entry: React.FC<{
           variant="standard"
           value={entry.getSpelling()}
           placeholder="word"
+          required
           autoComplete="off"
           onChange={(e) => onChange(entry.merge({ spelling: e.target.value }))}
           sx={{
@@ -581,6 +764,7 @@ const Entry: React.FC<{
             fullWidth
             value={entry.getWordDetails()[0].getDefinitions()[0].getValue()}
             placeholder="definition"
+            required
             autoComplete="off"
             onChange={(e) => {
               const copy = entry.getCopy();
@@ -604,14 +788,72 @@ const Entry: React.FC<{
           onClose={() => setShowCannotDeleteMessage(false)}
         >
           <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-            Cannot delete the only meanings group
+            Cannot delete the only definition group
           </Alert>
         </Snackbar>
       </Box>
 
       {/* collapsible */}
       {isOpen && (
-        <Box mt={1} pb={1}>
+        <Box mt={1} pb={1} pl={5}>
+          <Box
+            sx={(theme) => ({
+              mb: 1,
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 3,
+              [theme.breakpoints.down('md')]: {
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                gap: 1,
+              },
+            })}
+          >
+            <Select
+              size="small"
+              variant="standard"
+              value={entry.getLangDialectId()}
+              sx={(theme) => ({
+                flex: 1,
+                fontSize: '0.875rem',
+                color: theme.palette.text.secondary,
+                maxWidth: 200,
+              })}
+              onChange={(e) => {
+                entry.setLangDialectId(Number(e.target.value));
+                onChange(entry);
+              }}
+            >
+              {Object.entries(LangDialects).map(([id, name]) => (
+                <MenuItem key={id} value={id}>
+                  {name}
+                </MenuItem>
+              ))}
+            </Select>
+            <Select
+              size="small"
+              variant="standard"
+              value={allSources.find((s) => s.getId() === entry.getSourceId())?.getId() || ''}
+              sx={(theme) => ({
+                flex: 1,
+                fontSize: '0.875rem',
+                color: theme.palette.text.secondary,
+                width: '90%',
+                maxWidth: 275,
+              })}
+              onChange={(e) => {
+                entry.setSourceId(e.target.value);
+                onChange(entry);
+              }}
+            >
+              {allSources.map((source) => (
+                <MenuItem key={source.getId()} value={source.getId()}>
+                  {`${source.getName()} — (${source.getAuthors()})`}
+                </MenuItem>
+              ))}
+            </Select>
+          </Box>
           {entry.getWordDetails().map((wd, i) => (
             <WordDetailBlock
               key={i}
@@ -619,16 +861,17 @@ const Entry: React.FC<{
               onChange={(d) => updateWD(i, d)}
               onDelete={() => deleteWD(i)}
               lang={lang}
+              allSources={allSources}
             />
           ))}
           <Button
-            variant="outlined"
+            variant="contained"
             size="small"
             startIcon={<AddIcon />}
             onClick={addWD}
-            sx={{ mt: 1, ml: 1.5 }}
+            sx={{ mt: 1, ml: 1.5, ...BUTTON_PASTEL_COLORS_BLUE }}
           >
-            meanings group
+            definition group
           </Button>
         </Box>
       )}
@@ -664,20 +907,26 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
   };
   const updateEntry = (i: number, e: WordModel) =>
     setEntries((prev) => prev.map((en, idx) => (idx === i ? e : en)));
-  const deleteEntry = (i: number) =>
+  const deleteEntry = (i: number) => {
+    if (!entries[i].isEmpty()) {
+      const answer = confirm('Are you sure you want to delete this entry?');
+      if (!answer) {
+        return;
+      }
+    }
     setEntries((prev) => {
       if (prev.length > 1) {
         return prev.filter((_, idx) => idx !== i);
       }
       return prev;
     });
-
+  };
   const handleCreate = (created: SourceModel) => {
     // Persist locally (or via API)
     setSources((prev) => [...prev, created]);
   };
   return (
-    <Box sx={(theme) => ({ maxWidth: 600, [theme.breakpoints.down('md')]: { ml: 1.5 } })}>
+    <Box sx={(theme) => ({ maxWidth: 1200, [theme.breakpoints.down('md')]: { ml: 1.5 } })}>
       {/* header + selectors */}
       <Grid container columns={{ xs: 6 }} gap={1} mb={5}>
         <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
@@ -720,7 +969,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
       </Grid>
 
       {entries.map((en, idx) => (
-        <Entry
+        <WordEntry
           key={idx}
           idx={idx + 1}
           entry={en}
@@ -729,6 +978,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           lang={lang}
           defLangDialectId={toLangDialectId}
           defSourceId={selectedSource.getId()!}
+          allSources={sources}
           isFirst={idx === 0}
           isLast={idx === entries.length - 1}
         />
@@ -739,7 +989,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
         size="small"
         startIcon={<AddIcon />}
         onClick={addEntry}
-        sx={{ mt: '4px', mb: 3 }}
+        sx={{ mt: '4px', mb: 3, ...BUTTON_PASTEL_COLORS_BLUE }}
       >
         Gaf
       </Button>
@@ -765,12 +1015,19 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
         >
           Save
         </Button>
-        {/* <Typography fontWeight={600} variant="subtitle1">
+        <Typography fontWeight={600} variant="subtitle1">
           Live JSON
         </Typography>
-        <pre style={{ background: '#fafaf8', border: '1px solid #ecece6', padding: '0.8rem' }}>
+        <pre
+          style={{
+            background: '#fafaf8',
+            border: '1px solid #ecece6',
+            padding: '0.8rem',
+            overflowX: 'scroll',
+          }}
+        >
           {JSON.stringify(new DictionaryProposalModel(entries, selectedSource), null, 2)}
-        </pre> */}
+        </pre>
       </Box>
     </Box>
   );
