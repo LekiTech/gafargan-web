@@ -112,6 +112,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
                 {
                   LangToId['lez']
                     .map((langId) => example.phrasesPerLangDialect[langId])
+                    .flat()
                     .filter((p) => p)[0].phrase
                 }
                 <br />
@@ -120,6 +121,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
                   {
                     LangToId['rus']
                       .map((langId) => example.phrasesPerLangDialect[langId])
+                      .flat()
                       .filter((p) => p)[0].phrase
                   }
                 </i>
