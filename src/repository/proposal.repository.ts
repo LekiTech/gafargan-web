@@ -13,7 +13,7 @@ import { Proposal } from './entities/Proposal';
 import { ProposalStatus, ProposalOperation } from './entities/enums';
 import { LangDialect } from './entities/LangDialect';
 import { DefinitionValue } from './entities/Definition';
-import { TranslationPhrases } from './entities/Translation';
+import { TranslationPhrase } from './entities/Translation';
 import { EntitySchema } from 'typeorm';
 
 // Map table_name → corresponding entity class
@@ -68,7 +68,7 @@ export interface DefinitionProposal {
   tags?: string[];
 }
 export interface TranslationProposal {
-  phrasesPerLangDialect?: Record<string, TranslationPhrases>;
+  phrasesPerLangDialect?: Record<string, TranslationPhrase>;
   tags?: string[];
   raw?: string;
 }

@@ -1,6 +1,6 @@
 'use server';
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { TranslationPhrases } from './entities/Translation';
+import { TranslationPhrase } from './entities/Translation';
 
 // export interface PaginatedResponse<T> {
 //   data: T[];
@@ -27,7 +27,7 @@ export interface FoundExample {
   word_id: number;
   spelling: string;
   id: number;
-  phrases_per_lang_dialect: Record<string, TranslationPhrases>;
+  phrases_per_lang_dialect: Record<string, TranslationPhrase>;
   word_lang_dialect_id: number;
   definitions_lang_dialect_id: number;
   raw: string;

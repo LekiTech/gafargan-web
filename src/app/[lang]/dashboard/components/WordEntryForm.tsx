@@ -64,61 +64,6 @@ const BUTTON_PASTEL_COLORS_PURPLE = {
   },
 };
 
-/* ---------------- types ---------------- */
-// interface ExampleModel {
-//   src: string;
-//   trl: string;
-//   tags?: string[];
-// }
-// interface DefinitionModel {
-//   value: string;
-//   tags?: string[];
-//   examples?: ExampleModel[];
-// }
-// interface WordDetailModel {
-//   inflection: string;
-//   tags?: string[];
-//   definitions: DefinitionModel[];
-//   examples?: ExampleModel[];
-// }
-// interface WordModel {
-//   spelling: string;
-//   open: boolean;
-//   wordDetails: WordDetailModel[];
-// }
-
-// interface SourceShortModel {
-//   name: string;
-//   authors?: string;
-// }
-
-// class DictionaryModel {
-//   readonly version = 'V3-mini';
-//   readonly entries: WordModel[] = [];
-//   readonly source: SourceShortModel;
-
-//   constructor(source: SourceShortModel) {
-//     this.source = source;
-//   }
-// }
-
-/* ---------------- constants ---------------- */
-// const TAG_OPTIONS = ['noun', 'verb', 'adj', 'formal', 'archaic'] as const;
-
-/* ---------------- helpers ---------------- */
-// const emptyExample = (seedSrc = '', seedTrl = ''): TranslationModel =>
-//   new TranslationModel({ state: STATE.ADDED, src: seedSrc, trl: seedTrl });
-// const emptyDef = (seed = ''): DefinitionModel =>
-//   new DefinitionModel({ state: STATE.ADDED, value: seed });
-// const emptyWD = (seed = ''): WordDetailModel =>
-//   new WordDetailModel({
-//     state: STATE.ADDED,
-//     inflection: '',
-//     definitions: [emptyDef(seed)],
-//   });
-// const emptyWordEntry = (seed = ''): WordModel =>
-//   new WordModel({ state: STATE.ADDED, spelling: seed, wordDetails: [emptyWD()] });
-
 /* ---------------- TagSelector ---------------- */
 interface TagSelectorProps {
   anchorEl: HTMLElement | null;
@@ -889,6 +834,9 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
     DictionaryLang,
     string
   >;
+  const [alertMessage, setAlertMessage] = useState<
+    { message: string; severity: 'error' | 'info' | 'success' | 'warning' } | undefined
+  >(undefined);
   const addEntryButtonRef = useRef<HTMLButtonElement>(null);
   const [fromLangDialectId, setFromLangDialectId] = useState<number>(1);
   const [toLangDialectId, setToLangDialectId] = useState<number>(25);
@@ -1000,16 +948,25 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           size="small"
           startIcon={<SaveIcon />}
           onClick={async () => {
-            await fetch('add-word/api', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(
-                new DictionaryProposalModel(
-                  entries.filter((e) => !e.isEmpty()),
-                  selectedSource,
-                ),
-              ),
-            });
+            const proposalValue = new DictionaryProposalModel(
+              entries.filter((e) => !e.isEmpty()),
+              selectedSource,
+            );
+            if (proposalValue.entries.length === 0) {
+              setAlertMessage({ message: 'Nothing to save', severity: 'info' });
+              return;
+            }
+            try {
+              await fetch('add-word/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(proposalValue),
+              });
+              setAlertMessage({ message: 'Saved successfully', severity: 'success' });
+            } catch (error) {
+              console.error('Error saving proposal:', error);
+              setAlertMessage({ message: 'Failed to save', severity: 'error' });
+            }
           }}
           sx={{ mt: '4px', mb: 3 }}
         >
@@ -1029,6 +986,16 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           {JSON.stringify(new DictionaryProposalModel(entries, selectedSource), null, 2)}
         </pre>
       </Box>
+      <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={alertMessage !== undefined}
+        autoHideDuration={6000}
+        onClose={() => setAlertMessage(undefined)}
+      >
+        <Alert severity={alertMessage?.severity} variant="filled" sx={{ width: '100%' }}>
+          {alertMessage?.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

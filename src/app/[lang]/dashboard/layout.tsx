@@ -108,7 +108,6 @@ const CustomThemeSwitcher: FC<{ websiteLang: WebsiteLang }> = ({ websiteLang }) 
 function CustomToolbarActions() {
   const pathname = usePathname();
   const { lang } = useParams() as { lang: WebsiteLang };
-  console.log('CustomToolbarActions > lang', lang);
   return (
     <Stack direction="row" alignItems="center">
       {pathname === `/${lang}/${Routes.Review}` && <CustomThemeSwitcher websiteLang={lang} />}
@@ -125,20 +124,6 @@ export default function DashboardPagesLayout(props: { children: React.ReactNode 
   const { lang } = useParams() as { lang: WebsiteLang };
   // const [employeeId] = params.segments ?? [];
 
-  const title = React.useMemo(() => {
-    if (pathname === '/employees/new') {
-      return 'New Employee';
-    }
-    // if (employeeId && pathname.includes('/edit')) {
-    //   return `Employee ${employeeId} - Edit`;
-    // }
-    // if (employeeId) {
-    //   return `Employee ${employeeId}`;
-    // }
-    return undefined;
-  }, [pathname]);
-  // }, [employeeId, pathname]);
-
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -149,25 +134,19 @@ export default function DashboardPagesLayout(props: { children: React.ReactNode 
     (item: NavigationPageItem, { mini }: { mini: boolean }) => {
       const addWordUrlPath = `/${lang}/${Routes.AddWord}`;
       const reviewSegment = `${lang}/${Routes.Review}`;
-
-      console.log('renderPageItem > item', item, item.segment === reviewSegment, mini);
       if (pathname === addWordUrlPath) {
         return (
-          // <ListItem sx={{ px: '8px', py: 0 }}>
-
-          // </ListItem>
+          // NOTE: This is a workaround to prevent the default behavior of the link
+          //       Better to rewrite it once MUI supports overriding onClick handlers for DashboardSidebarPageItem
           <DashboardSidebarPageItem
             item={item}
             LinkComponent={() => (
               <CustomNavigationListItemButton
                 onClick={() => {
-                  const confirmed = confirm('Are you sure?');
+                  const confirmed = confirm('Are you sure? All unsaved changes will be lost.');
                   if (confirmed && item.segment) {
                     router.push(`/${item.segment}`);
                   }
-                  // } else if (item.segment) {
-                  //   router.push(`/${item.segment}`);
-                  // }
                 }}
                 selected={
                   pathname === addWordUrlPath
@@ -211,22 +190,7 @@ export default function DashboardPagesLayout(props: { children: React.ReactNode 
           />
         );
       }
-      return (
-        //   // <ListItem
-        //   //   onClick={() => {
-        //   //     const confirmed = confirm('Are you sure?');
-        //   //     if (confirmed && item.segment) {
-        //   //       router.push(`/${item.segment}`);
-        //   //     }
-        //   //   }}
-        //   // >
-        //   //   <ListItemButton>
-        //   //     <ListItemIcon>{item.icon}</ListItemIcon>
-        //   //     <ListItemText primary={item.title} />
-        //   //   </ListItemButton>
-        //   // </ListItem>
-        <DashboardSidebarPageItem item={item} />
-      );
+      return <DashboardSidebarPageItem item={item} />;
     },
     [lang, pathname, router],
   );
@@ -243,7 +207,7 @@ export default function DashboardPagesLayout(props: { children: React.ReactNode 
         }}
         renderPageItem={renderPageItem}
       >
-        <PageContainer title={title}>{props.children}</PageContainer>
+        <PageContainer>{props.children}</PageContainer>
       </DashboardLayout>
     </NextAppProvider>
   );

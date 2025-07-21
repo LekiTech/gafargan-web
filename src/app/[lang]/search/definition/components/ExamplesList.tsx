@@ -36,12 +36,14 @@ export const ExamplesList: FC<{
         // const trgExample = ex.phrasesPerLangDialect[LangToId[toLang]];
         const srcExamples = LangToId[fromLang]
           .map((langId) => ex.phrasesPerLangDialect[langId])
+          .flat()
           .filter((p) => p);
         const trgExamples = LangToId[toLang]
           .map((langId) => ex.phrasesPerLangDialect[langId])
+          .flat()
           .filter((p) => p);
 
-        if (ex.phrasesPerLangDialect && srcExamples && trgExamples) {
+        if (ex.phrasesPerLangDialect && srcExamples?.length > 0 && trgExamples?.length > 0) {
           return [
             <Divider key={`divider_${parentIdx}_${i}`} component="li" />,
             <ListItem key={`${parentIdx}_${i}`}>

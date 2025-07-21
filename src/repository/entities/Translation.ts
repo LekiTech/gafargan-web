@@ -2,8 +2,20 @@ import { User } from './User';
 
 export class Translation {
   id!: number;
-
-  phrasesPerLangDialect!: Record<string, TranslationPhrases>;
+  /*
+  TODO: Convert to the following structure:
+  phrasesPerLangDialect: {
+    [langDialect: LangDialect]: [
+      {
+        phrase: string,
+        tags?: string[],
+      }
+    ]
+  }
+  NOTE: this way we will be able to provide multiple translation for the same sentence, and tag each of them separately
+        For example we could have 2 translations for the same sentence, one with a literal meaning, and another with a more idiomatic meaning
+  */
+  phrasesPerLangDialect!: Record<string, TranslationPhrase[]>;
 
   tags!: string[];
 
@@ -17,16 +29,8 @@ export class Translation {
 
   updatedAt!: Date;
 }
-//  For now this one is unnecessary complex, we can use the latter implementation without huge losses in UX
-// export interface TranslationPhrases {
-//   /**
-//    * Here "phrase" is a word, phrase, or a sentence
-//    * It is an array because there could be multiple ways to formulate the same meaning
-//    */
-//   phrases: { phrase: string; tags?: string[] }[];
-//   tags?: string[];
-// }
-export interface TranslationPhrases {
+
+export interface TranslationPhrase {
   phrase: string;
   tags?: string[];
 }
