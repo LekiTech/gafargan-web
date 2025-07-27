@@ -43,46 +43,49 @@ abstract class Model {
 export type TranslationModelType =
   | {
       state: 'added';
-      src: string;
-      trl: string;
+      phrasesPerLangDialect: Record<string, Phrase[]>;
       tags?: string[];
     }
   | {
       state: 'unchanged' | 'modified' | 'deleted';
       id: number;
-      src: string;
-      trl: string;
+      phrasesPerLangDialect: Record<string, Phrase[]>;
       tags?: string[];
     };
+
+interface Phrase {
+  phrase: string;
+  tags?: string[];
+}
 
 // NOTE: no need to rework to match `phrasesPerLangDialect`,
 //       because `phrasesPerLangDialect` makes sense only for the dedicated `Translations` page.
 export class TranslationModel extends Model {
-  private src: string;
-  private trl: string;
+  private phrasesPerLangDialect: Record<string, Phrase[]>;
   private tags?: string[];
   constructor(data: TranslationModelType) {
     super(data.state, data.state === 'unchanged' ? data.id : undefined);
-    this.src = data.src;
-    this.trl = data.trl;
+    this.phrasesPerLangDialect = data.phrasesPerLangDialect;
     this.tags = data.tags;
   }
 
-  getSrc(): string {
-    return this.src;
+  getAllLangDialectIds(): number[] {
+    return Object.keys(this.phrasesPerLangDialect).map((langDialectStr) =>
+      parseInt(langDialectStr),
+    );
   }
-  getTrl(): string {
-    return this.trl;
+  getPhrasesByLangDialect(langDialectId: number): Phrase[] | undefined {
+    return this.phrasesPerLangDialect[langDialectId];
   }
   getTags(): string[] | undefined {
     return this.tags;
   }
-  setSrc(src: string): void {
-    this.src = src;
+  setPhrasesByLangDialect(langDialectId: number, phrases: Phrase[]): void {
+    this.phrasesPerLangDialect[langDialectId] = phrases;
     this.setModified();
   }
-  setTrl(trl: string): void {
-    this.trl = trl;
+  deletePhrasesForLangDialect(langDialectId: number): void {
+    delete this.phrasesPerLangDialect[langDialectId];
     this.setModified();
   }
   setTags(tags: string[] | undefined): void {
@@ -102,11 +105,8 @@ export class TranslationModel extends Model {
    */
   merge(data: Partial<TranslationModelType>): TranslationModel {
     this.setModified();
-    if (data.src !== undefined) {
-      this.src = data.src;
-    }
-    if (data.trl !== undefined) {
-      this.trl = data.trl;
+    if (data.phrasesPerLangDialect !== undefined) {
+      this.phrasesPerLangDialect = data.phrasesPerLangDialect;
     }
     if (data.tags !== undefined) {
       this.tags = data.tags;
@@ -118,31 +118,37 @@ export class TranslationModel extends Model {
     if (this.state === STATE.ADDED) {
       return new TranslationModel({
         state: this.state,
-        src: this.src,
-        trl: this.trl,
+        phrasesPerLangDialect: this.phrasesPerLangDialect,
         tags: this.tags,
       });
     }
     return new TranslationModel({
       state: this.state,
       id: this.id!,
-      src: this.src,
-      trl: this.trl,
+      phrasesPerLangDialect: this.phrasesPerLangDialect,
       tags: this.tags,
     });
   }
 
   isEmpty(): boolean {
     return (
-      this.src.trim() === '' && this.trl.trim() === '' && (!this.tags || this.tags.length === 0)
+      (!this.phrasesPerLangDialect || Object.keys(this.phrasesPerLangDialect).length === 0) &&
+      (!this.tags || this.tags.length === 0)
     );
   }
 
-  static createEmpty(): TranslationModel {
+  static createEmpty(langDialectIds: number[]): TranslationModel {
     return new TranslationModel({
       state: STATE.ADDED,
-      src: '',
-      trl: '',
+      phrasesPerLangDialect: langDialectIds
+        ? langDialectIds.reduce(
+            (accumulator, currentValue) => {
+              accumulator[currentValue] = [{ phrase: '' }] as Phrase[];
+              return accumulator;
+            },
+            {} as Record<string, Phrase[]>,
+          )
+        : {},
       tags: [],
     });
   }

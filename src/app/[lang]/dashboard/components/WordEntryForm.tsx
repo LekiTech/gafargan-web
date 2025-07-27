@@ -11,32 +11,30 @@ import {
   Popover,
   Button,
   Stack,
-  useTheme,
-  useMediaQuery,
   Divider,
   Grid,
   Snackbar,
   Alert,
+  InputAdornment,
+  Menu,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import { expressionFont } from '@/fonts';
 import { useTranslation } from 'react-i18next';
 import { flipAndMergeTags } from '@/search/definition/utils';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
-import { DictionaryLangs } from '@api/languages';
 import { SourcesCreatableSelect } from './SearchableCreatableSelect';
 import {
   DefinitionModel,
   WordDetailModel,
   TranslationModel,
   WordModel,
-  STATE,
   DefinitionModelType,
   TranslationModelType,
   WordDetailModelType,
@@ -63,6 +61,17 @@ const BUTTON_PASTEL_COLORS_PURPLE = {
     color: 'rgb(100, 95, 165)',
   },
 };
+
+const BUTTON_PASTEL_COLORS_GREEN = {
+  bgcolor: 'rgb(240, 250, 225)',
+  color: 'rgb(170, 200, 145)',
+  '&:hover': {
+    bgcolor: 'rgb(215, 240, 180)',
+    color: 'rgb(140, 200, 80)',
+  },
+};
+
+const INPUT_PASTEL_BEIGE = '#fffde799';
 
 /* ---------------- TagSelector ---------------- */
 interface TagSelectorProps {
@@ -124,36 +133,85 @@ const ExampleLine: React.FC<{
   allTags: [string, string][];
 }> = ({ example, onChange, onDelete, isInnerBlockExample, tagEntries, allTags }) => {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  // const [mouseHovering, setMouseHovering] = useState(false);
   const patch = (p: Partial<TranslationModelType>) => onChange(example.merge(p));
+  const getRemainingLangDialectIds = (options?: { includeId: string }) =>
+    Object.entries(LangDialects).filter(([id, name]) => {
+      return (
+        (options && options.includeId === id) ||
+        example.getAllLangDialectIds().indexOf(parseInt(id)) === -1
+      );
+    });
   return (
-    <Box display="flex" alignItems="baseline" gap={2} mt={0.5}>
-      {isInnerBlockExample && <Typography color="text.secondary">●</Typography>}
+    <Box
+      display="flex"
+      alignItems="baseline"
+      gap={2}
+      mt={0.5}
+      mb={0.5}
+      ml={0.5}
+      pl={1.5}
+      flex={1}
+      borderLeft="3px solid rgba(0,0,0,0.15)"
+      // onMouseEnter={() => setMouseHovering(true)}
+      // onMouseLeave={() => setMouseHovering(false)}
+    >
+      {/* <Typography color="text.secondary">●</Typography> */}
       <Box
         gap={1}
-        sx={(theme) => ({
+        sx={{
           display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          [theme.breakpoints.down('md')]: {
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            gap: 1,
-          },
-        })}
+          flex: 1,
+          // flexDirection: 'row',
+          // alignItems: 'center',
+          flexDirection: 'column',
+          alignItems: 'flex-start',
+          gap: 1,
+        }}
       >
-        {/* tags */}
         <Box
-          display="flex"
-          alignItems="baseline"
-          gap={1}
-          flexWrap="wrap"
-          sx={(theme) => ({
-            alignSelf: 'end',
-            mt: '5px',
-            [theme.breakpoints.down('md')]: { mt: '0', alignSelf: 'start' },
-            order: 3,
-          })}
+          sx={{
+            display: 'flex',
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            // justifyContent: 'space-between',
+            gap: 2,
+          }}
         >
+          {getRemainingLangDialectIds().length > 0 && (
+            <Chip
+              label="language / dialect"
+              icon={<AddIcon />}
+              variant="filled"
+              size="small"
+              color="info"
+              sx={{
+                ...BUTTON_PASTEL_COLORS_BLUE,
+              }}
+              onClick={() => {
+                const remainingLangDialects = getRemainingLangDialectIds();
+                const newLangDialectId = parseInt(remainingLangDialects[0][0]);
+                example.setPhrasesByLangDialect(newLangDialectId, [{ phrase: '' }]);
+                onChange(example);
+              }}
+            />
+          )}
+          <IconButton
+            size="small"
+            onClick={onDelete}
+            sx={(theme) => ({
+              alignSelf: 'flex-start',
+              // visibility: mouseHovering ? undefined : 'hidden',
+            })}
+            color="error"
+          >
+            <DeleteOutlineIcon fontSize="small" />
+          </IconButton>
+        </Box>
+        {/* tags */}
+        <Box display="flex" gap={1} flexWrap="wrap">
           {example
             .getTags()
             ?.map((t) => (
@@ -183,52 +241,129 @@ const ExampleLine: React.FC<{
             allTags={allTags}
           />
         </Box>
-        <TextField
-          variant="standard"
-          fullWidth
-          value={example.getSrc()}
-          onChange={(e) => onChange(example.merge({ src: e.target.value }))}
-          placeholder="example"
-          autoComplete="off"
-          slotProps={{
-            input: {
-              disableUnderline: true,
-              style: { borderBottom: '1px dashed #000' },
-            },
-          }}
-        />
-        <Typography
-          color="text.secondary"
-          sx={(theme) => ({ [theme.breakpoints.down('md')]: { display: 'none' } })}
-        >
-          →
-        </Typography>
-        <TextField
-          variant="standard"
-          fullWidth
-          value={example.getTrl()}
-          onChange={(e) => onChange(example.merge({ trl: e.target.value }))}
-          placeholder="example translation"
-          autoComplete="off"
-          slotProps={{
-            input: {
-              disableUnderline: true,
-              style: { borderBottom: '1px dashed #000' },
-            },
-          }}
-        />
+        {example.getAllLangDialectIds().map((langDialectId, i) => (
+          <Box
+            key={`ld_${langDialectId}_i_${i}`}
+            sx={{
+              display: 'flex',
+              flex: 1,
+              width: '100%',
+              flexDirection: 'row',
+              alignItems: 'start',
+              gap: 2,
+            }}
+          >
+            <Select
+              size="small"
+              variant="standard"
+              value={langDialectId}
+              sx={(theme) => ({
+                flex: 1,
+                fontSize: '0.875rem',
+                color: theme.palette.text.secondary,
+                minWidth: 150,
+                maxWidth: 150,
+                mt: 1,
+              })}
+              onChange={(e) => {
+                const phrasesToMove = example.getPhrasesByLangDialect(langDialectId);
+                const newLangDialectId = e.target.value;
+                example.setPhrasesByLangDialect(newLangDialectId, phrasesToMove ?? []);
+                example.deletePhrasesForLangDialect(langDialectId);
+                onChange(example);
+              }}
+            >
+              {getRemainingLangDialectIds({ includeId: langDialectId.toString() }).map(
+                ([id, name]) => (
+                  <MenuItem key={id} value={id}>
+                    {name}
+                  </MenuItem>
+                ),
+              )}
+            </Select>
+            <Box
+              sx={{
+                display: 'flex',
+                flex: 1,
+                width: '100%',
+                flexDirection: 'column',
+                gap: 1,
+                mb: 1,
+              }}
+            >
+              {example.getPhrasesByLangDialect(langDialectId)?.map((phrase, i) => (
+                <TextField
+                  key={`ld_${langDialectId}_phrase_i_${i}`}
+                  variant="standard"
+                  fullWidth
+                  value={phrase.phrase}
+                  onChange={(e) => {
+                    const updatedPhrases = example.getPhrasesByLangDialect(langDialectId)!;
+                    updatedPhrases[i].phrase = e.target.value;
+                    example.setPhrasesByLangDialect(langDialectId, updatedPhrases);
+                    onChange(example);
+                  }}
+                  placeholder="example"
+                  autoComplete="off"
+                  slotProps={{
+                    input: {
+                      disableUnderline: true,
+                      style: { borderBottom: '1px dashed #000' },
+                      endAdornment: example.getPhrasesByLangDialect(langDialectId)!.length > 1 && (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            onClick={() => {
+                              const currentPhrases =
+                                example.getPhrasesByLangDialect(langDialectId)!;
+                              if (currentPhrases.length === 1) {
+                                return;
+                              }
+                              example.setPhrasesByLangDialect(
+                                langDialectId,
+                                currentPhrases.filter((_, idx) => idx !== i),
+                              );
+                              onChange(example);
+                            }}
+                            color="error"
+                            edge="end"
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              ))}
+            </Box>
+            <IconButton
+              size="small"
+              onClick={() => {
+                const currentPhrases = example.getPhrasesByLangDialect(langDialectId)!;
+                example.setPhrasesByLangDialect(langDialectId, [...currentPhrases, { phrase: '' }]);
+                onChange(example);
+              }}
+            >
+              <AddIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={() => {
+                if (example.getAllLangDialectIds().length === 1) {
+                  onDelete();
+                  return;
+                }
+                example.deletePhrasesForLangDialect(langDialectId);
+                onChange(example);
+              }}
+              color="error"
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        ))}
       </Box>
-      <IconButton
-        size="small"
-        onClick={onDelete}
-        sx={(theme) => ({
-          alignSelf: 'flex-end',
-          [theme.breakpoints.down('md')]: { alignSelf: 'flex-start' },
-        })}
-        color="error"
-      >
-        <DeleteOutlineIcon fontSize="small" />
-      </IconButton>
     </Box>
   );
 };
@@ -241,7 +376,18 @@ const DefinitionBlock: React.FC<{
   onDelete: () => void;
   tagEntries: Record<string, string>;
   allTags: [string, string][];
-}> = ({ idx, def, onChange, onDelete, tagEntries, allTags }) => {
+  wordLangDialectId: number;
+  definitionsLangDialectId: number;
+}> = ({
+  idx,
+  def,
+  onChange,
+  onDelete,
+  tagEntries,
+  allTags,
+  wordLangDialectId,
+  definitionsLangDialectId,
+}) => {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const patch = (p: Partial<DefinitionModelType>) => onChange(def.merge(p));
   const deleteEx = (i: number) => {
@@ -258,6 +404,7 @@ const DefinitionBlock: React.FC<{
           gap={1}
           sx={(theme) => ({
             display: 'flex',
+            flex: 1,
             flexDirection: 'row',
             alignItems: 'center',
             [theme.breakpoints.down('md')]: {
@@ -310,8 +457,10 @@ const DefinitionBlock: React.FC<{
           </Box>
           <TextField
             variant="standard"
-            placeholder="definition"
+            placeholder="definition *"
+            sx={{ bgcolor: INPUT_PASTEL_BEIGE, '& .MuiInputBase-root': { pl: 1 } }}
             autoComplete="off"
+            required
             fullWidth
             value={def.getValue()}
             onChange={(e) => patch({ value: e.target.value })}
@@ -350,7 +499,10 @@ const DefinitionBlock: React.FC<{
           }}
           onClick={() =>
             patch({
-              examples: [...(def.getExamples() ?? []), TranslationModel.createEmpty()],
+              examples: [
+                ...(def.getExamples() ?? []),
+                TranslationModel.createEmpty([wordLangDialectId, definitionsLangDialectId]),
+              ],
             })
           }
         />
@@ -366,13 +518,14 @@ const WordDetailBlock: React.FC<{
   onDelete: () => void;
   lang: WebsiteLang;
   allSources: SourceModel[];
-}> = ({ data, onChange, onDelete, lang, allSources }) => {
+  wordLangDialectId: number;
+}> = ({ data, onChange, onDelete, lang, allSources, wordLangDialectId }) => {
   const { t, i18n } = useTranslation(lang);
   const tagEntries = i18n.getResourceBundle(lang, 'tags');
   const allTags = Object.entries(flipAndMergeTags(tagEntries)).filter(
     (kv) => kv != null && kv[0] != null && kv[1] != null,
   ) as [string, string][];
-
+  const [showCannotDeleteMessage, setShowCannotDeleteMessage] = React.useState(false);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const patch = (p: Partial<WordDetailModelType>) => onChange(data.merge(p));
   const updateDef = (i: number, def: DefinitionModel) =>
@@ -380,6 +533,8 @@ const WordDetailBlock: React.FC<{
   const deleteDef = (i: number) => {
     if (data.getDefinitions().length > 1) {
       patch({ definitions: data.getDefinitions().filter((_, idx) => idx !== i) });
+    } else {
+      setShowCannotDeleteMessage(true);
     }
   };
   const deleteExtraEx = (i: number) => {
@@ -389,7 +544,88 @@ const WordDetailBlock: React.FC<{
     }
   };
   return (
-    <Box mt={2} pl={1} ml={1.5} borderLeft="3px solid rgba(0,0,0,0.54)" className="word-detail">
+    <Box
+      ml={1.5}
+      my={2}
+      pl={1}
+      py={0.5}
+      borderLeft="3px solid rgba(0,0,0,0.54)"
+      className="word-detail"
+    >
+      <Snackbar
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        open={showCannotDeleteMessage}
+        autoHideDuration={6000}
+        onClose={() => setShowCannotDeleteMessage(false)}
+      >
+        <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+          Cannot delete the only definition
+        </Alert>
+      </Snackbar>
+      <Box
+        sx={(theme) => ({
+          mb: 1,
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 3,
+          [theme.breakpoints.down('md')]: {
+            flexDirection: 'column',
+            alignItems: 'flex-start',
+            gap: 1,
+          },
+        })}
+      >
+        <Select
+          size="small"
+          variant="standard"
+          value={data.getLangDialectId()}
+          sx={(theme) => ({
+            flex: 1,
+            fontSize: '0.875rem',
+            color: theme.palette.text.secondary,
+            minWidth: 200,
+            maxWidth: 200,
+          })}
+          onChange={(e) => {
+            data.setLangDialectId(Number(e.target.value));
+            onChange(data);
+          }}
+        >
+          {Object.entries(LangDialects).map(([id, name]) => (
+            <MenuItem key={id} value={id}>
+              {name}
+            </MenuItem>
+          ))}
+        </Select>
+        <Select
+          size="small"
+          variant="standard"
+          value={allSources.find((s) => s.getId() === data.getSourceId())?.getId() || ''}
+          sx={(theme) => ({
+            flex: 1,
+            minWidth: 200,
+            maxWidth: 200,
+            width: '90%',
+            fontSize: '0.875rem',
+            color: theme.palette.text.secondary,
+          })}
+          onChange={(e) => {
+            data.setSourceId(e.target.value);
+            onChange(data);
+          }}
+        >
+          {allSources.map((source) => (
+            <MenuItem key={source.getId()} value={source.getId()}>
+              {`${source.getName()} — (${source.getAuthors()})`}
+            </MenuItem>
+          ))}
+        </Select>
+        <Box sx={{ width: '100%' }} />
+        <IconButton size="small" onClick={onDelete} color="error" sx={{ alignSelf: 'flex-end' }}>
+          <DeleteOutlineIcon fontSize="small" />
+        </IconButton>
+      </Box>
       <Stack direction="row" gap={2}>
         <Box
           gap={1}
@@ -446,9 +682,6 @@ const WordDetailBlock: React.FC<{
           />
         </Box>
         <Box sx={{ width: '100%' }} />
-        <IconButton size="small" onClick={onDelete} color="error">
-          <DeleteOutlineIcon fontSize="small" />
-        </IconButton>
       </Stack>
       {/* definitions */}
       {data.getDefinitions().map((d, i) => (
@@ -461,6 +694,8 @@ const WordDetailBlock: React.FC<{
             onDelete={() => deleteDef(i)}
             tagEntries={tagEntries}
             allTags={allTags}
+            wordLangDialectId={wordLangDialectId}
+            definitionsLangDialectId={data.getLangDialectId()}
           />
         </Box>
       ))}
@@ -497,94 +732,81 @@ const WordDetailBlock: React.FC<{
         gap={1}
         sx={{ display: 'flex', flexDirection: 'column', width: 'fit-content' }}
       >
-        <Button
-          variant="contained"
-          size="small"
-          color="info"
-          sx={{
-            ...BUTTON_PASTEL_COLORS_BLUE,
-          }}
-          startIcon={<AddIcon />}
-          onClick={() =>
+        <AddButtonsMenu
+          addDefinition={() =>
             patch({ definitions: [...data.getDefinitions(), DefinitionModel.createEmpty()] })
           }
-        >
-          definition
-        </Button>
-        <Button
-          variant="contained"
-          size="small"
-          color="info"
-          sx={{
-            ...BUTTON_PASTEL_COLORS_BLUE,
-          }}
-          startIcon={<AddIcon />}
-          onClick={() =>
-            patch({ examples: [...(data.getExamples() ?? []), TranslationModel.createEmpty()] })
+          addOtherExamples={() =>
+            patch({
+              examples: [
+                ...(data.getExamples() ?? []),
+                TranslationModel.createEmpty([wordLangDialectId, data.getLangDialectId()]),
+              ],
+            })
           }
-        >
-          other examples
-        </Button>
-      </Box>
-      <Box
-        sx={(theme) => ({
-          mb: 1,
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: 3,
-          [theme.breakpoints.down('md')]: {
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            gap: 1,
-          },
-        })}
-      >
-        <Select
-          size="small"
-          variant="standard"
-          value={data.getLangDialectId()}
-          sx={(theme) => ({
-            flex: 1,
-            fontSize: '0.875rem',
-            color: theme.palette.text.secondary,
-            maxWidth: 200,
-          })}
-          onChange={(e) => {
-            data.setLangDialectId(Number(e.target.value));
-            onChange(data);
-          }}
-        >
-          {Object.entries(LangDialects).map(([id, name]) => (
-            <MenuItem key={id} value={id}>
-              {name}
-            </MenuItem>
-          ))}
-        </Select>
-        <Select
-          size="small"
-          variant="standard"
-          value={allSources.find((s) => s.getId() === data.getSourceId())?.getId() || ''}
-          sx={(theme) => ({
-            flex: 1,
-            maxWidth: 250,
-            width: '90%',
-            fontSize: '0.875rem',
-            color: theme.palette.text.secondary,
-          })}
-          onChange={(e) => {
-            data.setSourceId(e.target.value);
-            onChange(data);
-          }}
-        >
-          {allSources.map((source) => (
-            <MenuItem key={source.getId()} value={source.getId()}>
-              {`${source.getName()} — (${source.getAuthors()})`}
-            </MenuItem>
-          ))}
-        </Select>
+        />
       </Box>
     </Box>
+  );
+};
+
+const AddButtonsMenu: React.FC<{ addDefinition: () => void; addOtherExamples: () => void }> = ({
+  addDefinition,
+  addOtherExamples,
+}) => {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  return (
+    <div>
+      <Button
+        variant="contained"
+        size="small"
+        color="info"
+        sx={{
+          ...BUTTON_PASTEL_COLORS_BLUE,
+        }}
+        onClick={handleClick}
+        // endIcon={<AddIcon />}
+        startIcon={<ArrowDropDownIcon />}
+      >
+        Add
+      </Button>
+      <Menu
+        id="basic-menu"
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleClose}
+        slotProps={{
+          list: {
+            'aria-labelledby': 'basic-button',
+          },
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            addDefinition();
+            handleClose();
+          }}
+        >
+          Definition
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            addOtherExamples();
+            handleClose();
+          }}
+        >
+          Other examples
+        </MenuItem>
+      </Menu>
+    </div>
   );
 };
 
@@ -602,7 +824,7 @@ const WordEntry: React.FC<{
   isLast?: boolean;
 }> = ({
   idx,
-  entry,
+  entry: wordEntry,
   onChange,
   onDelete,
   lang,
@@ -632,9 +854,9 @@ const WordEntry: React.FC<{
   };
   const addWD = () => {
     onChange(
-      entry.merge({
+      wordEntry.merge({
         wordDetails: [
-          ...entry.getWordDetails(),
+          ...wordEntry.getWordDetails(),
           WordDetailModel.createEmpty(defLangDialectId, defSourceId),
         ],
       }),
@@ -643,11 +865,15 @@ const WordEntry: React.FC<{
   };
   const updateWD = (i: number, wd: WordDetailModel) =>
     onChange(
-      entry.merge({ wordDetails: entry.getWordDetails().map((w, idx) => (idx === i ? wd : w)) }),
+      wordEntry.merge({
+        wordDetails: wordEntry.getWordDetails().map((w, idx) => (idx === i ? wd : w)),
+      }),
     );
   const deleteWD = (i: number) => {
-    if (entry.getWordDetails().length > 1) {
-      onChange(entry.merge({ wordDetails: entry.getWordDetails().filter((_, idx) => idx !== i) }));
+    if (wordEntry.getWordDetails().length > 1) {
+      onChange(
+        wordEntry.merge({ wordDetails: wordEntry.getWordDetails().filter((_, idx) => idx !== i) }),
+      );
     } else {
       setShowCannotDeleteMessage(true);
     }
@@ -678,22 +904,28 @@ const WordEntry: React.FC<{
       >
         {idx}
       </Typography>
-      <Box display="flex" alignItems="flex-end" gap={1} sx={{ width: '100%' }}>
+      <Box
+        display="flex"
+        alignItems="flex-end"
+        sx={{ width: '100%', bgcolor: isOpen ? 'unset' : INPUT_PASTEL_BEIGE }}
+      >
         <IconButton size="small" onClick={toggleOpen}>
           {isOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
         <TextField
           variant="standard"
-          value={entry.getSpelling()}
-          placeholder="word"
+          value={wordEntry.getSpelling()}
+          placeholder="word *"
           required
           autoComplete="off"
-          onChange={(e) => onChange(entry.merge({ spelling: e.target.value }))}
+          onChange={(e) => onChange(wordEntry.merge({ spelling: e.target.value }))}
           sx={{
             minWidth: '30%',
+            bgcolor: INPUT_PASTEL_BEIGE,
             '& .MuiInput-root': {
               ...expressionFont.style,
               fontWeight: 'bold',
+              pl: 1,
             },
           }}
           slotProps={{
@@ -707,12 +939,13 @@ const WordEntry: React.FC<{
           <TextField
             variant="standard"
             fullWidth
-            value={entry.getWordDetails()[0].getDefinitions()[0].getValue()}
-            placeholder="definition"
+            sx={{ bgcolor: INPUT_PASTEL_BEIGE, '& .MuiInputBase-root': { pl: 1 } }}
+            value={wordEntry.getWordDetails()[0].getDefinitions()[0].getValue()}
+            placeholder="definition *"
             required
             autoComplete="off"
             onChange={(e) => {
-              const copy = entry.getCopy();
+              const copy = wordEntry.getCopy();
               copy.getWordDetails()[0].getDefinitions()[0].setValue(e.target.value);
               onChange(copy);
             }}
@@ -758,7 +991,7 @@ const WordEntry: React.FC<{
             <Select
               size="small"
               variant="standard"
-              value={entry.getLangDialectId()}
+              value={wordEntry.getLangDialectId()}
               sx={(theme) => ({
                 flex: 1,
                 fontSize: '0.875rem',
@@ -766,8 +999,8 @@ const WordEntry: React.FC<{
                 maxWidth: 200,
               })}
               onChange={(e) => {
-                entry.setLangDialectId(Number(e.target.value));
-                onChange(entry);
+                wordEntry.setLangDialectId(Number(e.target.value));
+                onChange(wordEntry);
               }}
             >
               {Object.entries(LangDialects).map(([id, name]) => (
@@ -779,7 +1012,7 @@ const WordEntry: React.FC<{
             <Select
               size="small"
               variant="standard"
-              value={allSources.find((s) => s.getId() === entry.getSourceId())?.getId() || ''}
+              value={allSources.find((s) => s.getId() === wordEntry.getSourceId())?.getId() || ''}
               sx={(theme) => ({
                 flex: 1,
                 fontSize: '0.875rem',
@@ -788,8 +1021,8 @@ const WordEntry: React.FC<{
                 maxWidth: 275,
               })}
               onChange={(e) => {
-                entry.setSourceId(e.target.value);
-                onChange(entry);
+                wordEntry.setSourceId(e.target.value);
+                onChange(wordEntry);
               }}
             >
               {allSources.map((source) => (
@@ -799,7 +1032,7 @@ const WordEntry: React.FC<{
               ))}
             </Select>
           </Box>
-          {entry.getWordDetails().map((wd, i) => (
+          {wordEntry.getWordDetails().map((wd, i) => (
             <WordDetailBlock
               key={i}
               data={wd}
@@ -807,6 +1040,7 @@ const WordEntry: React.FC<{
               onDelete={() => deleteWD(i)}
               lang={lang}
               allSources={allSources}
+              wordLangDialectId={wordEntry.getLangDialectId()}
             />
           ))}
           <Button
@@ -972,7 +1206,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
         >
           Save
         </Button>
-        <Typography fontWeight={600} variant="subtitle1">
+        {/* <Typography fontWeight={600} variant="subtitle1">
           Live JSON
         </Typography>
         <pre
@@ -984,7 +1218,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           }}
         >
           {JSON.stringify(new DictionaryProposalModel(entries, selectedSource), null, 2)}
-        </pre>
+        </pre> */}
       </Box>
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
