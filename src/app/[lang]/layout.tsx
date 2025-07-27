@@ -28,7 +28,7 @@ export async function generateMetadata(
   const pathname = headersLst.get('x-next-pathname');
 
   const matchDashboardPath = /^\/\w{3}\/dashboard(\/|$)/;
-  console.log(pathname, matchDashboardPath.test(pathname!));
+  // console.log(pathname, matchDashboardPath.test(pathname!));
   if (pathname && matchDashboardPath.test(pathname)) {
     return {
       title: t('meta.title', { ns: 'dashboard' }),
