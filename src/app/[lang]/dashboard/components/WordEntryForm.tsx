@@ -1029,9 +1029,8 @@ const WordEntry: React.FC<{
       wordEntry.getSpellingVariants().at(-1)?.getLangDialectId() ?? wordEntry.getLangDialectId();
     const wordLangIsoCode = IdToLang[wordEntry.getLangDialectId()];
     const allDialectIdsForLang = LangToId[wordLangIsoCode];
-    // TODO: find reason why it sometimes becomes a string
     const nextDialectId =
-      lastDialectId === allDialectIdsForLang.at(-1) ? lastDialectId : parseInt(lastDialectId) + 1;
+      lastDialectId === allDialectIdsForLang.at(-1) ? lastDialectId : lastDialectId + 1;
     onChange(
       wordEntry.merge({
         spellingVariants: [
@@ -1463,9 +1462,11 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
         autoHideDuration={6000}
         onClose={() => setAlertMessage(undefined)}
       >
-        <Alert severity={alertMessage?.severity} variant="filled" sx={{ width: '100%' }}>
-          {alertMessage?.message}
-        </Alert>
+        {alertMessage && (
+          <Alert severity={alertMessage?.severity} variant="filled" sx={{ width: '100%' }}>
+            {alertMessage?.message}
+          </Alert>
+        )}
       </Snackbar>
     </Box>
   );
