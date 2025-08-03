@@ -4,6 +4,8 @@ VALUES ('Kamran Tadzjibov', 'info@lekitech.io', 'test123', 'Lezgi', true, 'Admin
 
 INSERT INTO "lang_dialect"
   ("language", "dialect")
+-- NEVER CHANGE ORDER OF THESE VALUES, JUST ADD NEW ONCE UNDERNEATH
+-- otherwise it will mess up with the ID's and their translations in the website
 VALUES ('Lezgi', 'Literary'),
        ('Lezgi', 'Neologism'),
        ('Lezgi', 'Гуьней (Куьре)'),
@@ -31,10 +33,9 @@ VALUES ('Lezgi', 'Literary'),
        ('Tabasaran', NULL),
        ('Russian', NULL),
        ('English', NULL),
-       ('English', 'American'),
-       ('English', 'British'),
-       ('Turkish', 'Old'),
+       ('Turkish', NULL),
        ('Azerbaijani', NULL),
-       ('Persian', 'Old'),
+       ('Persian', NULL),
+
        ('Arabic', 'Modern Standard Arabic'),
-       ('Arabic', 'Old Arabic (Quranic)');
+       ('Arabic', 'Classical Arabic (Quranic)');

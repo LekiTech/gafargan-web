@@ -415,6 +415,14 @@ export class WordDetailModel extends Model {
     );
   }
 
+  isIncomplete(): boolean {
+    return (
+      !this.definitions ||
+      this.definitions.length === 0 ||
+      this.definitions.some((d) => d.isEmpty())
+    );
+  }
+
   static createEmpty(langDialectId: number, sourceId: number): WordDetailModel {
     return new WordDetailModel({
       state: STATE.ADDED,
@@ -518,6 +526,9 @@ export class WordModel extends Model {
     if (data.wordDetails !== undefined) {
       this.wordDetails = data.wordDetails;
     }
+    if (data.spellingVariants !== undefined) {
+      this.spellingVariants = data.spellingVariants;
+    }
     return this;
   }
 
@@ -549,6 +560,15 @@ export class WordModel extends Model {
       (!this.wordDetails ||
         this.wordDetails.length === 0 ||
         this.wordDetails.every((wd) => wd.isEmpty()))
+    );
+  }
+
+  isIncomplete(): boolean {
+    return (
+      this.spelling.trim() === '' ||
+      !this.wordDetails ||
+      this.wordDetails.length === 0 ||
+      this.wordDetails.some((wd) => wd.isIncomplete())
     );
   }
 
@@ -617,8 +637,16 @@ export class SpellingVariantModel extends Model {
   }
 
   isEmpty(): boolean {
+    return this.spelling.trim() === '';
+  }
+
+  isIncomplete(): boolean {
     return (
-      this.spelling.trim() === '' && this.langDialectId === undefined && this.sourceId === undefined
+      this.spelling.trim() === '' ||
+      this.langDialectId === undefined ||
+      this.langDialectId <= 0 ||
+      this.sourceId === undefined ||
+      this.sourceId <= 0
     );
   }
 

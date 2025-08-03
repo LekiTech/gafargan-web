@@ -1,10 +1,58 @@
 {
   "languages": {
-    "eng": "İngilizce",
-    "rus": "Rusça",
-    "lez": "Lezgi dili",
-    "tab": "Tabasaran dili",
-    "tur": "Türkçe"
+    "lez": {
+      "name": "Lezgi dili",
+      "dialects": {
+        "1": "Edebi",
+        "2": "Neolojizm",
+        "3": "Guney (Kure)",
+        "4": "Yarki (Kure)",
+        "5": "Khurah (Kure)",
+        "6": "Gelkhen subdialect (Kure)",
+        "7": "Gil subdialect (Kure)",
+        "8": "Akhtseh (Samur)",
+        "9": "Bash Dashaghyl-Filfil subdialect (Samur)",
+        "10": "Doquzpara (Samur)",
+        "11": "Qurush subdialect (Samur)",
+        "12": "Cheper subdialect (Samur)",
+        "13": "Fiy subdialect (Samur)",
+        "14": "Khwepel subdialect (Samur)",
+        "15": "Khulid subdialect (Samur)",
+        "16": "Khurug subdialect (Samur)",
+        "17": "Tsurugh subdialect (Samur)",
+        "18": "Ighir subdialect (Samur)",
+        "19": "Matsar subdialect (Samur)",
+        "20": "Gutum subdialect (Samur)",
+        "21": "Kuba (Kuba)",
+        "22": "Khimil (Kuba)",
+        "23": "Kuzun (Kuba"
+      }
+    },
+    "tab": {
+      "name": "Tabasaran dili"
+    },
+    "rus": {
+      "name": "Rusça"
+    },
+    "eng": {
+      "name": "İngilizce"
+    },
+    "tur": {
+      "name": "Türkçe"
+    },
+    "aze": {
+      "name": "Azerbaycanca"
+    },
+    "per": {
+      "name": "Farsça"
+    },
+    "ara": {
+      "name": "Arapça",
+      "dialects": {
+        "30": "Fasih",
+        "31": "Klasik (Kuran)"
+      }
+    }
   },
   "meta": {
     "title": "Gafargan Dashboard - Sözlük Oluşturma Gücünü Birleştiriyor",
@@ -40,5 +88,19 @@
     "v",
     "y",
     "z"
-  ]
+  ],
+  "addNewWord": {
+    "source": "Source",
+    "word": "word",
+    "definition": "definition",
+    "sendToReview": "Send to review",
+    "spellingVariant": "variant",
+    "tags": "tags",
+    "inflection": "inflection",
+    "example": "example",
+    "languageDialect": "language / dialect",
+    "add": "add",
+    "otherExamples": "Other examples",
+    "definitionGroup": "Definition group"
+  }
 }

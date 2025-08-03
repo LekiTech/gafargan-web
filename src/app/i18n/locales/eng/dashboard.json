@@ -1,10 +1,58 @@
 {
   "languages": {
-    "eng": "English",
-    "rus": "Russian",
-    "lez": "Lezgi",
-    "tab": "Tabasaran",
-    "tur": "Turkish"
+    "lez": {
+      "name": "Lezgi",
+      "dialects": {
+        "1": "Literary",
+        "2": "Neologism",
+        "3": "Guney (Kure)",
+        "4": "Yarki (Kure)",
+        "5": "Khurah (Kure)",
+        "6": "Gelkhen subdialect (Kure)",
+        "7": "Gil subdialect (Kure)",
+        "8": "Akhtseh (Samur)",
+        "9": "Bash Dashaghyl-Filfil subdialect (Samur)",
+        "10": "Doquzpara (Samur)",
+        "11": "Qurush subdialect (Samur)",
+        "12": "Cheper subdialect (Samur)",
+        "13": "Fiy subdialect (Samur)",
+        "14": "Khwepel subdialect (Samur)",
+        "15": "Khulid subdialect (Samur)",
+        "16": "Khurug subdialect (Samur)",
+        "17": "Tsurugh subdialect (Samur)",
+        "18": "Ighir subdialect (Samur)",
+        "19": "Matsar subdialect (Samur)",
+        "20": "Gutum subdialect (Samur)",
+        "21": "Kuba (Kuba)",
+        "22": "Khimil (Kuba)",
+        "23": "Kuzun (Kuba"
+      }
+    },
+    "tab": {
+      "name": "Tabasaran"
+    },
+    "rus": {
+      "name": "Russian"
+    },
+    "eng": {
+      "name": "English"
+    },
+    "tur": {
+      "name": "Turkish"
+    },
+    "aze": {
+      "name": "Azerbaijani"
+    },
+    "per": {
+      "name": "Persian"
+    },
+    "ara": {
+      "name": "Arabic",
+      "dialects": {
+        "30": "Modern Standard",
+        "31": "Classical (Quranic)"
+      }
+    }
   },
   "meta": {
     "title": "Gafargan Dashboard - Empowering Collaborative Dictionary Creation",
@@ -37,5 +85,19 @@
     "x",
     "y",
     "z"
-  ]
+  ],
+  "addNewWord": {
+    "source": "Source",
+    "word": "word",
+    "definition": "definition",
+    "sendToReview": "Send to review",
+    "spellingVariant": "variant",
+    "tags": "tags",
+    "inflection": "inflection",
+    "example": "example",
+    "languageDialect": "language / dialect",
+    "add": "add",
+    "otherExamples": "Other examples",
+    "definitionGroup": "Definition group"
+  }
 }

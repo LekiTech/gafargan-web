@@ -41,8 +41,11 @@ import {
   DictionaryProposalModel,
   SourceModel,
   SourceModelType,
+  SpellingVariantModel,
 } from '../models/proposal.model';
 import { LangDialects } from '@repository/constants';
+import { SpellingVariant } from '@repository/entities/SpellingVariant';
+import { IdToLang, LangToId } from '@api/languages';
 
 const BUTTON_PASTEL_COLORS_BLUE = {
   bgcolor: 'rgb(220, 240, 250)',
@@ -457,10 +460,17 @@ const DefinitionBlock: React.FC<{
           </Box>
           <TextField
             variant="standard"
+            required
             placeholder="definition *"
+            slotProps={{
+              input: {
+                // It works buggy on MUI, so skipping for now
+                // onInvalid: (e) =>
+                //   (e.target as HTMLInputElement).setCustomValidity('Definition cannot be empty'),
+              },
+            }}
             sx={{ bgcolor: INPUT_PASTEL_BEIGE, '& .MuiInputBase-root': { pl: 1 } }}
             autoComplete="off"
-            required
             fullWidth
             value={def.getValue()}
             onChange={(e) => patch({ value: e.target.value })}
@@ -810,6 +820,156 @@ const AddButtonsMenu: React.FC<{ addDefinition: () => void; addOtherExamples: ()
   );
 };
 
+/* ------------- SpellingVariants -------------- */
+const SpellingVariants: React.FC<{
+  word: WordModel;
+  onAdd: () => void;
+  onUpdate: (i: number, sv: SpellingVariantModel) => void;
+  onDelete: (i: number) => void;
+  allSources: SourceModel[];
+}> = ({ word, onAdd, onUpdate, onDelete, allSources }) => {
+  const spellingVariants: SpellingVariantModel[] = word.getSpellingVariants();
+  console.log('spellingVariants', spellingVariants);
+  const wordLangIsoCode = IdToLang[word.getLangDialectId()];
+  const allDialectIdsForLang = LangToId[wordLangIsoCode];
+  const allDialectsForLang = Object.entries(LangDialects).filter(([id, name]) => {
+    return allDialectIdsForLang.indexOf(parseInt(id)) != -1;
+  });
+  return (
+    <Box
+      gap={1}
+      sx={{
+        display: 'flex',
+        flex: 1,
+        // flexDirection: 'row',
+        // alignItems: 'center',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: 1,
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          flex: 1,
+          width: '100%',
+          flexDirection: 'row',
+          alignItems: 'center',
+          // justifyContent: 'space-between',
+          gap: 2,
+        }}
+      >
+        <Chip
+          label="variant"
+          icon={<AddIcon />}
+          variant="filled"
+          size="small"
+          color="info"
+          sx={{
+            ...BUTTON_PASTEL_COLORS_BLUE,
+          }}
+          onClick={onAdd}
+        />
+      </Box>
+
+      {spellingVariants.map((spellingVariant, i) => (
+        <Box
+          key={`ld_${spellingVariant.getId()}_i_${i}`}
+          sx={{
+            display: 'flex',
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            alignItems: 'end',
+            gap: 3,
+          }}
+        >
+          <TextField
+            key={`ld_${spellingVariant.getId()}_phrase_i_${i}`}
+            variant="standard"
+            value={spellingVariant.getSpelling()}
+            onChange={(e) => {
+              spellingVariant.setSpelling(e.target.value);
+              onUpdate(i, spellingVariant);
+            }}
+            placeholder="word variant"
+            sx={{
+              minWidth: '31%',
+              '& .MuiInput-root': {
+                ...expressionFont.style,
+                // fontWeight: 'bold',
+                pl: 1,
+              },
+            }}
+            autoComplete="off"
+            slotProps={{
+              input: {
+                disableUnderline: true,
+                style: { borderBottom: '1px dashed #000' },
+              },
+            }}
+          />
+          <Select
+            size="small"
+            variant="standard"
+            value={spellingVariant.getLangDialectId()}
+            sx={(theme) => ({
+              flex: 1,
+              fontSize: '0.875rem',
+              color: theme.palette.text.secondary,
+              minWidth: 200,
+              maxWidth: 200,
+            })}
+            onChange={(e) => {
+              spellingVariant.setLangDialectId(e.target.value);
+              onUpdate(i, spellingVariant);
+            }}
+          >
+            {allDialectsForLang.map(([id, name]) => (
+              <MenuItem key={id} value={id}>
+                {name}
+              </MenuItem>
+            ))}
+          </Select>
+          <Select
+            size="small"
+            variant="standard"
+            value={
+              allSources.find((s) => s.getId() === spellingVariant.getSourceId())?.getId() || ''
+            }
+            sx={(theme) => ({
+              flex: 1,
+              fontSize: '0.875rem',
+              color: theme.palette.text.secondary,
+              width: '90%',
+              maxWidth: 275,
+            })}
+            onChange={(e) => {
+              spellingVariant.setSourceId(e.target.value);
+              onUpdate(i, spellingVariant);
+            }}
+          >
+            {allSources.map((source) => (
+              <MenuItem key={source.getId()} value={source.getId()}>
+                {`${source.getName()} — (${source.getAuthors()})`}
+              </MenuItem>
+            ))}
+          </Select>
+          <IconButton
+            size="small"
+            onClick={() => {
+              onDelete(i);
+            }}
+            color="error"
+          >
+            <DeleteOutlineIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      ))}
+    </Box>
+  );
+};
+
 /* ---------------- Entry ---------------- */
 const WordEntry: React.FC<{
   idx: number;
@@ -840,18 +1000,39 @@ const WordEntry: React.FC<{
   const [isOpen, setIsOpen] = React.useState(false);
   const toggleOpen = () => {
     setIsOpen(!isOpen);
-    // if (!isOpen && entry.getWordDetails().length === 0) {
-    //   // onChange({
-    //   //   ...entry,
-    //   //   open: true,
-    //   //   wordDetails: [emptyWD(entry.getWordDetails()[0].definitions[0].value)],
-    //   // });
-    //   setIsOpen(true);
-    // } else {
-    //   // onChange({ ...entry, open: !entry.open });
-    //   setIsOpen(false);
-    // }
   };
+  // Spelling variants handling
+  const addSV = () => {
+    const lastDialectId =
+      wordEntry.getSpellingVariants().at(-1)?.getLangDialectId() ?? wordEntry.getLangDialectId();
+    const wordLangIsoCode = IdToLang[wordEntry.getLangDialectId()];
+    const allDialectIdsForLang = LangToId[wordLangIsoCode];
+    const nextDialectId =
+      lastDialectId === allDialectIdsForLang.at(-1) ? lastDialectId : lastDialectId + 1;
+    onChange(
+      wordEntry.merge({
+        spellingVariants: [
+          ...(wordEntry.getSpellingVariants() ?? []),
+          SpellingVariantModel.createEmpty(nextDialectId, wordEntry.getSourceId()),
+        ],
+      }),
+    );
+  };
+  const updateSV = (i: number, sv: SpellingVariantModel) => {
+    onChange(
+      wordEntry.merge({
+        spellingVariants: wordEntry.getSpellingVariants().map((s, idx) => (idx === i ? sv : s)),
+      }),
+    );
+  };
+  const deleteSV = (i: number) => {
+    onChange(
+      wordEntry.merge({
+        spellingVariants: wordEntry.getSpellingVariants().filter((_, idx) => idx !== i),
+      }),
+    );
+  };
+  // Word details handling
   const addWD = () => {
     onChange(
       wordEntry.merge({
@@ -861,7 +1042,7 @@ const WordEntry: React.FC<{
         ],
       }),
     );
-    setIsOpen(true);
+    // setIsOpen(true);
   };
   const updateWD = (i: number, wd: WordDetailModel) =>
     onChange(
@@ -915,8 +1096,16 @@ const WordEntry: React.FC<{
         <TextField
           variant="standard"
           value={wordEntry.getSpelling()}
-          placeholder="word *"
           required
+          placeholder="word *"
+          slotProps={{
+            input: {
+              disableUnderline: !isOpen,
+              // It works buggy on MUI, so skipping for now
+              // onInvalid: (e) =>
+              //   (e.target as HTMLInputElement).setCustomValidity('Word cannot be empty'),
+            },
+          }}
           autoComplete="off"
           onChange={(e) => onChange(wordEntry.merge({ spelling: e.target.value }))}
           sx={{
@@ -928,9 +1117,6 @@ const WordEntry: React.FC<{
               pl: 1,
             },
           }}
-          slotProps={{
-            input: { disableUnderline: !isOpen },
-          }}
         />
         <Box sx={{ height: '34px', p: '5px 0', borderRight: isOpen ? 'unset' : '1px solid #333' }}>
           {/* {entry.open && <Typography>:</Typography>} */}
@@ -941,43 +1127,32 @@ const WordEntry: React.FC<{
             fullWidth
             sx={{ bgcolor: INPUT_PASTEL_BEIGE, '& .MuiInputBase-root': { pl: 1 } }}
             value={wordEntry.getWordDetails()[0].getDefinitions()[0].getValue()}
-            placeholder="definition *"
             required
+            placeholder="definition *"
+            slotProps={{
+              input: {
+                disableUnderline: !isOpen,
+                // It works buggy on MUI, so skipping for now
+                // onInvalid: (e) => {
+                //   console.log('Definition cannot be empty', e);
+                //   (e.target as HTMLInputElement).setCustomValidity('Definition cannot be empty');
+                // },
+              },
+            }}
             autoComplete="off"
             onChange={(e) => {
               const copy = wordEntry.getCopy();
               copy.getWordDetails()[0].getDefinitions()[0].setValue(e.target.value);
               onChange(copy);
             }}
-            slotProps={{
-              input: { disableUnderline: !isOpen },
-            }}
           />
         ) : (
-          <div style={{ flex: 1, width: '100%' }} />
-        )}
-        <IconButton size="small" onClick={onDelete} sx={{ alignSelf: 'flex-end' }} color="error">
-          <DeleteIcon fontSize="small" />
-        </IconButton>
-        <Snackbar
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          open={showCannotDeleteMessage}
-          autoHideDuration={6000}
-          onClose={() => setShowCannotDeleteMessage(false)}
-        >
-          <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-            Cannot delete the only definition group
-          </Alert>
-        </Snackbar>
-      </Box>
-
-      {/* collapsible */}
-      {isOpen && (
-        <Box mt={1} pb={1} pl={5}>
+          // <div style={{ flex: 1, width: '100%' }} />
           <Box
             sx={(theme) => ({
-              mb: 1,
+              ml: 3,
               display: 'flex',
+              width: '100%',
               flexDirection: 'row',
               alignItems: 'center',
               gap: 3,
@@ -1032,6 +1207,32 @@ const WordEntry: React.FC<{
               ))}
             </Select>
           </Box>
+        )}
+        <IconButton size="small" onClick={onDelete} sx={{ alignSelf: 'flex-end' }} color="error">
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+        <Snackbar
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          open={showCannotDeleteMessage}
+          autoHideDuration={6000}
+          onClose={() => setShowCannotDeleteMessage(false)}
+        >
+          <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
+            Cannot delete the only definition group
+          </Alert>
+        </Snackbar>
+      </Box>
+
+      {/* collapsible */}
+      {isOpen && (
+        <Box mt={1} pb={1} pl={5}>
+          <SpellingVariants
+            word={wordEntry}
+            onAdd={addSV}
+            onUpdate={updateSV}
+            onDelete={deleteSV}
+            allSources={allSources}
+          />
           {wordEntry.getWordDetails().map((wd, i) => (
             <WordDetailBlock
               key={i}
@@ -1108,7 +1309,12 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
     setSources((prev) => [...prev, created]);
   };
   return (
-    <Box sx={(theme) => ({ maxWidth: 1200, [theme.breakpoints.down('md')]: { ml: 1.5 } })}>
+    <Box
+      component="form"
+      // Prevent reloading page on submit
+      onSubmit={(e) => e.preventDefault()}
+      sx={(theme) => ({ maxWidth: 1200, [theme.breakpoints.down('md')]: { ml: 1.5 } })}
+    >
       {/* header + selectors */}
       <Grid container columns={{ xs: 6 }} gap={1} mb={5}>
         <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
@@ -1117,7 +1323,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
             options={sources}
             value={selectedSource}
             onChange={setSelectedSource}
-            // onCreate={handleCreate}
+            onCreate={handleCreate}
             placeholder="Choose or add"
           />
         </Grid>
@@ -1178,6 +1384,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
       {/* live json */}
       <Box mt={2} mb={2}>
         <Button
+          type="submit"
           variant="contained"
           size="small"
           startIcon={<SaveIcon />}
@@ -1188,6 +1395,10 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
             );
             if (proposalValue.entries.length === 0) {
               setAlertMessage({ message: 'Nothing to save', severity: 'info' });
+              return;
+            }
+            if (entries.filter((e) => e.isIncomplete()).length > 0) {
+              setAlertMessage({ message: 'Missing required values', severity: 'error' });
               return;
             }
             try {
@@ -1204,7 +1415,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           }}
           sx={{ mt: '4px', mb: 3 }}
         >
-          Save
+          Send to review
         </Button>
         {/* <Typography fontWeight={600} variant="subtitle1">
           Live JSON
