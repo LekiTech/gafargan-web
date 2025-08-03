@@ -27,7 +27,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { expressionFont } from '@/fonts';
 import { useTranslation } from 'react-i18next';
-import { flipAndMergeTags } from '@/search/definition/utils';
+import { capitalizeFirstLetter, flipAndMergeTags } from '@/search/definition/utils';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
 import { SourcesCreatableSelect } from './SearchableCreatableSelect';
 import {
@@ -46,6 +46,7 @@ import {
 import { LangDialects } from '@repository/constants';
 import { SpellingVariant } from '@repository/entities/SpellingVariant';
 import { IdToLang, LangToId } from '@api/languages';
+import { langDialectIdToString } from '../utils';
 
 const BUTTON_PASTEL_COLORS_BLUE = {
   bgcolor: 'rgb(220, 240, 250)',
@@ -83,6 +84,7 @@ interface TagSelectorProps {
   onClose: () => void;
   onChange: (next: string[]) => void;
   allTags: [string, string][];
+  lang: WebsiteLang;
 }
 const TagSelector: React.FC<TagSelectorProps> = ({
   anchorEl,
@@ -90,7 +92,9 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   onClose,
   onChange,
   allTags,
+  lang,
 }) => {
+  const { t } = useTranslation(lang);
   const [filter, setFilter] = useState('');
   // const matches = TAG_OPTIONS.filter((t) => t.includes(filter));
   const matches = allTags.filter((t) => t[0].toLowerCase().includes(filter.toLowerCase()));
@@ -103,7 +107,7 @@ const TagSelector: React.FC<TagSelectorProps> = ({
         <TextField
           size="small"
           fullWidth
-          placeholder="search tag"
+          placeholder={t('addNewWord.searchTag', { ns: 'dashboard' })}
           autoComplete="off"
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -134,7 +138,9 @@ const ExampleLine: React.FC<{
   isInnerBlockExample: boolean;
   tagEntries: Record<string, string>;
   allTags: [string, string][];
-}> = ({ example, onChange, onDelete, isInnerBlockExample, tagEntries, allTags }) => {
+  lang: WebsiteLang;
+}> = ({ example, onChange, onDelete, isInnerBlockExample, tagEntries, allTags, lang }) => {
+  const { t } = useTranslation(lang);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   // const [mouseHovering, setMouseHovering] = useState(false);
   const patch = (p: Partial<TranslationModelType>) => onChange(example.merge(p));
@@ -185,7 +191,7 @@ const ExampleLine: React.FC<{
         >
           {getRemainingLangDialectIds().length > 0 && (
             <Chip
-              label="language / dialect"
+              label={t('addNewWord.languageDialect', { ns: 'dashboard' })}
               icon={<AddIcon />}
               variant="filled"
               size="small"
@@ -226,7 +232,7 @@ const ExampleLine: React.FC<{
               />
             ))}
           <Chip
-            label="tags"
+            label={t('addNewWord.tags', { ns: 'dashboard' })}
             icon={<AddIcon />}
             variant="filled"
             size="small"
@@ -242,6 +248,7 @@ const ExampleLine: React.FC<{
             onClose={() => setAnchor(null)}
             onChange={(tags) => patch({ tags })}
             allTags={allTags}
+            lang={lang}
           />
         </Box>
         {example.getAllLangDialectIds().map((langDialectId, i) => (
@@ -279,7 +286,7 @@ const ExampleLine: React.FC<{
               {getRemainingLangDialectIds({ includeId: langDialectId.toString() }).map(
                 ([id, name]) => (
                   <MenuItem key={id} value={id}>
-                    {name}
+                    {langDialectIdToString(parseInt(id), t)}
                   </MenuItem>
                 ),
               )}
@@ -306,7 +313,7 @@ const ExampleLine: React.FC<{
                     example.setPhrasesByLangDialect(langDialectId, updatedPhrases);
                     onChange(example);
                   }}
-                  placeholder="example"
+                  placeholder={t('addNewWord.example', { ns: 'dashboard' })}
                   autoComplete="off"
                   slotProps={{
                     input: {
@@ -381,6 +388,7 @@ const DefinitionBlock: React.FC<{
   allTags: [string, string][];
   wordLangDialectId: number;
   definitionsLangDialectId: number;
+  lang: WebsiteLang;
 }> = ({
   idx,
   def,
@@ -390,7 +398,9 @@ const DefinitionBlock: React.FC<{
   allTags,
   wordLangDialectId,
   definitionsLangDialectId,
+  lang,
 }) => {
+  const { t } = useTranslation(lang);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const patch = (p: Partial<DefinitionModelType>) => onChange(def.merge(p));
   const deleteEx = (i: number) => {
@@ -440,7 +450,7 @@ const DefinitionBlock: React.FC<{
                 />
               ))}
             <Chip
-              label="tags"
+              label={t('addNewWord.tags', { ns: 'dashboard' })}
               icon={<AddIcon />}
               variant="filled"
               size="small"
@@ -456,12 +466,13 @@ const DefinitionBlock: React.FC<{
               onClose={() => setAnchor(null)}
               onChange={(tags) => patch({ tags })}
               allTags={allTags}
+              lang={lang}
             />
           </Box>
           <TextField
             variant="standard"
             required
-            placeholder="definition *"
+            placeholder={`${t('addNewWord.definition', { ns: 'dashboard' })}*`}
             slotProps={{
               input: {
                 // It works buggy on MUI, so skipping for now
@@ -494,10 +505,11 @@ const DefinitionBlock: React.FC<{
             onDelete={() => deleteEx(i)}
             tagEntries={tagEntries}
             allTags={allTags}
+            lang={lang}
           />
         ))}
         <Chip
-          label="example"
+          label={t('addNewWord.example', { ns: 'dashboard' })}
           icon={<AddIcon />}
           variant="filled"
           size="small"
@@ -569,7 +581,7 @@ const WordDetailBlock: React.FC<{
         onClose={() => setShowCannotDeleteMessage(false)}
       >
         <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-          Cannot delete the only definition
+          {t('addNewWord.messages.cannotDeleteOnlyDefinition', { ns: 'dashboard' })}
         </Alert>
       </Snackbar>
       <Box
@@ -604,7 +616,7 @@ const WordDetailBlock: React.FC<{
         >
           {Object.entries(LangDialects).map(([id, name]) => (
             <MenuItem key={id} value={id}>
-              {name}
+              {langDialectIdToString(parseInt(id), t)}
             </MenuItem>
           ))}
         </Select>
@@ -663,7 +675,7 @@ const WordDetailBlock: React.FC<{
                 />
               ))}
             <Chip
-              label="tags"
+              label={t('addNewWord.tags', { ns: 'dashboard' })}
               icon={<AddIcon />}
               variant="filled"
               size="small"
@@ -679,16 +691,17 @@ const WordDetailBlock: React.FC<{
               onClose={() => setAnchor(null)}
               onChange={(tags) => patch({ tags })}
               allTags={allTags}
+              lang={lang}
             />
           </Box>
           {/* inflection */}
           <TextField
             variant="standard"
-            placeholder="inflection"
+            placeholder={t('addNewWord.inflection', { ns: 'dashboard' })}
             autoComplete="off"
             value={data.getInflection()}
             onChange={(e) => patch({ inflection: e.target.value })}
-            sx={{ maxWidth: 200, width: '100%' }}
+            sx={{ minWidth: 200, width: '100%' }}
           />
         </Box>
         <Box sx={{ width: '100%' }} />
@@ -706,6 +719,7 @@ const WordDetailBlock: React.FC<{
             allTags={allTags}
             wordLangDialectId={wordLangDialectId}
             definitionsLangDialectId={data.getLangDialectId()}
+            lang={lang}
           />
         </Box>
       ))}
@@ -715,7 +729,7 @@ const WordDetailBlock: React.FC<{
         <Box sx={{ mt: 1 }}>
           <Divider sx={{ mt: 1.5, mb: 1 }} />
           <Typography variant="subtitle2" color="text.secondary">
-            other examples
+            {t('addNewWord.otherExamples', { ns: 'dashboard' })}
           </Typography>
         </Box>
       )}
@@ -732,6 +746,7 @@ const WordDetailBlock: React.FC<{
           onDelete={() => deleteExtraEx(i)}
           tagEntries={tagEntries}
           allTags={allTags}
+          lang={lang}
         />
       ))}
 
@@ -754,16 +769,19 @@ const WordDetailBlock: React.FC<{
               ],
             })
           }
+          lang={lang}
         />
       </Box>
     </Box>
   );
 };
 
-const AddButtonsMenu: React.FC<{ addDefinition: () => void; addOtherExamples: () => void }> = ({
-  addDefinition,
-  addOtherExamples,
-}) => {
+const AddButtonsMenu: React.FC<{
+  addDefinition: () => void;
+  addOtherExamples: () => void;
+  lang: WebsiteLang;
+}> = ({ addDefinition, addOtherExamples, lang }) => {
+  const { t } = useTranslation(lang);
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -786,7 +804,7 @@ const AddButtonsMenu: React.FC<{ addDefinition: () => void; addOtherExamples: ()
         // endIcon={<AddIcon />}
         startIcon={<ArrowDropDownIcon />}
       >
-        Add
+        {t('addNewWord.add', { ns: 'dashboard' })}
       </Button>
       <Menu
         id="basic-menu"
@@ -805,7 +823,7 @@ const AddButtonsMenu: React.FC<{ addDefinition: () => void; addOtherExamples: ()
             handleClose();
           }}
         >
-          Definition
+          {capitalizeFirstLetter(t('addNewWord.definition', { ns: 'dashboard' }))}
         </MenuItem>
         <MenuItem
           onClick={() => {
@@ -813,7 +831,7 @@ const AddButtonsMenu: React.FC<{ addDefinition: () => void; addOtherExamples: ()
             handleClose();
           }}
         >
-          Other examples
+          {capitalizeFirstLetter(t('addNewWord.otherExamples', { ns: 'dashboard' }))}
         </MenuItem>
       </Menu>
     </div>
@@ -827,9 +845,10 @@ const SpellingVariants: React.FC<{
   onUpdate: (i: number, sv: SpellingVariantModel) => void;
   onDelete: (i: number) => void;
   allSources: SourceModel[];
-}> = ({ word, onAdd, onUpdate, onDelete, allSources }) => {
+  lang: WebsiteLang;
+}> = ({ word, onAdd, onUpdate, onDelete, allSources, lang }) => {
+  const { t } = useTranslation(lang);
   const spellingVariants: SpellingVariantModel[] = word.getSpellingVariants();
-  console.log('spellingVariants', spellingVariants);
   const wordLangIsoCode = IdToLang[word.getLangDialectId()];
   const allDialectIdsForLang = LangToId[wordLangIsoCode];
   const allDialectsForLang = Object.entries(LangDialects).filter(([id, name]) => {
@@ -860,7 +879,7 @@ const SpellingVariants: React.FC<{
         }}
       >
         <Chip
-          label="variant"
+          label={t('addNewWord.variant', { ns: 'dashboard' })}
           icon={<AddIcon />}
           variant="filled"
           size="small"
@@ -892,7 +911,7 @@ const SpellingVariants: React.FC<{
               spellingVariant.setSpelling(e.target.value);
               onUpdate(i, spellingVariant);
             }}
-            placeholder="word variant"
+            placeholder={t('addNewWord.wordVariant', { ns: 'dashboard' })}
             sx={{
               minWidth: '31%',
               '& .MuiInput-root': {
@@ -909,28 +928,30 @@ const SpellingVariants: React.FC<{
               },
             }}
           />
-          <Select
-            size="small"
-            variant="standard"
-            value={spellingVariant.getLangDialectId()}
-            sx={(theme) => ({
-              flex: 1,
-              fontSize: '0.875rem',
-              color: theme.palette.text.secondary,
-              minWidth: 200,
-              maxWidth: 200,
-            })}
-            onChange={(e) => {
-              spellingVariant.setLangDialectId(e.target.value);
-              onUpdate(i, spellingVariant);
-            }}
-          >
-            {allDialectsForLang.map(([id, name]) => (
-              <MenuItem key={id} value={id}>
-                {name}
-              </MenuItem>
-            ))}
-          </Select>
+          {allDialectsForLang.length > 1 && (
+            <Select
+              size="small"
+              variant="standard"
+              value={spellingVariant.getLangDialectId()}
+              sx={(theme) => ({
+                flex: 1,
+                fontSize: '0.875rem',
+                color: theme.palette.text.secondary,
+                minWidth: 200,
+                maxWidth: 200,
+              })}
+              onChange={(e) => {
+                spellingVariant.setLangDialectId(e.target.value);
+                onUpdate(i, spellingVariant);
+              }}
+            >
+              {allDialectsForLang.map(([id, name]) => (
+                <MenuItem key={id} value={id}>
+                  {langDialectIdToString(parseInt(id), t, { showOnlyDialect: true })}
+                </MenuItem>
+              ))}
+            </Select>
+          )}
           <Select
             size="small"
             variant="standard"
@@ -994,6 +1015,7 @@ const WordEntry: React.FC<{
   isFirst,
   isLast,
 }) => {
+  const { t } = useTranslation(lang);
   // const theme = useTheme();
   // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
   const [showCannotDeleteMessage, setShowCannotDeleteMessage] = React.useState(false);
@@ -1007,8 +1029,9 @@ const WordEntry: React.FC<{
       wordEntry.getSpellingVariants().at(-1)?.getLangDialectId() ?? wordEntry.getLangDialectId();
     const wordLangIsoCode = IdToLang[wordEntry.getLangDialectId()];
     const allDialectIdsForLang = LangToId[wordLangIsoCode];
+    // TODO: find reason why it sometimes becomes a string
     const nextDialectId =
-      lastDialectId === allDialectIdsForLang.at(-1) ? lastDialectId : lastDialectId + 1;
+      lastDialectId === allDialectIdsForLang.at(-1) ? lastDialectId : parseInt(lastDialectId) + 1;
     onChange(
       wordEntry.merge({
         spellingVariants: [
@@ -1097,7 +1120,7 @@ const WordEntry: React.FC<{
           variant="standard"
           value={wordEntry.getSpelling()}
           required
-          placeholder="word *"
+          placeholder={`${t('addNewWord.word', { ns: 'dashboard' })} *`}
           slotProps={{
             input: {
               disableUnderline: !isOpen,
@@ -1128,7 +1151,7 @@ const WordEntry: React.FC<{
             sx={{ bgcolor: INPUT_PASTEL_BEIGE, '& .MuiInputBase-root': { pl: 1 } }}
             value={wordEntry.getWordDetails()[0].getDefinitions()[0].getValue()}
             required
-            placeholder="definition *"
+            placeholder={`${t('addNewWord.definition', { ns: 'dashboard' })} *`}
             slotProps={{
               input: {
                 disableUnderline: !isOpen,
@@ -1180,7 +1203,8 @@ const WordEntry: React.FC<{
             >
               {Object.entries(LangDialects).map(([id, name]) => (
                 <MenuItem key={id} value={id}>
-                  {name}
+                  {/* {name} */}
+                  {langDialectIdToString(parseInt(id), t)}
                 </MenuItem>
               ))}
             </Select>
@@ -1218,7 +1242,7 @@ const WordEntry: React.FC<{
           onClose={() => setShowCannotDeleteMessage(false)}
         >
           <Alert severity="error" variant="filled" sx={{ width: '100%' }}>
-            Cannot delete the only definition group
+            {t('addNewWord.messages.cannotDeleteOnlyDefinitionGroup', { ns: 'dashboard' })}
           </Alert>
         </Snackbar>
       </Box>
@@ -1232,6 +1256,7 @@ const WordEntry: React.FC<{
             onUpdate={updateSV}
             onDelete={deleteSV}
             allSources={allSources}
+            lang={lang}
           />
           {wordEntry.getWordDetails().map((wd, i) => (
             <WordDetailBlock
@@ -1251,7 +1276,7 @@ const WordEntry: React.FC<{
             onClick={addWD}
             sx={{ mt: 1, ml: 1.5, ...BUTTON_PASTEL_COLORS_BLUE }}
           >
-            definition group
+            {t('addNewWord.definitionGroup', { ns: 'dashboard' })}
           </Button>
         </Box>
       )}
@@ -1265,10 +1290,10 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
   sourceModels,
 }) => {
   const { t } = useTranslation(lang);
-  const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
-    DictionaryLang,
-    string
-  >;
+  // const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
+  //   DictionaryLang,
+  //   string
+  // >;
   const [alertMessage, setAlertMessage] = useState<
     { message: string; severity: 'error' | 'info' | 'success' | 'warning' } | undefined
   >(undefined);
@@ -1319,9 +1344,10 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
       <Grid container columns={{ xs: 6 }} gap={1} mb={5}>
         <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
           <SourcesCreatableSelect
-            label="📚 Source"
+            label={`📚 ${t('addNewWord.source', { ns: 'dashboard' })}`}
             options={sources}
             value={selectedSource}
+            lang={lang}
             onChange={setSelectedSource}
             onCreate={handleCreate}
             placeholder="Choose or add"
@@ -1336,7 +1362,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           >
             {Object.entries(LangDialects).map(([id, name]) => (
               <MenuItem key={id} value={id}>
-                {name}
+                {langDialectIdToString(parseInt(id), t)}
               </MenuItem>
             ))}
           </Select>
@@ -1349,7 +1375,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           >
             {Object.entries(LangDialects).map(([id, name]) => (
               <MenuItem key={id} value={id}>
-                {name}
+                {langDialectIdToString(parseInt(id), t)}
               </MenuItem>
             ))}
           </Select>
@@ -1379,7 +1405,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
         onClick={addEntry}
         sx={{ mt: '4px', mb: 3, ...BUTTON_PASTEL_COLORS_BLUE }}
       >
-        Gaf
+        {t('addNewWord.word', { ns: 'dashboard' })}
       </Button>
       {/* live json */}
       <Box mt={2} mb={2}>
@@ -1415,9 +1441,9 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           }}
           sx={{ mt: '4px', mb: 3 }}
         >
-          Send to review
+          {t('addNewWord.sendToReview', { ns: 'dashboard' })}
         </Button>
-        {/* <Typography fontWeight={600} variant="subtitle1">
+        <Typography fontWeight={600} variant="subtitle1">
           Live JSON
         </Typography>
         <pre
@@ -1429,7 +1455,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           }}
         >
           {JSON.stringify(new DictionaryProposalModel(entries, selectedSource), null, 2)}
-        </pre> */}
+        </pre>
       </Box>
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

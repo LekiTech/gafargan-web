@@ -41,7 +41,7 @@
       "name": "Туьрк"
     },
     "aze": {
-      "name": "Азербайджанский"
+      "name": "Азербайжан"
     },
     "per": {
       "name": "Фарс"
@@ -105,17 +105,28 @@
     "я"
   ],
   "addNewWord": {
-    "source": "Источник",
-    "word": "слово",
-    "definition": "значение",
+    "source": "Чешме",
+    "addNewSource": "Цӏийи чешме хъвегьин",
+    "sourceName": "Название источника (к примеру название книги)",
+    "authors": "Авторы",
+    "cancel": "Хчӏурун",
+    "save": "Сохранить",
+    "word": "гаф",
+    "definition": "мана",
     "sendToReview": "Отправить на проверку",
-    "spellingVariant": "вариант",
-    "tags": "тэги",
+    "variant": "жуьре",
+    "wordVariant": "гафунин жуьре",
+    "tags": "яржар",
+    "searchTag": "ярж жагъурун",
     "inflection": "словоизменение",
-    "example": "пример",
-    "languageDialect": "язык / диалект",
-    "add": "добавить",
-    "otherExamples": "Другие примеры",
-    "definitionGroup": "Группа значений"
+    "example": "мисал",
+    "languageDialect": "чIал / нугъат",
+    "add": "хъвегьин",
+    "otherExamples": "Маса мисалар",
+    "definitionGroup": "Группа значений",
+    "messages": {
+      "cannotDeleteOnlyDefinition": "Cannot delete the only definition",
+      "cannotDeleteOnlyDefinitionGroup": "Cannot delete the only definition group"
+    }
   }
 }

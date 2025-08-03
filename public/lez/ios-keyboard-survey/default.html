@@ -239,6 +239,22 @@
       -webkit-user-select: none;
       user-select: none;
     }
+
+    .key[data-alt]::after {
+      content: attr(data-alt);
+      position: absolute;
+      width: 60%;
+      text-align: right;
+      top: 2px;
+      right: 3px;
+      font-size: .55rem;
+      color: #888;
+      line-height: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: none;
+    }
   </style>
 </head>
 

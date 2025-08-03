@@ -13,6 +13,9 @@ import {
   Typography,
 } from '@mui/material';
 import { SourceModel, STATE } from '../models/proposal.model';
+import { WebsiteLang } from '@api/types.model';
+import { useTranslation } from 'react-i18next';
+import { capitalizeFirstLetter } from '@/search/definition/utils';
 
 /**
  * The shape of a standard option.
@@ -29,6 +32,7 @@ export interface SourcesCreatableSelectProps {
   label?: string;
   options: SourceModel[];
   value: SourceModel;
+  lang: WebsiteLang;
   onChange: (value: SourceModel) => void;
   /**
    * Called after the user fills in the dialog and saves.
@@ -53,12 +57,14 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
   label,
   options,
   value,
+  lang,
   onChange,
   onCreate,
   placeholder,
   disabled = false,
   className = 'w-full',
 }) => {
+  const { t } = useTranslation(lang);
   const [inputValue, setInputValue] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
 
@@ -77,6 +83,8 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
       name: sourceName,
       authors: sourceAuthors,
     });
+    // TODO: create source in DB and get result value with ID
+    // TODO: then pass it down further below
     onCreate?.(created);
     onChange(created);
     handleDialogClose();
@@ -129,7 +137,9 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
             key={option.getName() ?? `${option.getName()}_${option.getAuthors()}`}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
           >
-            {isUserEnteringNewSource(option) ? `Add "${option.getName()}"` : option.getName()}
+            {isUserEnteringNewSource(option)
+              ? `${capitalizeFirstLetter(t('addNewWord.add', { ns: 'dashboard' }))} "${option.getName()}"`
+              : option.getName()}
             <Typography
               key={option.getAuthors()}
               variant="caption"
@@ -147,18 +157,18 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
 
       {/* Dialog for creating a new option */}
       <Dialog open={dialogOpen} onClose={handleDialogClose} fullWidth>
-        <DialogTitle>Add new source</DialogTitle>
+        <DialogTitle>{t('addNewWord.addNewSource', { ns: 'dashboard' })}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
-              label="Source name"
+              label={t('addNewWord.sourceName', { ns: 'dashboard' })}
               value={sourceName}
               onChange={(e) => setSourceName(e.target.value)}
               fullWidth
               autoFocus
             />
             <TextField
-              label="Authors"
+              label={t('addNewWord.authors', { ns: 'dashboard' })}
               value={sourceAuthors}
               onChange={(e) => setSourceAuthors(e.target.value)}
               fullWidth
@@ -166,9 +176,9 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
+          <Button onClick={handleDialogClose}>{t('addNewWord.cancel', { ns: 'dashboard' })}</Button>
           <Button onClick={handleSave} variant="contained" disabled={sourceName.trim() === ''}>
-            Save
+            {t('addNewWord.save', { ns: 'dashboard' })}
           </Button>
         </DialogActions>
       </Dialog>

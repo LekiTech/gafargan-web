@@ -10,9 +10,10 @@ export const LangToId: Record<string, number[]> = Object.freeze({
   eng: [26],
   tur: [27],
   aze: [28],
-  // Persian OLD
-  // Modern Standard Arabic
-  // Old Arabic (Quranic)
+  // Persian
+  per: [29],
+  // Modern Standard Arabic, Classical Arabic (Quranic)
+  ara: [30, 31],
 });
 export const IdToLang: Record<number, string> = Object.freeze({
   0: '',
@@ -44,6 +45,9 @@ export const IdToLang: Record<number, string> = Object.freeze({
   26: 'eng',
   27: 'tur',
   28: 'aze',
+  29: 'per',
+  30: 'ara',
+  31: 'ara',
   // Persian OLD
   // Modern Standard Arabic
   // Old Arabic (Quranic)
