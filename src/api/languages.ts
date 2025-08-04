@@ -2,7 +2,9 @@
 export const WebsiteLangs = ['eng', 'rus', 'lez', 'tur'] as const;
 export const DictionaryLangs = ['lez', 'rus', 'tab'] as const;
 
-// TODO: refactor all by using either lang_dialect ID values or NAME values
+// NOTE: no need refactor all by using either lang_dialect ID values or NAME values
+//       because this way helps to group dialects by language (even though done on code level instead of db level)
+//       the only enhancement in future could be moving this mapping to db level
 export const LangToId: Record<string, number[]> = Object.freeze({
   lez: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23],
   tab: [24],

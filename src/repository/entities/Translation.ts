@@ -3,7 +3,7 @@ import { User } from './User';
 export class Translation {
   id!: number;
   /*
-  TODO: Convert to the following structure:
+  Using the following structure:
   phrasesPerLangDialect: {
     [langDialect: LangDialect]: [
       {
