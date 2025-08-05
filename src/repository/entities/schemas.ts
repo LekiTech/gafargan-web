@@ -559,27 +559,13 @@ export const ProposalSchema = new EntitySchema<Proposal>({
       primary: true,
       generated: true,
     },
-    tableName: {
-      name: 'table_name',
-      type: 'text',
-    },
-    operation: {
+    type: {
       type: 'enum',
       enum: ProposalType,
-      enumName: 'proposal_operation',
+      enumName: 'proposal_type',
     },
-    recordId: {
-      name: 'record_id',
-      type: 'int',
-      nullable: true,
-    },
-    newData: {
-      name: 'new_data',
-      type: 'jsonb',
-      nullable: true,
-    },
-    oldData: {
-      name: 'old_data',
+    data: {
+      name: 'data',
       type: 'jsonb',
       nullable: true,
     },
@@ -597,6 +583,10 @@ export const ProposalSchema = new EntitySchema<Proposal>({
       enum: ProposalStatus,
       enumName: 'proposal_status',
       default: ProposalStatus.PENDING,
+    },
+    comment: {
+      type: 'text',
+      nullable: true,
     },
     reviewedById: {
       name: 'reviewed_by',

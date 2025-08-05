@@ -1434,13 +1434,18 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
               return;
             }
             try {
-              await fetch('dictionary/api', {
+              const result = await fetch('dictionary/api', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(proposalValue),
               });
-              setAlertMessage({ message: 'Saved successfully', severity: 'success' });
-              window.location.reload();
+              if (result.status >= 300) {
+                console.error('Error saving proposal. Something went wrong');
+                setAlertMessage({ message: 'Failed to save', severity: 'error' });
+              } else {
+                setAlertMessage({ message: 'Saved successfully', severity: 'success' });
+                window.location.reload();
+              }
             } catch (error) {
               console.error('Error saving proposal:', error);
               setAlertMessage({ message: 'Failed to save', severity: 'error' });
