@@ -29,7 +29,7 @@ function createData(
 
 const rows = [
   createData(1, ProposalType.DICTIONARY, 'K.Z. Tadzjibov', ProposalStatus.APPROVED, 'R. Gasratov'),
-  createData(2, ProposalType.SOURCE, 'K.Z. Tadzjibov', ProposalStatus.PENDING, 'R. Gasratov'),
+  createData(2, ProposalType.SOURCE, 'K.Z. Tadzjibov', ProposalStatus.PENDING),
   createData(
     3,
     ProposalType.DICTIONARY,
@@ -72,7 +72,8 @@ const ProposalsOverview: React.FC = () => {
       <Table sx={{ minWidth: 650 }} aria-label="simple table">
         <TableHead>
           <TableRow>
-            <TableCell>Type</TableCell>
+            {/* Type is not needed because we will review proposals for every type on its dedicated route  */}
+            {/* <TableCell>Type</TableCell> */}
             <TableCell align="left">Proposed by</TableCell>
             <TableCell align="left">Reviewed by</TableCell>
             <TableCell align="left">Status</TableCell>
@@ -83,9 +84,9 @@ const ProposalsOverview: React.FC = () => {
         <TableBody>
           {rows.map((row) => (
             <TableRow key={row.id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-              <TableCell component="th" scope="row">
+              {/* <TableCell component="th" scope="row">
                 <ProposalsTypeChip type={row.type} />
-              </TableCell>
+              </TableCell> */}
               <TableCell align="left">{row.proposedBy}</TableCell>
               <TableCell align="left">{row.reviewedBy}</TableCell>
               <TableCell align="left">
