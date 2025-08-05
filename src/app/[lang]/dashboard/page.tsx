@@ -3,7 +3,7 @@ import { getPaginatedWords, searchAdvanced } from '@repository/word.repository';
 import { redirect } from 'next/navigation';
 import { Routes } from '../../routes';
 import { AdvancedSearchParams, Params, SearchParams } from '@/types';
-import { FoundDefinitionsList } from './FoundDefinitionsList';
+import { FoundDefinitionsList } from './dictionary/components/FoundDefinitionsList';
 import { initTranslations } from '@i18n/index';
 import { LangToId } from '@api/languages';
 import { toNumber } from '../../utils';

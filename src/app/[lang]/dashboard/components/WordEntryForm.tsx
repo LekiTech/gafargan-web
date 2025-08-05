@@ -1017,7 +1017,7 @@ const WordEntry: React.FC<{
   isFirst,
   isLast,
 }) => {
-  console.log(idx, wordEntry);
+  // console.log(idx, wordEntry);
   const { t } = useTranslation(lang);
   // const theme = useTheme();
   // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));

@@ -14,7 +14,9 @@ import {
 import { usePathname, useParams, useRouter } from 'next/navigation';
 import LinearProgress from '@mui/material/LinearProgress';
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import SpellcheckIcon from '@mui/icons-material/Spellcheck';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import TextIncreaseIcon from '@mui/icons-material/TextIncrease';
 import TranslateIcon from '@mui/icons-material/Translate';
 import PersonIcon from '@mui/icons-material/Person';
@@ -49,9 +51,16 @@ const NAVIGATION = (lang: WebsiteLang): Navigation => {
       icon: <DashboardIcon />,
     },
     {
-      segment: `${lang}/${Routes.Review}`,
-      title: 'Review',
-      icon: <SpellcheckIcon />,
+      segment: `${lang}/dashboard/sources`,
+      title: 'Sources',
+      icon: <LocalLibraryIcon />,
+    },
+    {
+      segment: `${lang}/${Routes.Dictionary}`,
+      title: 'Dictionary',
+      icon: <MenuBookIcon />,
+      // title: 'Review',
+      // icon: <SpellcheckIcon />,
       // children: [
       //   {
       //     segment: 'lord-of-the-rings',
@@ -92,7 +101,7 @@ const CustomThemeSwitcher: FC<{ websiteLang: WebsiteLang }> = ({ websiteLang }) 
   };
   return (
     <React.Fragment>
-      <Button
+      {/* <Button
         type="button"
         variant="contained"
         aria-label="settings"
@@ -100,7 +109,7 @@ const CustomThemeSwitcher: FC<{ websiteLang: WebsiteLang }> = ({ websiteLang }) 
         onClick={handleAccountClick}
       >
         Add Words
-      </Button>
+      </Button> */}
     </React.Fragment>
   );
 };
@@ -110,7 +119,7 @@ function CustomToolbarActions() {
   const { lang } = useParams() as { lang: WebsiteLang };
   return (
     <Stack direction="row" alignItems="center">
-      {pathname === `/${lang}/${Routes.Review}` && <CustomThemeSwitcher websiteLang={lang} />}
+      {pathname === `/${lang}/${Routes.Dictionary}` && <CustomThemeSwitcher websiteLang={lang} />}
       {/* <Account /> */}
     </Stack>
   );
@@ -133,7 +142,7 @@ export default function DashboardPagesLayout(props: { children: React.ReactNode 
   const renderPageItem = React.useCallback(
     (item: NavigationPageItem, { mini }: { mini: boolean }) => {
       const addWordUrlPath = `/${lang}/${Routes.AddWord}`;
-      const reviewSegment = `${lang}/${Routes.Review}`;
+      const reviewSegment = `${lang}/${Routes.Dictionary}`;
       if (pathname === addWordUrlPath) {
         return (
           // NOTE: This is a workaround to prevent the default behavior of the link

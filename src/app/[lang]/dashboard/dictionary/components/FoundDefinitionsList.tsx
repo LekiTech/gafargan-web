@@ -11,18 +11,18 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { ParsedTextComp } from '../components/ParsedTextComp';
-import { TagComp } from '../components/TagComp';
+import { ParsedTextComp } from '../../../components/ParsedTextComp';
+import { TagComp } from '../../../components/TagComp';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SpellingListItem } from '../components/SpellingListItem';
+import { SpellingListItem } from '../../../components/SpellingListItem';
 import { IdToLang } from '@api/languages';
 import { Word } from '@repository/entities/Word';
 import { colors } from '@/colors';
 import { SearchLang } from '@/components/Search/types';
 import { AdvancedSearchInput } from '@/components/Search/AdvancedSearchInput';
 import { PaginatedResponse } from '@repository/types.model';
-import { toNumber } from '../../utils';
+import { toNumber } from '../../../../utils';
 import { DictionarySelect } from '@/components/Search/DictionarySelect';
 
 export const FoundDefinitionsList: FC<{
