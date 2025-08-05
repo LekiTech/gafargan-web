@@ -10,6 +10,7 @@ import { PaginatedResponse } from '@repository/types.model';
 import { Word } from '@repository/entities/Word';
 import { WordEntryForm } from '@/dashboard/dictionary/components/WordEntryForm';
 import { SourceModelType } from '@/dashboard/models/proposal.model';
+import ProposalsOverview from './ProposalsOverview';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -68,10 +69,11 @@ const TabsContent: React.FC<{
         <WordEntryForm lang={lang} sourceModels={sourceModels} />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={2}>
-        My Proposals
+        <ProposalsOverview />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={3}>
         Review Proposals {[<br />, <br />]}Only admins can access this page
+        <ProposalsOverview />
       </CustomTabPanel>
     </Box>
   );

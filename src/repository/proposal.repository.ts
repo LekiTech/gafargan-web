@@ -21,62 +21,38 @@ import {
   TranslationModelType,
 } from '@/dashboard/models/proposal.model';
 
-// Map table_name → corresponding entity class
-// const tableEntityMap: Record<string, EntitySchema> = {
-//   [SourceSchema.options.tableName!]: SourceSchema,
-//   [WordSchema.options.tableName!]: WordSchema,
-//   [SpellingVariantSchema.options.tableName!]: SpellingVariantSchema,
-//   [WordDetailSchema.options.tableName!]: WordDetailSchema,
-//   [DefinitionSchema.options.tableName!]: DefinitionSchema,
-//   [TranslationSchema.options.tableName!]: TranslationSchema,
-// };
-
-// export async function getAvailableTables(): Promise<{ tableName: string; name: string }[]> {
-//   return Promise.resolve(
-//     Object.values(tableEntityMap).map((tem) => ({
-//       tableName: tem.options.tableName!,
-//       name: tem.options.name!,
-//     })),
-//   );
-// }
-
-// export interface SourceProposal {
-//   name?: string;
-//   authors?: string;
-//   publicationYear?: string;
-//   providedBy?: string;
-//   providedByUrl?: string;
-//   processedBy?: string;
-//   copyright?: string;
-//   seeSourceUrl?: string;
-//   description?: string;
-// }
-// export interface SpellingVariantProposal {
-//   langDialect?: LangDialect;
-//   word_id?: number;
-//   spelling?: string;
-// }
-// export interface WordProposal {
-//   spelling?: string;
-//   langDialect?: LangDialect;
-// }
-// export interface WordDetailProposal {
-//   word_id?: number;
-//   orderIdx?: number;
-//   inflection?: string;
-//   langDialect?: LangDialect;
-//   source_id?: number;
-// }
-// export interface DefinitionProposal {
-//   word_details_id?: number;
-//   values?: DefinitionValue[];
-//   tags?: string[];
-// }
-// export interface TranslationProposal {
-//   phrasesPerLangDialect?: Record<string, TranslationPhrase>;
-//   tags?: string[];
-//   raw?: string;
-// }
+export type PaginationQuery = {
+  type: ProposalType;
+  page: number;
+  size: number;
+  status?: ProposalStatus;
+  // wordLangDialectId: number;
+  // definitionsLangDialectId: number;
+};
+export async function getPaginatedProposals({
+  type,
+  status,
+  page,
+  size,
+  // wordLangDialectId,
+  // definitionsLangDialectId,
+}: PaginationQuery): Promise<Proposal[]> {
+  status = status ?? ProposalStatus.PENDING;
+  const AppDataSource = await getDataSource();
+  const proposalRepo = AppDataSource.getRepository<Proposal>(ProposalSchema.options.tableName!);
+  const proposals = await proposalRepo.find({
+    where: {
+      type,
+      status,
+      // langDialect: { id: wordLangDialectId },
+      // details: { langDialect: { id: definitionsLangDialectId } },
+    },
+    take: size,
+    skip: page * size,
+  });
+  // console.log('search', JSON.stringify(word, null, 2));
+  return JSON.parse(JSON.stringify(proposals));
+}
 
 export interface CreateProposalDto {
   type: ProposalType;
@@ -109,80 +85,42 @@ export async function createProposal(dto: CreateProposalDto): Promise<Proposal> 
  * @param proposalId The PK of the proposal row
  * @param adminId    The user ID performing the approval
  */
-// export async function approveProposal(proposalId: number, adminId: number) {
-//   const AppDataSource = await getDataSource();
-//   await AppDataSource.transaction(async (manager) => {
-//     const repo = manager.getRepository(ProposalSchema.options.tableName!);
-//     const prop = await repo.findOne({ where: { id: proposalId } });
-//     if (!prop) {
-//       throw new Error(`Proposal ${proposalId} not found`);
-//     }
-//     if (prop.status !== ProposalStatus.PENDING) {
-//       throw new Error(`Proposal ${proposalId} is not pending`);
-//     }
-
-//     const EntityClass = tableEntityMap[prop.tableName];
-//     if (!EntityClass) {
-//       throw new Error(`No entity mapped for table ${prop.tableName}`);
-//     }
-//     const targetRepo = manager.getRepository(prop.tableName);
-
-//     switch (prop.operation) {
-//       case ProposalType.INSERT: {
-//         if (!prop.newData) {
-//           throw new Error(`INSERT proposal ${proposalId} has no new_data`);
-//         }
-//         // create and save: fires history triggers on your real tables
-//         const entity = targetRepo.create(prop.newData);
-//         const saved = await targetRepo.save(entity);
-//         // store the new record ID back on the proposal
-//         prop.recordId = (saved as any).id;
-//         break;
-//       }
-
-//       case ProposalType.UPDATE: {
-//         if (!prop.recordId || !prop.newData) {
-//           throw new Error(`UPDATE proposal ${proposalId} missing record_id or new_data`);
-//         }
-//         await targetRepo.update(prop.recordId, prop.newData);
-//         break;
-//       }
-
-//       case ProposalType.DELETE: {
-//         if (!prop.recordId) {
-//           throw new Error(`DELETE proposal ${proposalId} missing record_id`);
-//         }
-//         await targetRepo.delete(prop.recordId);
-//         break;
-//       }
-
-//       default:
-//         throw new Error(`Unknown operation ${prop.operation}`);
-//     }
-
-//     // mark the proposal as approved
-//     prop.status = ProposalStatus.APPROVED;
-//     prop.reviewedById = adminId;
-//     prop.reviewedAt = new Date();
-//     await repo.save(prop);
-//   });
-// }
+export async function approveProposal(proposalId: number, adminId: number) {
+  const AppDataSource = await getDataSource();
+  const proposalRepo = AppDataSource.getRepository<Proposal>(ProposalSchema.options.tableName!);
+  const proposalEntity = await proposalRepo.findOne({ where: { id: proposalId } });
+  if (!proposalEntity) {
+    throw new Error(`Proposal ${proposalId} not found`);
+  }
+  if (proposalEntity.status !== ProposalStatus.PENDING) {
+    throw new Error(`Proposal ${proposalId} is not pending`);
+  }
+  proposalEntity.status = ProposalStatus.REJECTED;
+  proposalEntity.reviewedById = adminId;
+  proposalEntity.reviewedAt = new Date();
+  // Save the proposal
+  const saved = await proposalRepo.save(proposalEntity);
+  return saved;
+}
 
 /**
  * Reject a pending proposal.
+ * @param proposalId The PK of the proposal row
+ * @param adminId    The user ID performing the rejection
  */
-// export async function rejectProposal(proposalId: number, adminId: number) {
-//   const AppDataSource = await getDataSource();
-//   const repo = AppDataSource.getRepository(ProposalSchema.options.tableName!);
-//   const prop = await repo.findOne({ where: { id: proposalId } });
-//   if (!prop) {
-//     throw new Error(`Proposal ${proposalId} not found`);
-//   }
-//   if (prop.status !== ProposalStatus.PENDING) {
-//     throw new Error(`Proposal ${proposalId} is not pending`);
-//   }
-//   prop.status = ProposalStatus.REJECTED;
-//   prop.reviewedById = adminId;
-//   prop.reviewedAt = new Date();
-//   await repo.save(prop);
-// }
+export async function rejectProposal(proposalId: number, adminId: number, comment: string) {
+  const AppDataSource = await getDataSource();
+  const repo = AppDataSource.getRepository<Proposal>(ProposalSchema.options.tableName!);
+  const proposalEntity = await repo.findOne({ where: { id: proposalId } });
+  if (!proposalEntity) {
+    throw new Error(`Proposal ${proposalId} not found`);
+  }
+  if (proposalEntity.status !== ProposalStatus.PENDING) {
+    throw new Error(`Proposal ${proposalId} is not pending`);
+  }
+  proposalEntity.status = ProposalStatus.REJECTED;
+  proposalEntity.comment = comment;
+  proposalEntity.reviewedById = adminId;
+  proposalEntity.reviewedAt = new Date();
+  await repo.save(proposalEntity);
+}
