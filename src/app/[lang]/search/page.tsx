@@ -7,7 +7,8 @@ import { Sources } from './components/Sources';
 // import * as expressionApi from '../../api/expressionApi';
 // import * as dictionaryApi from '../../api/dictionaryApi';
 import { VerticalSpacing } from './components/VerticalSpacing';
-import { getSources, getWordOfTheDay } from '@repository/word.repository';
+import { getWordOfTheDay } from '@repository/word.repository';
+import { getSources } from '@repository/source.repository';
 import { Params, SearchParams } from '../types';
 
 type HomeProps = {

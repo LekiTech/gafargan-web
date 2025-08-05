@@ -1,5 +1,5 @@
 'use client';
-import React, { useRef, useState } from 'react';
+import React, { memo, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -992,6 +992,8 @@ const SpellingVariants: React.FC<{
 };
 
 /* ---------------- Entry ---------------- */
+// TODO: optimize by adding custom `arePropsEqual` function to memo
+//       memo isn't working as intended because of unoptimized onChange
 const WordEntry: React.FC<{
   idx: number;
   entry: WordModel;
@@ -1015,6 +1017,7 @@ const WordEntry: React.FC<{
   isFirst,
   isLast,
 }) => {
+  console.log(idx, wordEntry);
   const { t } = useTranslation(lang);
   // const theme = useTheme();
   // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
@@ -1075,7 +1078,9 @@ const WordEntry: React.FC<{
   const deleteWD = (i: number) => {
     if (wordEntry.getWordDetails().length > 1) {
       onChange(
-        wordEntry.merge({ wordDetails: wordEntry.getWordDetails().filter((_, idx) => idx !== i) }),
+        wordEntry.merge({
+          wordDetails: wordEntry.getWordDetails().filter((_, idx) => idx !== i),
+        }),
       );
     } else {
       setShowCannotDeleteMessage(true);
@@ -1348,7 +1353,9 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
             value={selectedSource}
             lang={lang}
             onChange={setSelectedSource}
-            onCreate={handleCreate}
+            // Creating new source here adds complexity for proposal reviews
+            // Better to create in different place, review, approve and then use here only DB values
+            // onCreate={handleCreate}
             placeholder="Choose or add"
           />
         </Grid>
@@ -1442,7 +1449,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
         >
           {t('addNewWord.sendToReview', { ns: 'dashboard' })}
         </Button>
-        <Typography fontWeight={600} variant="subtitle1">
+        {/* <Typography fontWeight={600} variant="subtitle1">
           Live JSON
         </Typography>
         <pre
@@ -1454,7 +1461,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           }}
         >
           {JSON.stringify(new DictionaryProposalModel(entries, selectedSource), null, 2)}
-        </pre>
+        </pre> */}
       </Box>
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}

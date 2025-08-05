@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { Routes } from '../../../routes';
 import { Params, SearchParams } from '@/types';
 import { WordEntryForm } from '../components/WordEntryForm';
-import { getSources } from '@repository/word.repository';
+import { getSources } from '@repository/source.repository';
 import { SourceModel, SourceModelType, STATE } from '../models/proposal.model';
 import { PageHeader } from '@toolpad/core';
 import { Container } from '@mui/material';

@@ -425,27 +425,6 @@ function getDayOfTheYear(): number {
   return day;
 }
 
-export async function getSources(): Promise<Source[]> {
-  const AppDataSource = await getDataSource();
-  const sourceRepo = AppDataSource.getRepository(SourceSchema.options.tableName!);
-  const sources = await sourceRepo.find({
-    select: {
-      id: true,
-      name: true,
-      authors: true,
-      publicationYear: true,
-      providedBy: true,
-      providedByUrl: true,
-      processedBy: true,
-      copyright: true,
-      seeSourceUrl: true,
-      description: true,
-    },
-  });
-  // console.log('search', JSON.stringify(word, null, 2));
-  return JSON.parse(JSON.stringify(sources));
-}
-
 export type PaginationQuery = {
   page: number;
   size: number;

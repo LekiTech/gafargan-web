@@ -137,6 +137,15 @@ export class TranslationModel extends Model {
     );
   }
 
+  static areEqual(m1: TranslationModel, m2: TranslationModel): boolean {
+    return (
+      m1.state === m2.state &&
+      m1.id === m2.id &&
+      JSON.stringify(m1.phrasesPerLangDialect) === JSON.stringify(m2.phrasesPerLangDialect) &&
+      JSON.stringify(m1.tags) === JSON.stringify(m2.tags)
+    );
+  }
+
   static createEmpty(langDialectIds: number[]): TranslationModel {
     return new TranslationModel({
       state: STATE.ADDED,
@@ -257,6 +266,20 @@ export class DefinitionModel extends Model {
       this.value.trim() === '' &&
       (!this.tags || this.tags.length === 0) &&
       (!this.examples || this.examples.length === 0 || this.examples.every((e) => e.isEmpty()))
+    );
+  }
+
+  static areEqual(m1: DefinitionModel, m2: DefinitionModel): boolean {
+    return (
+      m1.state === m2.state &&
+      m1.id === m2.id &&
+      m1.value === m2.value &&
+      JSON.stringify(m1.tags) === JSON.stringify(m2.tags) &&
+      m1.examples?.length === m2.examples?.length &&
+      // Both true and undefined values are ok
+      m1.examples?.every(
+        (e1, i) => m2.examples && TranslationModel.areEqual(e1, m2.examples[i]),
+      ) !== false
     );
   }
 
@@ -423,6 +446,22 @@ export class WordDetailModel extends Model {
     );
   }
 
+  static areEqual(m1: WordDetailModel, m2: WordDetailModel): boolean {
+    return (
+      m1.state === m2.state &&
+      m1.id === m2.id &&
+      m1.sourceId === m2.sourceId &&
+      m1.langDialectId === m2.langDialectId &&
+      m1.definitions.length === m2.definitions.length &&
+      m1.definitions.every((d1, i) => DefinitionModel.areEqual(d1, m2.definitions[i])) &&
+      m1.examples?.length === m2.examples?.length &&
+      // Both true and undefined values are ok
+      m1.examples?.every(
+        (e1, i) => m2.examples && TranslationModel.areEqual(e1, m2.examples[i]),
+      ) !== false
+    );
+  }
+
   static createEmpty(langDialectId: number, sourceId: number): WordDetailModel {
     return new WordDetailModel({
       state: STATE.ADDED,
@@ -572,6 +611,21 @@ export class WordModel extends Model {
     );
   }
 
+  static areEqual(m1: WordModel, m2: WordModel): boolean {
+    return (
+      m1.state === m2.state &&
+      m1.spelling === m2.spelling &&
+      m1.sourceId === m2.sourceId &&
+      m1.langDialectId === m2.langDialectId &&
+      m1.spellingVariants.length === m2.spellingVariants.length &&
+      m1.spellingVariants.every((sv1, i) =>
+        SpellingVariantModel.areEqual(sv1, m2.spellingVariants[i]),
+      ) &&
+      m1.wordDetails.length === m2.wordDetails.length &&
+      m1.wordDetails.every((wd1, i) => WordDetailModel.areEqual(wd1, m2.wordDetails[i]))
+    );
+  }
+
   static createEmpty(
     wordMeta: { langDialectId: number; sourceId: number },
     defMeta: { langDialectId: number; sourceId: number },
@@ -647,6 +701,16 @@ export class SpellingVariantModel extends Model {
       this.langDialectId <= 0 ||
       this.sourceId === undefined ||
       this.sourceId <= 0
+    );
+  }
+
+  static areEqual(m1: SpellingVariantModel, m2: SpellingVariantModel): boolean {
+    return (
+      m1.state === m2.state &&
+      m1.id === m2.id &&
+      m1.spelling === m2.spelling &&
+      m1.sourceId === m2.sourceId &&
+      m1.langDialectId === m2.langDialectId
     );
   }
 
@@ -883,6 +947,19 @@ export class SourceModel extends Model {
       providedByUrl: this.providedByUrl,
       processedBy: this.processedBy,
     });
+  }
+
+  static areEqual(m1: SourceModel, m2: SourceModel): boolean {
+    return (
+      m1.state === m2.state &&
+      m1.id === m2.id &&
+      m1.name === m2.name &&
+      m1.authors === m2.authors &&
+      m1.publicationYear === m2.publicationYear &&
+      m1.providedBy === m2.providedBy &&
+      m1.providedByUrl === m2.providedByUrl &&
+      m1.processedBy === m2.processedBy
+    );
   }
 
   isEmpty(): boolean {
