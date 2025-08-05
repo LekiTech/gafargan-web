@@ -15,10 +15,10 @@ export enum Role {
   User = 'User',
 }
 
-export enum ProposalOperation {
-  INSERT = 'INSERT',
-  UPDATE = 'UPDATE',
-  DELETE = 'DELETE',
+export enum ProposalType {
+  SOURCE = 'source',
+  DICTIONARY = 'dictionary',
+  TRANSLATIONS = 'translations',
 }
 
 export enum ProposalStatus {

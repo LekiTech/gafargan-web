@@ -8,7 +8,7 @@ import { User } from './User';
 import { Word } from './Word';
 import { WordDetail } from './WordDetail';
 import { Proposal } from './Proposal';
-import { Language, Role, ProposalOperation, ProposalStatus } from './enums';
+import { Language, Role, ProposalType, ProposalStatus } from './enums';
 
 export const DefinitionSchema = new EntitySchema<Definition>({
   name: 'Definition',
@@ -565,7 +565,7 @@ export const ProposalSchema = new EntitySchema<Proposal>({
     },
     operation: {
       type: 'enum',
-      enum: ProposalOperation,
+      enum: ProposalType,
       enumName: 'proposal_operation',
     },
     recordId: {

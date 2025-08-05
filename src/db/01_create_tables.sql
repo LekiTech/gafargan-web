@@ -22,6 +22,7 @@ $$ LANGUAGE plpgsql;
 CREATE TYPE Language AS ENUM ('Lezgi', 'Tabasaran', 'Russian', 'English', 'Turkish', 'Azerbaijani', 'Persian', 'Arabic');
 CREATE TYPE Role     AS ENUM ('Admin', 'Moderator', 'User');
 CREATE TYPE ProposalStatus AS ENUM ('pending','approved','rejected');
+CREATE TYPE ProposalType AS ENUM ('source','dictionary','translations');
 
 -- 3) Tables
 
@@ -178,21 +179,15 @@ CREATE TABLE definition_example (
 
 CREATE TABLE proposal (
   id                SERIAL PRIMARY KEY,
-  table_name        TEXT NOT NULL CHECK ( table_name IN (
-                      'source','spelling_variant','word','word_details',
-                      'definition','word_details_example',
-                      'definition_example','translations') ),
-  operation         TEXT NOT NULL CHECK (operation IN ('INSERT','UPDATE','DELETE')),
-  record_id         INTEGER    NULL,      -- NULL for INSERT, PK for UPDATE/DELETE
-  new_data          JSONB      NULL,      -- for INSERT/UPDATE
-  old_data          JSONB      NULL,      -- for UPDATE/DELETE (optional)
+  type              ProposalType NOT NULL,
+  data              JSONB      NOT NULL,
   proposed_by       INTEGER    NOT NULL REFERENCES "user"(id),
   proposed_at       TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
   status            ProposalStatus NOT NULL DEFAULT 'pending',
+  comment			TEXT	   NULL,
   reviewed_by       INTEGER    NULL REFERENCES "user"(id),
   reviewed_at       TIMESTAMP  NULL
 );
-
 
 -- materialized view for fast lookups
 -- DROP MATERIALIZED VIEW IF EXISTS mv_word_definition_translation;

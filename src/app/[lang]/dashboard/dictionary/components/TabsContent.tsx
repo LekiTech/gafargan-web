@@ -8,7 +8,7 @@ import { FoundDefinitionsList } from './FoundDefinitionsList';
 import { WebsiteLang } from '@api/types.model';
 import { PaginatedResponse } from '@repository/types.model';
 import { Word } from '@repository/entities/Word';
-import { WordEntryForm } from '@/dashboard/components/WordEntryForm';
+import { WordEntryForm } from '@/dashboard/dictionary/components/WordEntryForm';
 import { SourceModelType } from '@/dashboard/models/proposal.model';
 
 interface TabPanelProps {

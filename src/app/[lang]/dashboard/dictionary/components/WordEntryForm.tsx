@@ -29,7 +29,7 @@ import { expressionFont } from '@/fonts';
 import { useTranslation } from 'react-i18next';
 import { capitalizeFirstLetter, flipAndMergeTags } from '@/search/definition/utils';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
-import { SourcesCreatableSelect } from './SearchableCreatableSelect';
+import { SourcesCreatableSelect } from '../../components/SearchableCreatableSelect';
 import {
   DefinitionModel,
   WordDetailModel,
@@ -42,11 +42,11 @@ import {
   SourceModel,
   SourceModelType,
   SpellingVariantModel,
-} from '../models/proposal.model';
+} from '../../models/proposal.model';
 import { LangDialects } from '@repository/constants';
 import { SpellingVariant } from '@repository/entities/SpellingVariant';
 import { IdToLang, LangToId } from '@api/languages';
-import { langDialectIdToString } from '../utils';
+import { langDialectIdToString } from '../../utils';
 
 const BUTTON_PASTEL_COLORS_BLUE = {
   bgcolor: 'rgb(220, 240, 250)',
@@ -1434,12 +1434,13 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
               return;
             }
             try {
-              await fetch('add-word/api', {
+              await fetch('dictionary/api', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(proposalValue),
               });
               setAlertMessage({ message: 'Saved successfully', severity: 'success' });
+              window.location.reload();
             } catch (error) {
               console.error('Error saving proposal:', error);
               setAlertMessage({ message: 'Failed to save', severity: 'error' });
