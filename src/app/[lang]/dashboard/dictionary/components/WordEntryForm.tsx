@@ -1426,11 +1426,17 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
               selectedSource,
             );
             if (proposalValue.entries.length === 0) {
-              setAlertMessage({ message: 'Nothing to save', severity: 'info' });
+              setAlertMessage({
+                message: t('addNewWord.messages.nothingToSave', { ns: 'dashboard' }),
+                severity: 'info',
+              });
               return;
             }
             if (entries.filter((e) => e.isIncomplete()).length > 0) {
-              setAlertMessage({ message: 'Missing required values', severity: 'error' });
+              setAlertMessage({
+                message: t('addNewWord.messages.missingRequiredValues', { ns: 'dashboard' }),
+                severity: 'error',
+              });
               return;
             }
             try {
@@ -1441,14 +1447,23 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
               });
               if (result.status >= 300) {
                 console.error('Error saving proposal. Something went wrong');
-                setAlertMessage({ message: 'Failed to save', severity: 'error' });
+                setAlertMessage({
+                  message: t('addNewWord.messages.failedToSave', { ns: 'dashboard' }),
+                  severity: 'error',
+                });
               } else {
-                setAlertMessage({ message: 'Saved successfully', severity: 'success' });
+                setAlertMessage({
+                  message: t('addNewWord.messages.savedSuccessfully', { ns: 'dashboard' }),
+                  severity: 'success',
+                });
                 window.location.reload();
               }
             } catch (error) {
               console.error('Error saving proposal:', error);
-              setAlertMessage({ message: 'Failed to save', severity: 'error' });
+              setAlertMessage({
+                message: t('addNewWord.messages.failedToSave', { ns: 'dashboard' }),
+                severity: 'error',
+              });
             }
           }}
           sx={{ mt: '4px', mb: 3 }}

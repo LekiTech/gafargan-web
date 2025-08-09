@@ -11,6 +11,7 @@ import { Word } from '@repository/entities/Word';
 import { WordEntryForm } from '@/dashboard/dictionary/components/WordEntryForm';
 import { SourceModelType } from '@/dashboard/models/proposal.model';
 import ProposalsOverview from './ProposalsOverview';
+import { useTranslation } from 'react-i18next';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -46,6 +47,7 @@ const TabsContent: React.FC<{
   paginatedWords: PaginatedResponse<Word>;
   sourceModels: SourceModelType[];
 }> = ({ lang, paginatedWords, sourceModels }) => {
+  const { t } = useTranslation();
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -56,10 +58,13 @@ const TabsContent: React.FC<{
     <Box sx={{ width: '100%' }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-          <Tab label="Public Data" {...a11yProps(0)} />
-          <Tab label="Add Words" {...a11yProps(1)} />
-          <Tab label="My Proposals" {...a11yProps(2)} />
-          <Tab label="Review Proposals" {...a11yProps(3)} />
+          <Tab label={t('addNewWord.tabs.publishedData', { ns: 'dashboard' })} {...a11yProps(0)} />
+          <Tab label={t('addNewWord.tabs.addWords', { ns: 'dashboard' })} {...a11yProps(1)} />
+          <Tab label={t('addNewWord.tabs.myProposals', { ns: 'dashboard' })} {...a11yProps(2)} />
+          <Tab
+            label={t('addNewWord.tabs.reviewProposals', { ns: 'dashboard' })}
+            {...a11yProps(3)}
+          />
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>

@@ -37,7 +37,8 @@ const changeDictLang = (args: {
   });
   const otherParams = otherParamsArray.length > 0 ? '&' + otherParamsArray.join('&') : '';
   setIsLoading(true);
-  router.push(pathname + langsParams + otherParams);
+  // router.push(pathname + langsParams + otherParams);
+  window.history.replaceState({}, '', pathname + langsParams + otherParams);
   return;
 };
 

@@ -89,6 +89,14 @@
     "y",
     "z"
   ],
+  "gafarganDashboard": "Gafargan Dashboard",
+  "menu": {
+    "mainItems": "Main items",
+    "dashboard": "Dashboard",
+    "sources": "Sources",
+    "dictionary": "Dictionary",
+    "translations": "Translations"
+  },
   "addNewWord": {
     "source": "Source",
     "addNewSource": "Add new source",
@@ -108,6 +116,21 @@
     "languageDialect": "language / dialect",
     "add": "add",
     "otherExamples": "Other examples",
-    "definitionGroup": "Definition group"
+    "definitionGroup": "Definition group",
+    "messages": {
+      "cancelMessage": "Are you sure? All unsaved changes will be lost!",
+      "cannotDeleteOnlyDefinition": "Cannot delete the only definition",
+      "cannotDeleteOnlyDefinitionGroup": "Cannot delete the only definition group",
+      "failedToSave": "Failed to save",
+      "savedSuccessfully": "Saved successfully",
+      "nothingToSave": "Nothing to save",
+      "missingRequiredValues": "Missing required values"
+    },
+    "tabs": {
+      "publishedData": "Published data",
+      "addWords": "Add words",
+      "myProposals": "My proposals",
+      "reviewProposals": "Review proposals"
+    }
   }
 }

@@ -7,57 +7,51 @@ import {
   PageContainer,
   Navigation,
   Branding,
-  Account,
   NavigationPageItem,
-  useNavigation,
 } from '@toolpad/core';
 import { usePathname, useParams, useRouter } from 'next/navigation';
 import LinearProgress from '@mui/material/LinearProgress';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
-import SpellcheckIcon from '@mui/icons-material/Spellcheck';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
-import TextIncreaseIcon from '@mui/icons-material/TextIncrease';
 import TranslateIcon from '@mui/icons-material/Translate';
-import PersonIcon from '@mui/icons-material/Person';
 import { WebsiteLang } from '@api/types.model';
 import { useTranslation } from 'react-i18next';
 import images from '@/store/images';
 import {
-  Button,
-  Collapse,
-  Link,
-  ListItem,
-  ListItemButton,
   ListItemIcon,
   ListItemText,
   Stack,
   Typography,
+  useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { Routes } from '../../routes';
 import { FC } from 'react';
 import { CustomNavigationListItemButton } from './components/CustomNavigationListItemButton';
+import { TFunction } from 'i18next';
+import WebLanguageSelect from '@/components/WebLanguageSelect';
+import { colors } from '@/colors';
 
-const NAVIGATION = (lang: WebsiteLang): Navigation => {
+const NAVIGATION = (lang: WebsiteLang, t: TFunction): Navigation => {
   return [
     {
       kind: 'header',
-      title: 'Main items',
+      title: t('menu.mainItems', { ns: 'dashboard' }),
     },
     {
       segment: `${lang}/dashboard`,
-      title: 'Dashboard',
+      title: t('menu.dashboard', { ns: 'dashboard' }),
       icon: <DashboardIcon />,
     },
     {
       segment: `${lang}/dashboard/sources`,
-      title: 'Sources',
+      title: t('menu.sources', { ns: 'dashboard' }),
       icon: <LocalLibraryIcon />,
     },
     {
       segment: `${lang}/${Routes.Dictionary}`,
-      title: 'Dictionary',
+      title: t('menu.dictionary', { ns: 'dashboard' }),
       icon: <MenuBookIcon />,
       // title: 'Review',
       // icon: <SpellcheckIcon />,
@@ -82,34 +76,28 @@ const NAVIGATION = (lang: WebsiteLang): Navigation => {
     // },
     {
       segment: `${lang}/dashboard/translations`,
-      title: 'Translations',
+      title: t('menu.translations', { ns: 'dashboard' }),
       icon: <TranslateIcon />,
     },
   ];
 };
 
-const BRANDING = (lang: WebsiteLang): Branding => ({
-  title: 'Gafargan Dashboard',
+const BRANDING = (lang: WebsiteLang, t: TFunction): Branding => ({
+  title: t('gafarganDashboard', { ns: 'dashboard' }),
   logo: <img src={images.logo.src} />,
   homeUrl: `/${lang}/dashboard`,
 });
 
 const CustomThemeSwitcher: FC<{ websiteLang: WebsiteLang }> = ({ websiteLang }) => {
-  const router = useRouter();
-  const handleAccountClick = () => {
-    router.push(`/${websiteLang}/${Routes.AddWord}`);
-  };
   return (
     <React.Fragment>
-      {/* <Button
-        type="button"
-        variant="contained"
-        aria-label="settings"
-        startIcon={<TextIncreaseIcon />}
-        onClick={handleAccountClick}
-      >
-        Add Words
-      </Button> */}
+      <WebLanguageSelect
+        currentLang={websiteLang}
+        flagHeight={20}
+        flagWidth={30}
+        fontSize={18}
+        fontColor={colors.text.dark}
+      />
     </React.Fragment>
   );
 };
@@ -131,6 +119,7 @@ export default function DashboardPagesLayout(props: { children: React.ReactNode 
   const pathname = usePathname();
   const router = useRouter();
   const { lang } = useParams() as { lang: WebsiteLang };
+  const cancelMessage = t('addNewWord.messages.cancelMessage', { ns: 'dashboard' });
   // const [employeeId] = params.segments ?? [];
 
   const [mounted, setMounted] = React.useState(false);
@@ -152,7 +141,7 @@ export default function DashboardPagesLayout(props: { children: React.ReactNode 
             LinkComponent={() => (
               <CustomNavigationListItemButton
                 onClick={() => {
-                  const confirmed = confirm('Are you sure? All unsaved changes will be lost.');
+                  const confirmed = confirm(cancelMessage);
                   if (confirmed && item.segment) {
                     router.push(`/${item.segment}`);
                   }
@@ -209,7 +198,7 @@ export default function DashboardPagesLayout(props: { children: React.ReactNode 
   }
 
   return (
-    <NextAppProvider navigation={NAVIGATION(lang)} branding={BRANDING(lang)} theme={theme}>
+    <NextAppProvider navigation={NAVIGATION(lang, t)} branding={BRANDING(lang, t)} theme={theme}>
       <DashboardLayout
         slots={{
           toolbarActions: CustomToolbarActions,

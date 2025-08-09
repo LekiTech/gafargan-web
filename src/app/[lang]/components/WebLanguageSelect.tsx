@@ -3,25 +3,25 @@ import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { LinearProgress, MenuItem, Select, SxProps, Theme, Typography } from '@mui/material';
-import { WebsiteLang } from '../../../../api/types.model';
+import { WebsiteLang } from '../../../api/types.model';
 import images from '@/store/images';
 import Image from 'next/image';
 // import { useMediaQuery } from 'react-responsive';
 import { colors } from '@/colors';
 import { useTranslation } from 'react-i18next';
 import { trackWebsiteLanguageChange } from '@api/mixpanel';
-import { getUid } from '../../../utils/localstorage';
+import { getUid } from '../../utils/localstorage';
 
 type WebLanguageSelectProps = {
   currentLang: WebsiteLang;
-  webLangs: Record<WebsiteLang, string>;
   flagWidth: number;
   flagHeight: number;
   fontSize: string | number;
+  fontColor?: string;
 };
 
 const WebLanguageSelect = (props: WebLanguageSelectProps) => {
-  const { currentLang, webLangs, flagWidth, flagHeight, fontSize } = props;
+  const { currentLang, flagWidth, flagHeight, fontSize, fontColor } = props;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -50,8 +50,8 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
         disableUnderline={true}
         onChange={(e) => changeWebLang(e.target.value as WebsiteLang)}
         sx={{
-          color: colors.text.light,
-          '.MuiSelect-icon': { color: colors.text.light },
+          color: fontColor ?? colors.text.light,
+          '.MuiSelect-icon': { color: fontColor ?? colors.text.light },
           '.MuiSelect-select': {
             display: 'flex',
             flexDirection: 'row',

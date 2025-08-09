@@ -16,7 +16,7 @@ import { DictionaryLang, WebsiteLang } from '../../../../api/types.model';
 import images from '@/store/images';
 import { ElevationScroll } from './ElevateScroll';
 import { colors } from '@/colors';
-import WebLanguageSelect from './WebLanguageSelect';
+import WebLanguageSelect from '../../components/WebLanguageSelect';
 import Link from 'next/link';
 import { useTranslation } from 'react-i18next';
 import { expressionFont, lusitanaFont, opensansFont } from '@/fonts';
@@ -202,7 +202,6 @@ const TopBar = (props: TopBarProps) => {
                     flagHeight={isLgDownSize ? 12 : 20}
                     flagWidth={isLgDownSize ? 18 : 30}
                     fontSize={isLgDownSize ? '0.8rem' : 18}
-                    webLangs={{ lez: 'Lezgi', rus: 'Russian', eng: 'English', tur: 'Turkish' }} //{t('languages', { returnObjects: true }) as Record<WebsiteLang, string>}
                   />
                   {/* <WebLanguageSelect currentLang={currentLang} webLangs={webLangs} /> */}
                 </Box>

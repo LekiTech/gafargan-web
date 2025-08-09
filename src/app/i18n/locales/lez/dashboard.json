@@ -104,6 +104,14 @@
     "ю",
     "я"
   ],
+  "gafarganDashboard": "Панель управления Gafargan",
+  "menu": {
+    "mainItems": "Главные пункты",
+    "dashboard": "Панель управления",
+    "sources": "Чешмеяр",
+    "dictionary": "Гафарган",
+    "translations": "Таржумаяр"
+  },
   "addNewWord": {
     "source": "Чешме",
     "addNewSource": "Цӏийи чешме хъвегьин",
@@ -125,8 +133,19 @@
     "otherExamples": "Маса мисалар",
     "definitionGroup": "Группа значений",
     "messages": {
-      "cannotDeleteOnlyDefinition": "Cannot delete the only definition",
-      "cannotDeleteOnlyDefinitionGroup": "Cannot delete the only definition group"
+      "cancelMessage": "Вы уверены? Все несохраненные изменения будут утеряны!",
+      "cannotDeleteOnlyDefinition": "Невозможно удалить единственное значение",
+      "cannotDeleteOnlyDefinitionGroup": "Невозможно удалить единственное значение",
+      "failedToSave": "Не удалось сохранить",
+      "savedSuccessfully": "Сохранено успешно",
+      "nothingToSave": "Нечего сохранять",
+      "missingRequiredValues": "Пропущены обязательные поля"
+    },
+    "tabs": {
+      "publishedData": "Опубликованные данные",
+      "addWords": "Гафар хъвегьин",
+      "myProposals": "Зи теклифар",
+      "reviewProposals": "Теклифар килигун"
     }
   }
 }

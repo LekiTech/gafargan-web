@@ -92,6 +92,14 @@
     "ю",
     "я"
   ],
+  "gafarganDashboard": "Панель управления Gafargan",
+  "menu": {
+    "mainItems": "Главные пункты",
+    "dashboard": "Панель управления",
+    "sources": "Источники",
+    "dictionary": "Словарь",
+    "translations": "Переводы"
+  },
   "addNewWord": {
     "source": "Источник",
     "addNewSource": "Добавить новый источник",
@@ -111,6 +119,21 @@
     "languageDialect": "язык / диалект",
     "add": "добавить",
     "otherExamples": "Другие примеры",
-    "definitionGroup": "Группа значений"
+    "definitionGroup": "Группа значений",
+    "messages": {
+      "cancelMessage": "Вы уверены? Все несохраненные изменения будут утеряны!",
+      "cannotDeleteOnlyDefinition": "Невозможно удалить единственное значение",
+      "cannotDeleteOnlyDefinitionGroup": "Невозможно удалить единственную группу значений",
+      "failedToSave": "Не удалось сохранить",
+      "savedSuccessfully": "Сохранено успешно",
+      "nothingToSave": "Нечего сохранять",
+      "missingRequiredValues": "Пропущены обязательные поля"
+    },
+    "tabs": {
+      "publishedData": "Опубликованные данные",
+      "addWords": "Добавить слова",
+      "myProposals": "Мои предлагаемые слова",
+      "reviewProposals": "Оценить предлагаемые слова"
+    }
   }
 }
