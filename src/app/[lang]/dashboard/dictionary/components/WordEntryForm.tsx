@@ -1,5 +1,5 @@
 'use client';
-import React, { memo, useRef, useState } from 'react';
+import React, { memo, useReducer, useRef, useState } from 'react';
 import {
   Box,
   Typography,
@@ -996,7 +996,7 @@ const SpellingVariants: React.FC<{
 //       memo isn't working as intended because of unoptimized onChange
 const WordEntry: React.FC<{
   idx: number;
-  entry: WordModel;
+  wordEntry: WordModel;
   onChange: (e: WordModel) => void;
   onDelete: () => void;
   lang: WebsiteLang;
@@ -1007,7 +1007,7 @@ const WordEntry: React.FC<{
   isLast?: boolean;
 }> = ({
   idx,
-  entry: wordEntry,
+  wordEntry: wordEntryRef,
   onChange,
   onDelete,
   lang,
@@ -1017,10 +1017,8 @@ const WordEntry: React.FC<{
   isFirst,
   isLast,
 }) => {
-  // console.log(idx, wordEntry);
   const { t } = useTranslation(lang);
-  // const theme = useTheme();
-  // const isMdDownSize = useMediaQuery(theme.breakpoints.down('md'));
+  const [wordEntry, setWordEntry] = useState(wordEntryRef);
   const [showCannotDeleteMessage, setShowCannotDeleteMessage] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
   const toggleOpen = () => {
@@ -1028,60 +1026,69 @@ const WordEntry: React.FC<{
   };
   // Spelling variants handling
   const addSV = () => {
+    const copyWordEntry = wordEntry.getCopy();
     const lastDialectId =
-      wordEntry.getSpellingVariants().at(-1)?.getLangDialectId() ?? wordEntry.getLangDialectId();
-    const wordLangIsoCode = IdToLang[wordEntry.getLangDialectId()];
+      copyWordEntry.getSpellingVariants().at(-1)?.getLangDialectId() ??
+      copyWordEntry.getLangDialectId();
+    const wordLangIsoCode = IdToLang[copyWordEntry.getLangDialectId()];
     const allDialectIdsForLang = LangToId[wordLangIsoCode];
     const nextDialectId =
       lastDialectId === allDialectIdsForLang.at(-1) ? lastDialectId : lastDialectId + 1;
-    onChange(
-      wordEntry.merge({
-        spellingVariants: [
-          ...(wordEntry.getSpellingVariants() ?? []),
-          SpellingVariantModel.createEmpty(nextDialectId, wordEntry.getSourceId()),
-        ],
-      }),
-    );
+
+    copyWordEntry.merge({
+      spellingVariants: [
+        ...(copyWordEntry.getSpellingVariants() ?? []),
+        SpellingVariantModel.createEmpty(nextDialectId, copyWordEntry.getSourceId()),
+      ],
+    });
+    setWordEntry(copyWordEntry);
+    onChange(copyWordEntry);
   };
   const updateSV = (i: number, sv: SpellingVariantModel) => {
-    onChange(
-      wordEntry.merge({
-        spellingVariants: wordEntry.getSpellingVariants().map((s, idx) => (idx === i ? sv : s)),
-      }),
-    );
+    const copyWordEntry = wordEntry.getCopy();
+    copyWordEntry.merge({
+      spellingVariants: copyWordEntry.getSpellingVariants().map((s, idx) => (idx === i ? sv : s)),
+    });
+    setWordEntry(copyWordEntry);
+    onChange(copyWordEntry);
   };
   const deleteSV = (i: number) => {
-    onChange(
-      wordEntry.merge({
-        spellingVariants: wordEntry.getSpellingVariants().filter((_, idx) => idx !== i),
-      }),
-    );
+    const copyWordEntry = wordEntry.getCopy();
+    copyWordEntry.merge({
+      spellingVariants: copyWordEntry.getSpellingVariants().filter((_, idx) => idx !== i),
+    });
+    setWordEntry(copyWordEntry);
+    onChange(copyWordEntry);
   };
   // Word details handling
   const addWD = () => {
-    onChange(
-      wordEntry.merge({
-        wordDetails: [
-          ...wordEntry.getWordDetails(),
-          WordDetailModel.createEmpty(defLangDialectId, defSourceId),
-        ],
-      }),
-    );
+    const copyWordEntry = wordEntry.getCopy();
+    copyWordEntry.merge({
+      wordDetails: [
+        ...copyWordEntry.getWordDetails(),
+        WordDetailModel.createEmpty(defLangDialectId, defSourceId),
+      ],
+    });
+    setWordEntry(copyWordEntry);
+    onChange(copyWordEntry);
     // setIsOpen(true);
   };
-  const updateWD = (i: number, wd: WordDetailModel) =>
-    onChange(
-      wordEntry.merge({
-        wordDetails: wordEntry.getWordDetails().map((w, idx) => (idx === i ? wd : w)),
-      }),
-    );
+  const updateWD = (i: number, wd: WordDetailModel) => {
+    const copyWordEntry = wordEntry.getCopy();
+    copyWordEntry.merge({
+      wordDetails: copyWordEntry.getWordDetails().map((w, idx) => (idx === i ? wd : w)),
+    });
+    setWordEntry(copyWordEntry);
+    onChange(copyWordEntry);
+  };
   const deleteWD = (i: number) => {
-    if (wordEntry.getWordDetails().length > 1) {
-      onChange(
-        wordEntry.merge({
-          wordDetails: wordEntry.getWordDetails().filter((_, idx) => idx !== i),
-        }),
-      );
+    const copyWordEntry = wordEntry.getCopy();
+    if (copyWordEntry.getWordDetails().length > 1) {
+      copyWordEntry.merge({
+        wordDetails: copyWordEntry.getWordDetails().filter((_, idx) => idx !== i),
+      });
+      setWordEntry(copyWordEntry);
+      onChange(copyWordEntry);
     } else {
       setShowCannotDeleteMessage(true);
     }
@@ -1134,7 +1141,12 @@ const WordEntry: React.FC<{
             },
           }}
           autoComplete="off"
-          onChange={(e) => onChange(wordEntry.merge({ spelling: e.target.value }))}
+          onChange={(e) => {
+            const copyWordEntry = wordEntry.getCopy();
+            copyWordEntry.merge({ spelling: e.target.value });
+            setWordEntry(copyWordEntry);
+            onChange(copyWordEntry);
+          }}
           sx={{
             minWidth: '30%',
             bgcolor: INPUT_PASTEL_BEIGE,
@@ -1168,9 +1180,10 @@ const WordEntry: React.FC<{
             }}
             autoComplete="off"
             onChange={(e) => {
-              const copy = wordEntry.getCopy();
-              copy.getWordDetails()[0].getDefinitions()[0].setValue(e.target.value);
-              onChange(copy);
+              const copyWordEntry = wordEntry.getCopy();
+              copyWordEntry.getWordDetails()[0].getDefinitions()[0].setValue(e.target.value);
+              setWordEntry(copyWordEntry);
+              onChange(copyWordEntry);
             }}
           />
         ) : (
@@ -1201,8 +1214,10 @@ const WordEntry: React.FC<{
                 maxWidth: 200,
               })}
               onChange={(e) => {
-                wordEntry.setLangDialectId(Number(e.target.value));
-                onChange(wordEntry);
+                const copyWordEntry = wordEntry.getCopy();
+                copyWordEntry.setLangDialectId(Number(e.target.value));
+                setWordEntry(copyWordEntry);
+                onChange(copyWordEntry);
               }}
             >
               {Object.entries(LangDialects).map(([id, name]) => (
@@ -1224,8 +1239,10 @@ const WordEntry: React.FC<{
                 maxWidth: 275,
               })}
               onChange={(e) => {
-                wordEntry.setSourceId(e.target.value);
-                onChange(wordEntry);
+                const copyWordEntry = wordEntry.getCopy();
+                copyWordEntry.setSourceId(e.target.value);
+                setWordEntry(copyWordEntry);
+                onChange(copyWordEntry);
               }}
             >
               {allSources.map((source) => (
@@ -1312,31 +1329,67 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
   // Entries
   const wordMeta = { langDialectId: fromLangDialectId, sourceId: selectedSource.getId()! };
   const defMeta = { langDialectId: toLangDialectId, sourceId: selectedSource.getId()! };
-  const [entries, setEntries] = useState<WordModel[]>([WordModel.createEmpty(wordMeta, defMeta)]);
+  // const [entries, setEntries] = useState<WordModel[]>([WordModel.createEmpty(wordMeta, defMeta)]);
+  // const addEntry = () => {
+  //   setEntries((prev) => [...prev, WordModel.createEmpty(wordMeta, defMeta)]);
+  //   addEntryButtonRef.current?.scrollIntoView({ block: 'start' });
+  // };
+  // const updateEntry = (i: number, e: WordModel) =>
+  //   setEntries((prev) => prev.map((en, idx) => (idx === i ? e : en)));
+  // const deleteEntry = (i: number) => {
+  //   if (!entries[i].isEmpty()) {
+  //     const answer = confirm('Are you sure you want to delete this entry?');
+  //     if (!answer) {
+  //       return;
+  //     }
+  //   }
+  //   setEntries((prev) => {
+  //     if (prev.length > 1) {
+  //       return prev.filter((_, idx) => idx !== i);
+  //     }
+  //     return prev;
+  //   });
+  // };
+  // keep the up-to-date entries in a ref
+  const entriesRef = useRef<WordModel[]>([WordModel.createEmpty(wordMeta, defMeta)]);
+  // expose a stable snapshot for render (won’t update unless we forceRender)
+  const entries = entriesRef.current;
+
+  // tiny state just to force a render when list length/shape changes
+  const [, forceRender] = useReducer((x) => x + 1, 0);
+
   const addEntry = () => {
-    setEntries((prev) => [...prev, WordModel.createEmpty(wordMeta, defMeta)]);
-    addEntryButtonRef.current?.scrollIntoView({ block: 'start' });
-  };
-  const updateEntry = (i: number, e: WordModel) =>
-    setEntries((prev) => prev.map((en, idx) => (idx === i ? e : en)));
-  const deleteEntry = (i: number) => {
-    if (!entries[i].isEmpty()) {
-      const answer = confirm('Are you sure you want to delete this entry?');
-      if (!answer) {
-        return;
-      }
-    }
-    setEntries((prev) => {
-      if (prev.length > 1) {
-        return prev.filter((_, idx) => idx !== i);
-      }
-      return prev;
+    entriesRef.current.push(WordModel.createEmpty(wordMeta, defMeta));
+    forceRender(); // show the newly added entry
+    // let the DOM update before scrolling
+    queueMicrotask(() => {
+      addEntryButtonRef.current?.scrollIntoView({ block: 'start' });
     });
   };
-  const handleCreate = (created: SourceModel) => {
-    // Persist locally (or via API)
-    setSources((prev) => [...prev, created]);
+
+  const updateEntry = (i: number, e: WordModel) => {
+    // mutate in place so no re-render is triggered
+    entriesRef.current[i] = e;
+    // intentionally no forceRender(): component won’t re-render here
   };
+
+  const deleteEntry = (i: number) => {
+    const list = entriesRef.current;
+
+    if (!list[i].isEmpty()) {
+      const answer = confirm('Are you sure you want to delete this entry?');
+      if (!answer) return;
+    }
+
+    if (list.length > 1) {
+      list.splice(i, 1); // mutate in place
+      forceRender(); // reflect the removal in the UI
+    }
+  };
+  // const handleCreate = (created: SourceModel) => {
+  //   // Persist locally (or via API)
+  //   setSources((prev) => [...prev, created]);
+  // };
   return (
     <Box
       component="form"
@@ -1392,7 +1445,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
         <WordEntry
           key={idx}
           idx={idx + 1}
-          entry={en}
+          wordEntry={en}
           onChange={(e) => updateEntry(idx, e)}
           onDelete={() => deleteEntry(idx)}
           lang={lang}
