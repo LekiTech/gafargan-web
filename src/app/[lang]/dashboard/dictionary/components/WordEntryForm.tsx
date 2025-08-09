@@ -139,7 +139,17 @@ const ExampleLine: React.FC<{
   tagEntries: Record<string, string>;
   allTags: [string, string][];
   lang: WebsiteLang;
-}> = ({ example, onChange, onDelete, isInnerBlockExample, tagEntries, allTags, lang }) => {
+  readonly: boolean;
+}> = ({
+  example,
+  onChange,
+  onDelete,
+  isInnerBlockExample,
+  tagEntries,
+  allTags,
+  lang,
+  readonly = false,
+}) => {
   const { t } = useTranslation(lang);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   // const [mouseHovering, setMouseHovering] = useState(false);
@@ -178,20 +188,64 @@ const ExampleLine: React.FC<{
           gap: 1,
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            flex: 1,
-            width: '100%',
-            flexDirection: 'row',
-            alignItems: 'center',
-            // justifyContent: 'space-between',
-            gap: 2,
-          }}
-        >
-          {getRemainingLangDialectIds().length > 0 && (
+        {!readonly && (
+          <Box
+            sx={{
+              display: 'flex',
+              flex: 1,
+              width: '100%',
+              flexDirection: 'row',
+              alignItems: 'center',
+              // justifyContent: 'space-between',
+              gap: 2,
+            }}
+          >
+            {getRemainingLangDialectIds().length > 0 && (
+              <Chip
+                label={t('addNewWord.languageDialect', { ns: 'dashboard' })}
+                icon={<AddIcon />}
+                variant="filled"
+                size="small"
+                color="info"
+                sx={{
+                  ...BUTTON_PASTEL_COLORS_BLUE,
+                }}
+                onClick={() => {
+                  const remainingLangDialects = getRemainingLangDialectIds();
+                  const newLangDialectId = parseInt(remainingLangDialects[0][0]);
+                  example.setPhrasesByLangDialect(newLangDialectId, [{ phrase: '' }]);
+                  onChange(example);
+                }}
+              />
+            )}
+            <IconButton
+              size="small"
+              onClick={onDelete}
+              sx={(theme) => ({
+                alignSelf: 'flex-start',
+                // visibility: mouseHovering ? undefined : 'hidden',
+              })}
+              color="error"
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+        {/* tags */}
+        {!readonly && (
+          <Box display="flex" gap={1} flexWrap="wrap">
+            {example
+              .getTags()
+              ?.map((t) => (
+                <Chip
+                  key={t}
+                  label={tagEntries[t.split(';')[0]]}
+                  size="small"
+                  onDelete={() => patch({ tags: example.getTags()?.filter((x) => x !== t) })}
+                />
+              ))}
             <Chip
-              label={t('addNewWord.languageDialect', { ns: 'dashboard' })}
+              label={t('addNewWord.tags', { ns: 'dashboard' })}
               icon={<AddIcon />}
               variant="filled"
               size="small"
@@ -199,58 +253,18 @@ const ExampleLine: React.FC<{
               sx={{
                 ...BUTTON_PASTEL_COLORS_BLUE,
               }}
-              onClick={() => {
-                const remainingLangDialects = getRemainingLangDialectIds();
-                const newLangDialectId = parseInt(remainingLangDialects[0][0]);
-                example.setPhrasesByLangDialect(newLangDialectId, [{ phrase: '' }]);
-                onChange(example);
-              }}
+              onClick={(e) => setAnchor(e.currentTarget)}
             />
-          )}
-          <IconButton
-            size="small"
-            onClick={onDelete}
-            sx={(theme) => ({
-              alignSelf: 'flex-start',
-              // visibility: mouseHovering ? undefined : 'hidden',
-            })}
-            color="error"
-          >
-            <DeleteOutlineIcon fontSize="small" />
-          </IconButton>
-        </Box>
-        {/* tags */}
-        <Box display="flex" gap={1} flexWrap="wrap">
-          {example
-            .getTags()
-            ?.map((t) => (
-              <Chip
-                key={t}
-                label={tagEntries[t.split(';')[0]]}
-                size="small"
-                onDelete={() => patch({ tags: example.getTags()?.filter((x) => x !== t) })}
-              />
-            ))}
-          <Chip
-            label={t('addNewWord.tags', { ns: 'dashboard' })}
-            icon={<AddIcon />}
-            variant="filled"
-            size="small"
-            color="info"
-            sx={{
-              ...BUTTON_PASTEL_COLORS_BLUE,
-            }}
-            onClick={(e) => setAnchor(e.currentTarget)}
-          />
-          <TagSelector
-            anchorEl={anchor}
-            selected={example.getTags() ?? []}
-            onClose={() => setAnchor(null)}
-            onChange={(tags) => patch({ tags })}
-            allTags={allTags}
-            lang={lang}
-          />
-        </Box>
+            <TagSelector
+              anchorEl={anchor}
+              selected={example.getTags() ?? []}
+              onClose={() => setAnchor(null)}
+              onChange={(tags) => patch({ tags })}
+              allTags={allTags}
+              lang={lang}
+            />
+          </Box>
+        )}
         {example.getAllLangDialectIds().map((langDialectId, i) => (
           <Box
             key={`ld_${langDialectId}_i_${i}`}
@@ -282,6 +296,7 @@ const ExampleLine: React.FC<{
                 example.deletePhrasesForLangDialect(langDialectId);
                 onChange(example);
               }}
+              inputProps={{ readOnly: readonly }}
             >
               {getRemainingLangDialectIds({ includeId: langDialectId.toString() }).map(
                 ([id, name]) => (
@@ -318,6 +333,7 @@ const ExampleLine: React.FC<{
                   slotProps={{
                     input: {
                       disableUnderline: true,
+                      readOnly: readonly,
                       style: { borderBottom: '1px dashed #000' },
                       endAdornment: example.getPhrasesByLangDialect(langDialectId)!.length > 1 && (
                         <InputAdornment position="end">
@@ -347,30 +363,37 @@ const ExampleLine: React.FC<{
                 />
               ))}
             </Box>
-            <IconButton
-              size="small"
-              onClick={() => {
-                const currentPhrases = example.getPhrasesByLangDialect(langDialectId)!;
-                example.setPhrasesByLangDialect(langDialectId, [...currentPhrases, { phrase: '' }]);
-                onChange(example);
-              }}
-            >
-              <AddIcon fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              onClick={() => {
-                if (example.getAllLangDialectIds().length === 1) {
-                  onDelete();
-                  return;
-                }
-                example.deletePhrasesForLangDialect(langDialectId);
-                onChange(example);
-              }}
-              color="error"
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
+            {!readonly && (
+              <>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    const currentPhrases = example.getPhrasesByLangDialect(langDialectId)!;
+                    example.setPhrasesByLangDialect(langDialectId, [
+                      ...currentPhrases,
+                      { phrase: '' },
+                    ]);
+                    onChange(example);
+                  }}
+                >
+                  <AddIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => {
+                    if (example.getAllLangDialectIds().length === 1) {
+                      onDelete();
+                      return;
+                    }
+                    example.deletePhrasesForLangDialect(langDialectId);
+                    onChange(example);
+                  }}
+                  color="error"
+                >
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              </>
+            )}
           </Box>
         ))}
       </Box>
@@ -389,6 +412,7 @@ const DefinitionBlock: React.FC<{
   wordLangDialectId: number;
   definitionsLangDialectId: number;
   lang: WebsiteLang;
+  readonly: boolean;
 }> = ({
   idx,
   def,
@@ -399,6 +423,7 @@ const DefinitionBlock: React.FC<{
   wordLangDialectId,
   definitionsLangDialectId,
   lang,
+  readonly = false,
 }) => {
   const { t } = useTranslation(lang);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
@@ -428,53 +453,56 @@ const DefinitionBlock: React.FC<{
           })}
         >
           {/* tags */}
-          <Box
-            display="flex"
-            alignItems="baseline"
-            gap={1}
-            flexWrap="wrap"
-            sx={(theme) => ({
-              alignSelf: 'end',
-              mt: '5px',
-              [theme.breakpoints.down('md')]: { mt: '0', alignSelf: 'start' },
-            })}
-          >
-            {def
-              .getTags()
-              ?.map((t) => (
-                <Chip
-                  key={t}
-                  label={tagEntries[t.split(';')[0]]}
-                  size="small"
-                  onDelete={() => patch({ tags: def.getTags()?.filter((x) => x !== t) })}
-                />
-              ))}
-            <Chip
-              label={t('addNewWord.tags', { ns: 'dashboard' })}
-              icon={<AddIcon />}
-              variant="filled"
-              size="small"
-              color="info"
-              sx={{
-                ...BUTTON_PASTEL_COLORS_BLUE,
-              }}
-              onClick={(e) => setAnchor(e.currentTarget)}
-            />
-            <TagSelector
-              anchorEl={anchor}
-              selected={def.getTags() ?? []}
-              onClose={() => setAnchor(null)}
-              onChange={(tags) => patch({ tags })}
-              allTags={allTags}
-              lang={lang}
-            />
-          </Box>
+          {!readonly && (
+            <Box
+              display="flex"
+              alignItems="baseline"
+              gap={1}
+              flexWrap="wrap"
+              sx={(theme) => ({
+                alignSelf: 'end',
+                mt: '5px',
+                [theme.breakpoints.down('md')]: { mt: '0', alignSelf: 'start' },
+              })}
+            >
+              {def
+                .getTags()
+                ?.map((t) => (
+                  <Chip
+                    key={t}
+                    label={tagEntries[t.split(';')[0]]}
+                    size="small"
+                    onDelete={() => patch({ tags: def.getTags()?.filter((x) => x !== t) })}
+                  />
+                ))}
+              <Chip
+                label={t('addNewWord.tags', { ns: 'dashboard' })}
+                icon={<AddIcon />}
+                variant="filled"
+                size="small"
+                color="info"
+                sx={{
+                  ...BUTTON_PASTEL_COLORS_BLUE,
+                }}
+                onClick={(e) => setAnchor(e.currentTarget)}
+              />
+              <TagSelector
+                anchorEl={anchor}
+                selected={def.getTags() ?? []}
+                onClose={() => setAnchor(null)}
+                onChange={(tags) => patch({ tags })}
+                allTags={allTags}
+                lang={lang}
+              />
+            </Box>
+          )}
           <TextField
             variant="standard"
             required
             placeholder={`${t('addNewWord.definition', { ns: 'dashboard' })}*`}
             slotProps={{
               input: {
+                readOnly: readonly,
                 // It works buggy on MUI, so skipping for now
                 // onInvalid: (e) =>
                 //   (e.target as HTMLInputElement).setCustomValidity('Definition cannot be empty'),
@@ -487,9 +515,11 @@ const DefinitionBlock: React.FC<{
             onChange={(e) => patch({ value: e.target.value })}
           />
         </Box>
-        <IconButton size="small" onClick={onDelete} color="error">
-          <DeleteOutlineIcon fontSize="small" />
-        </IconButton>
+        {!readonly && (
+          <IconButton size="small" onClick={onDelete} color="error">
+            <DeleteOutlineIcon fontSize="small" />
+          </IconButton>
+        )}
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2.5 }}>
         {def.getExamples()?.map((ex, i) => (
@@ -506,28 +536,31 @@ const DefinitionBlock: React.FC<{
             tagEntries={tagEntries}
             allTags={allTags}
             lang={lang}
+            readonly={readonly}
           />
         ))}
-        <Chip
-          label={t('addNewWord.example', { ns: 'dashboard' })}
-          icon={<AddIcon />}
-          variant="filled"
-          size="small"
-          color="info"
-          sx={{
-            width: 'fit-content',
-            mt: 1.5,
-            ...BUTTON_PASTEL_COLORS_BLUE,
-          }}
-          onClick={() =>
-            patch({
-              examples: [
-                ...(def.getExamples() ?? []),
-                TranslationModel.createEmpty([wordLangDialectId, definitionsLangDialectId]),
-              ],
-            })
-          }
-        />
+        {!readonly && (
+          <Chip
+            label={t('addNewWord.example', { ns: 'dashboard' })}
+            icon={<AddIcon />}
+            variant="filled"
+            size="small"
+            color="info"
+            sx={{
+              width: 'fit-content',
+              mt: 1.5,
+              ...BUTTON_PASTEL_COLORS_BLUE,
+            }}
+            onClick={() =>
+              patch({
+                examples: [
+                  ...(def.getExamples() ?? []),
+                  TranslationModel.createEmpty([wordLangDialectId, definitionsLangDialectId]),
+                ],
+              })
+            }
+          />
+        )}
       </Box>
     </Box>
   );
@@ -541,7 +574,8 @@ const WordDetailBlock: React.FC<{
   lang: WebsiteLang;
   allSources: SourceModel[];
   wordLangDialectId: number;
-}> = ({ data, onChange, onDelete, lang, allSources, wordLangDialectId }) => {
+  readonly: boolean;
+}> = ({ data, onChange, onDelete, lang, allSources, wordLangDialectId, readonly = false }) => {
   const { t, i18n } = useTranslation(lang);
   const tagEntries = i18n.getResourceBundle(lang, 'tags');
   const allTags = Object.entries(flipAndMergeTags(tagEntries)).filter(
@@ -613,6 +647,7 @@ const WordDetailBlock: React.FC<{
             data.setLangDialectId(Number(e.target.value));
             onChange(data);
           }}
+          inputProps={{ readOnly: readonly }}
         >
           {Object.entries(LangDialects).map(([id, name]) => (
             <MenuItem key={id} value={id}>
@@ -636,6 +671,7 @@ const WordDetailBlock: React.FC<{
             data.setSourceId(e.target.value);
             onChange(data);
           }}
+          inputProps={{ readOnly: readonly }}
         >
           {allSources.map((source) => (
             <MenuItem key={source.getId()} value={source.getId()}>
@@ -644,9 +680,11 @@ const WordDetailBlock: React.FC<{
           ))}
         </Select>
         <Box sx={{ width: '100%' }} />
-        <IconButton size="small" onClick={onDelete} color="error" sx={{ alignSelf: 'flex-end' }}>
-          <DeleteOutlineIcon fontSize="small" />
-        </IconButton>
+        {!readonly && (
+          <IconButton size="small" onClick={onDelete} color="error" sx={{ alignSelf: 'flex-end' }}>
+            <DeleteOutlineIcon fontSize="small" />
+          </IconButton>
+        )}
       </Box>
       <Stack direction="row" gap={2}>
         <Box
@@ -663,37 +701,39 @@ const WordDetailBlock: React.FC<{
           })}
         >
           {/* tags */}
-          <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
-            {data
-              .getTags()
-              ?.map((t) => (
-                <Chip
-                  key={t}
-                  label={tagEntries[t.split(';')[0]]}
-                  size="small"
-                  onDelete={() => patch({ tags: data.getTags()?.filter((x) => x !== t) })}
-                />
-              ))}
-            <Chip
-              label={t('addNewWord.tags', { ns: 'dashboard' })}
-              icon={<AddIcon />}
-              variant="filled"
-              size="small"
-              color="info"
-              sx={{
-                ...BUTTON_PASTEL_COLORS_BLUE,
-              }}
-              onClick={(e) => setAnchor(e.currentTarget)}
-            />
-            <TagSelector
-              anchorEl={anchor}
-              selected={data.getTags() ?? []}
-              onClose={() => setAnchor(null)}
-              onChange={(tags) => patch({ tags })}
-              allTags={allTags}
-              lang={lang}
-            />
-          </Box>
+          {!readonly && (
+            <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
+              {data
+                .getTags()
+                ?.map((t) => (
+                  <Chip
+                    key={t}
+                    label={tagEntries[t.split(';')[0]]}
+                    size="small"
+                    onDelete={() => patch({ tags: data.getTags()?.filter((x) => x !== t) })}
+                  />
+                ))}
+              <Chip
+                label={t('addNewWord.tags', { ns: 'dashboard' })}
+                icon={<AddIcon />}
+                variant="filled"
+                size="small"
+                color="info"
+                sx={{
+                  ...BUTTON_PASTEL_COLORS_BLUE,
+                }}
+                onClick={(e) => setAnchor(e.currentTarget)}
+              />
+              <TagSelector
+                anchorEl={anchor}
+                selected={data.getTags() ?? []}
+                onClose={() => setAnchor(null)}
+                onChange={(tags) => patch({ tags })}
+                allTags={allTags}
+                lang={lang}
+              />
+            </Box>
+          )}
           {/* inflection */}
           <TextField
             variant="standard"
@@ -702,6 +742,9 @@ const WordDetailBlock: React.FC<{
             value={data.getInflection()}
             onChange={(e) => patch({ inflection: e.target.value })}
             sx={{ minWidth: 200, width: '100%' }}
+            slotProps={{
+              input: { readOnly: readonly },
+            }}
           />
         </Box>
         <Box sx={{ width: '100%' }} />
@@ -720,6 +763,7 @@ const WordDetailBlock: React.FC<{
             wordLangDialectId={wordLangDialectId}
             definitionsLangDialectId={data.getLangDialectId()}
             lang={lang}
+            readonly={readonly}
           />
         </Box>
       ))}
@@ -747,31 +791,34 @@ const WordDetailBlock: React.FC<{
           tagEntries={tagEntries}
           allTags={allTags}
           lang={lang}
+          readonly={readonly}
         />
       ))}
 
       {/* controls */}
-      <Box
-        mt={2}
-        mb={1}
-        gap={1}
-        sx={{ display: 'flex', flexDirection: 'column', width: 'fit-content' }}
-      >
-        <AddButtonsMenu
-          addDefinition={() =>
-            patch({ definitions: [...data.getDefinitions(), DefinitionModel.createEmpty()] })
-          }
-          addOtherExamples={() =>
-            patch({
-              examples: [
-                ...(data.getExamples() ?? []),
-                TranslationModel.createEmpty([wordLangDialectId, data.getLangDialectId()]),
-              ],
-            })
-          }
-          lang={lang}
-        />
-      </Box>
+      {!readonly && (
+        <Box
+          mt={2}
+          mb={1}
+          gap={1}
+          sx={{ display: 'flex', flexDirection: 'column', width: 'fit-content' }}
+        >
+          <AddButtonsMenu
+            addDefinition={() =>
+              patch({ definitions: [...data.getDefinitions(), DefinitionModel.createEmpty()] })
+            }
+            addOtherExamples={() =>
+              patch({
+                examples: [
+                  ...(data.getExamples() ?? []),
+                  TranslationModel.createEmpty([wordLangDialectId, data.getLangDialectId()]),
+                ],
+              })
+            }
+            lang={lang}
+          />
+        </Box>
+      )}
     </Box>
   );
 };
@@ -846,7 +893,8 @@ const SpellingVariants: React.FC<{
   onDelete: (i: number) => void;
   allSources: SourceModel[];
   lang: WebsiteLang;
-}> = ({ word, onAdd, onUpdate, onDelete, allSources, lang }) => {
+  readonly: boolean;
+}> = ({ word, onAdd, onUpdate, onDelete, allSources, lang, readonly = false }) => {
   const { t } = useTranslation(lang);
   const spellingVariants: SpellingVariantModel[] = word.getSpellingVariants();
   const wordLangIsoCode = IdToLang[word.getLangDialectId()];
@@ -867,29 +915,31 @@ const SpellingVariants: React.FC<{
         gap: 1,
       }}
     >
-      <Box
-        sx={{
-          display: 'flex',
-          flex: 1,
-          width: '100%',
-          flexDirection: 'row',
-          alignItems: 'center',
-          // justifyContent: 'space-between',
-          gap: 2,
-        }}
-      >
-        <Chip
-          label={t('addNewWord.variant', { ns: 'dashboard' })}
-          icon={<AddIcon />}
-          variant="filled"
-          size="small"
-          color="info"
+      {!readonly && (
+        <Box
           sx={{
-            ...BUTTON_PASTEL_COLORS_BLUE,
+            display: 'flex',
+            flex: 1,
+            width: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            // justifyContent: 'space-between',
+            gap: 2,
           }}
-          onClick={onAdd}
-        />
-      </Box>
+        >
+          <Chip
+            label={t('addNewWord.variant', { ns: 'dashboard' })}
+            icon={<AddIcon />}
+            variant="filled"
+            size="small"
+            color="info"
+            sx={{
+              ...BUTTON_PASTEL_COLORS_BLUE,
+            }}
+            onClick={onAdd}
+          />
+        </Box>
+      )}
 
       {spellingVariants.map((spellingVariant, i) => (
         <Box
@@ -944,6 +994,7 @@ const SpellingVariants: React.FC<{
                 spellingVariant.setLangDialectId(e.target.value);
                 onUpdate(i, spellingVariant);
               }}
+              inputProps={{ readOnly: readonly }}
             >
               {allDialectsForLang.map(([id, name]) => (
                 <MenuItem key={id} value={id}>
@@ -969,6 +1020,7 @@ const SpellingVariants: React.FC<{
               spellingVariant.setSourceId(e.target.value);
               onUpdate(i, spellingVariant);
             }}
+            inputProps={{ readOnly: readonly }}
           >
             {allSources.map((source) => (
               <MenuItem key={source.getId()} value={source.getId()}>
@@ -976,15 +1028,17 @@ const SpellingVariants: React.FC<{
               </MenuItem>
             ))}
           </Select>
-          <IconButton
-            size="small"
-            onClick={() => {
-              onDelete(i);
-            }}
-            color="error"
-          >
-            <DeleteOutlineIcon fontSize="small" />
-          </IconButton>
+          {!readonly && (
+            <IconButton
+              size="small"
+              onClick={() => {
+                onDelete(i);
+              }}
+              color="error"
+            >
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          )}
         </Box>
       ))}
     </Box>
@@ -1005,6 +1059,7 @@ const WordEntry: React.FC<{
   allSources: SourceModel[];
   isFirst?: boolean;
   isLast?: boolean;
+  readonly: boolean;
 }> = ({
   idx,
   wordEntry: wordEntryRef,
@@ -1016,6 +1071,7 @@ const WordEntry: React.FC<{
   allSources,
   isFirst,
   isLast,
+  readonly = false,
 }) => {
   const { t } = useTranslation(lang);
   const [wordEntry, setWordEntry] = useState(wordEntryRef);
@@ -1135,6 +1191,7 @@ const WordEntry: React.FC<{
           slotProps={{
             input: {
               disableUnderline: !isOpen,
+              readOnly: readonly,
               // It works buggy on MUI, so skipping for now
               // onInvalid: (e) =>
               //   (e.target as HTMLInputElement).setCustomValidity('Word cannot be empty'),
@@ -1171,6 +1228,7 @@ const WordEntry: React.FC<{
             slotProps={{
               input: {
                 disableUnderline: !isOpen,
+                readOnly: readonly,
                 // It works buggy on MUI, so skipping for now
                 // onInvalid: (e) => {
                 //   console.log('Definition cannot be empty', e);
@@ -1219,6 +1277,7 @@ const WordEntry: React.FC<{
                 setWordEntry(copyWordEntry);
                 onChange(copyWordEntry);
               }}
+              inputProps={{ readOnly: readonly }}
             >
               {Object.entries(LangDialects).map(([id, name]) => (
                 <MenuItem key={id} value={id}>
@@ -1244,6 +1303,7 @@ const WordEntry: React.FC<{
                 setWordEntry(copyWordEntry);
                 onChange(copyWordEntry);
               }}
+              inputProps={{ readOnly: readonly }}
             >
               {allSources.map((source) => (
                 <MenuItem key={source.getId()} value={source.getId()}>
@@ -1253,9 +1313,11 @@ const WordEntry: React.FC<{
             </Select>
           </Box>
         )}
-        <IconButton size="small" onClick={onDelete} sx={{ alignSelf: 'flex-end' }} color="error">
-          <DeleteIcon fontSize="small" />
-        </IconButton>
+        {!readonly && (
+          <IconButton size="small" onClick={onDelete} sx={{ alignSelf: 'flex-end' }} color="error">
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        )}
         <Snackbar
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           open={showCannotDeleteMessage}
@@ -1278,6 +1340,7 @@ const WordEntry: React.FC<{
             onDelete={deleteSV}
             allSources={allSources}
             lang={lang}
+            readonly={readonly}
           />
           {wordEntry.getWordDetails().map((wd, i) => (
             <WordDetailBlock
@@ -1288,17 +1351,20 @@ const WordEntry: React.FC<{
               lang={lang}
               allSources={allSources}
               wordLangDialectId={wordEntry.getLangDialectId()}
+              readonly={readonly}
             />
           ))}
-          <Button
-            variant="contained"
-            size="small"
-            startIcon={<AddIcon />}
-            onClick={addWD}
-            sx={{ mt: 1, ml: 1.5, ...BUTTON_PASTEL_COLORS_BLUE }}
-          >
-            {t('addNewWord.definitionGroup', { ns: 'dashboard' })}
-          </Button>
+          {!readonly && (
+            <Button
+              variant="contained"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={addWD}
+              sx={{ mt: 1, ml: 1.5, ...BUTTON_PASTEL_COLORS_BLUE }}
+            >
+              {t('addNewWord.definitionGroup', { ns: 'dashboard' })}
+            </Button>
+          )}
         </Box>
       )}
     </Box>
@@ -1306,10 +1372,12 @@ const WordEntry: React.FC<{
 };
 
 /* ---------------- Root component ---------------- */
-export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceModelType[] }> = ({
-  lang,
-  sourceModels,
-}) => {
+export const WordEntryForm: React.FC<{
+  lang: WebsiteLang;
+  sourceModels: SourceModelType[];
+  readonly: boolean;
+  words?: WordModel[];
+}> = ({ lang, sourceModels, readonly = false, words }) => {
   const { t } = useTranslation(lang);
   // const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
   //   DictionaryLang,
@@ -1351,7 +1419,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
   //   });
   // };
   // keep the up-to-date entries in a ref
-  const entriesRef = useRef<WordModel[]>([WordModel.createEmpty(wordMeta, defMeta)]);
+  const entriesRef = useRef<WordModel[]>(words ?? [WordModel.createEmpty(wordMeta, defMeta)]);
   // expose a stable snapshot for render (won’t update unless we forceRender)
   const entries = entriesRef.current;
 
@@ -1406,6 +1474,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
             value={selectedSource}
             lang={lang}
             onChange={setSelectedSource}
+            readonly={readonly}
             // Creating new source here adds complexity for proposal reviews
             // Better to create in different place, review, approve and then use here only DB values
             // onCreate={handleCreate}
@@ -1417,6 +1486,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
             size="small"
             value={fromLangDialectId}
             sx={{ flex: 1 }}
+            inputProps={{ readOnly: readonly }}
             onChange={(e) => setFromLangDialectId(Number(e.target.value))}
           >
             {Object.entries(LangDialects).map(([id, name]) => (
@@ -1430,6 +1500,7 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
             size="small"
             value={toLangDialectId}
             sx={{ flex: 1 }}
+            inputProps={{ readOnly: readonly }}
             onChange={(e) => setToLangDialectId(Number(e.target.value))}
           >
             {Object.entries(LangDialects).map(([id, name]) => (
@@ -1454,75 +1525,80 @@ export const WordEntryForm: React.FC<{ lang: WebsiteLang; sourceModels: SourceMo
           allSources={sources}
           isFirst={idx === 0}
           isLast={idx === entries.length - 1}
+          readonly={readonly}
         />
       ))}
-      <Button
-        ref={addEntryButtonRef}
-        variant="contained"
-        size="small"
-        startIcon={<AddIcon />}
-        onClick={addEntry}
-        sx={{ mt: '4px', mb: 3, ...BUTTON_PASTEL_COLORS_BLUE }}
-      >
-        {t('addNewWord.word', { ns: 'dashboard' })}
-      </Button>
-      {/* live json */}
-      <Box mt={2} mb={2}>
+      {!readonly && (
         <Button
-          type="submit"
+          ref={addEntryButtonRef}
           variant="contained"
           size="small"
-          startIcon={<SaveIcon />}
-          onClick={async () => {
-            const proposalValue = new DictionaryProposalModel(
-              entries.filter((e) => !e.isEmpty()),
-              selectedSource,
-            );
-            if (proposalValue.entries.length === 0) {
-              setAlertMessage({
-                message: t('addNewWord.messages.nothingToSave', { ns: 'dashboard' }),
-                severity: 'info',
-              });
-              return;
-            }
-            if (entries.filter((e) => e.isIncomplete()).length > 0) {
-              setAlertMessage({
-                message: t('addNewWord.messages.missingRequiredValues', { ns: 'dashboard' }),
-                severity: 'error',
-              });
-              return;
-            }
-            try {
-              const result = await fetch('dictionary/api', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(proposalValue),
-              });
-              if (result.status >= 300) {
-                console.error('Error saving proposal. Something went wrong');
+          startIcon={<AddIcon />}
+          onClick={addEntry}
+          sx={{ mt: '4px', mb: 3, ...BUTTON_PASTEL_COLORS_BLUE }}
+        >
+          {t('addNewWord.word', { ns: 'dashboard' })}
+        </Button>
+      )}
+      {/* live json */}
+      <Box mt={2} mb={2}>
+        {!readonly && (
+          <Button
+            type="submit"
+            variant="contained"
+            size="small"
+            startIcon={<SaveIcon />}
+            onClick={async () => {
+              const proposalValue = new DictionaryProposalModel(
+                entries.filter((e) => !e.isEmpty()),
+                selectedSource,
+              );
+              if (proposalValue.entries.length === 0) {
+                setAlertMessage({
+                  message: t('addNewWord.messages.nothingToSave', { ns: 'dashboard' }),
+                  severity: 'info',
+                });
+                return;
+              }
+              if (entries.filter((e) => e.isIncomplete()).length > 0) {
+                setAlertMessage({
+                  message: t('addNewWord.messages.missingRequiredValues', { ns: 'dashboard' }),
+                  severity: 'error',
+                });
+                return;
+              }
+              try {
+                const result = await fetch('dictionary/api', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(proposalValue),
+                });
+                if (result.status >= 300) {
+                  console.error('Error saving proposal. Something went wrong');
+                  setAlertMessage({
+                    message: t('addNewWord.messages.failedToSave', { ns: 'dashboard' }),
+                    severity: 'error',
+                  });
+                } else {
+                  setAlertMessage({
+                    message: t('addNewWord.messages.savedSuccessfully', { ns: 'dashboard' }),
+                    severity: 'success',
+                  });
+                  window.location.reload();
+                }
+              } catch (error) {
+                console.error('Error saving proposal:', error);
                 setAlertMessage({
                   message: t('addNewWord.messages.failedToSave', { ns: 'dashboard' }),
                   severity: 'error',
                 });
-              } else {
-                setAlertMessage({
-                  message: t('addNewWord.messages.savedSuccessfully', { ns: 'dashboard' }),
-                  severity: 'success',
-                });
-                window.location.reload();
               }
-            } catch (error) {
-              console.error('Error saving proposal:', error);
-              setAlertMessage({
-                message: t('addNewWord.messages.failedToSave', { ns: 'dashboard' }),
-                severity: 'error',
-              });
-            }
-          }}
-          sx={{ mt: '4px', mb: 3 }}
-        >
-          {t('addNewWord.sendToReview', { ns: 'dashboard' })}
-        </Button>
+            }}
+            sx={{ mt: '4px', mb: 3 }}
+          >
+            {t('addNewWord.sendToReview', { ns: 'dashboard' })}
+          </Button>
+        )}
         {/* <Typography fontWeight={600} variant="subtitle1">
           Live JSON
         </Typography>

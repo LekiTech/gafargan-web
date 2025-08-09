@@ -71,7 +71,7 @@ const TabsContent: React.FC<{
         <FoundDefinitionsList lang={lang} paginatedWords={paginatedWords} />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
-        <WordEntryForm lang={lang} sourceModels={sourceModels} />
+        <WordEntryForm lang={lang} sourceModels={sourceModels} readonly={false} />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={2}>
         <ProposalsOverview />

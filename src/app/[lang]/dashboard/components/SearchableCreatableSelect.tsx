@@ -41,6 +41,7 @@ export interface SourcesCreatableSelectProps {
   onCreate?: (created: SourceModel) => void;
   placeholder?: string;
   disabled?: boolean;
+  readonly?: boolean;
   className?: string;
 }
 
@@ -62,6 +63,7 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
   onCreate,
   placeholder,
   disabled = false,
+  readonly = false,
   className = 'w-full',
 }) => {
   const { t } = useTranslation(lang);
@@ -97,6 +99,7 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
         sx={{ minWidth: '150px', flex: 1 }}
         size="small"
         disabled={disabled}
+        readOnly={readonly}
         value={value}
         onChange={(event, newValue) => {
           if (newValue) {
