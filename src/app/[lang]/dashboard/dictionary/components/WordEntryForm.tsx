@@ -189,47 +189,17 @@ const ExampleLine: React.FC<{
         }}
       >
         {!readonly && (
-          <Box
-            sx={{
-              display: 'flex',
-              flex: 1,
-              width: '100%',
-              flexDirection: 'row',
-              alignItems: 'center',
-              // justifyContent: 'space-between',
-              gap: 2,
-            }}
+          <IconButton
+            size="small"
+            onClick={onDelete}
+            sx={(theme) => ({
+              alignSelf: 'flex-start',
+              // visibility: mouseHovering ? undefined : 'hidden',
+            })}
+            color="error"
           >
-            {getRemainingLangDialectIds().length > 0 && (
-              <Chip
-                label={t('addNewWord.languageDialect', { ns: 'dashboard' })}
-                icon={<AddIcon />}
-                variant="filled"
-                size="small"
-                color="info"
-                sx={{
-                  ...BUTTON_PASTEL_COLORS_BLUE,
-                }}
-                onClick={() => {
-                  const remainingLangDialects = getRemainingLangDialectIds();
-                  const newLangDialectId = parseInt(remainingLangDialects[0][0]);
-                  example.setPhrasesByLangDialect(newLangDialectId, [{ phrase: '' }]);
-                  onChange(example);
-                }}
-              />
-            )}
-            <IconButton
-              size="small"
-              onClick={onDelete}
-              sx={(theme) => ({
-                alignSelf: 'flex-start',
-                // visibility: mouseHovering ? undefined : 'hidden',
-              })}
-              color="error"
-            >
-              <DeleteOutlineIcon fontSize="small" />
-            </IconButton>
-          </Box>
+            <DeleteOutlineIcon fontSize="small" />
+          </IconButton>
         )}
         {/* tags */}
         <Box display="flex" gap={1} flexWrap="wrap">
@@ -337,29 +307,30 @@ const ExampleLine: React.FC<{
                       disableUnderline: true,
                       readOnly: readonly,
                       style: { borderBottom: '1px dashed #000' },
-                      endAdornment: example.getPhrasesByLangDialect(langDialectId)!.length > 1 && (
-                        <InputAdornment position="end">
-                          <IconButton
-                            size="small"
-                            onClick={() => {
-                              const currentPhrases =
-                                example.getPhrasesByLangDialect(langDialectId)!;
-                              if (currentPhrases.length === 1) {
-                                return;
-                              }
-                              example.setPhrasesByLangDialect(
-                                langDialectId,
-                                currentPhrases.filter((_, idx) => idx !== i),
-                              );
-                              onChange(example);
-                            }}
-                            color="error"
-                            edge="end"
-                          >
-                            <DeleteOutlineIcon fontSize="small" />
-                          </IconButton>
-                        </InputAdornment>
-                      ),
+                      endAdornment: !readonly &&
+                        example.getPhrasesByLangDialect(langDialectId)!.length > 1 && (
+                          <InputAdornment position="end">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                const currentPhrases =
+                                  example.getPhrasesByLangDialect(langDialectId)!;
+                                if (currentPhrases.length === 1) {
+                                  return;
+                                }
+                                example.setPhrasesByLangDialect(
+                                  langDialectId,
+                                  currentPhrases.filter((_, idx) => idx !== i),
+                                );
+                                onChange(example);
+                              }}
+                              color="error"
+                              edge="end"
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                          </InputAdornment>
+                        ),
                     },
                   }}
                 />
@@ -398,6 +369,38 @@ const ExampleLine: React.FC<{
             )}
           </Box>
         ))}
+        {!readonly && (
+          <Box
+            sx={{
+              display: 'flex',
+              flex: 1,
+              width: '100%',
+              flexDirection: 'row',
+              alignItems: 'center',
+              // justifyContent: 'space-between',
+              gap: 2,
+            }}
+          >
+            {getRemainingLangDialectIds().length > 0 && (
+              <Chip
+                label={t('addNewWord.languageDialect', { ns: 'dashboard' })}
+                icon={<AddIcon />}
+                variant="filled"
+                size="small"
+                color="info"
+                sx={{
+                  ...BUTTON_PASTEL_COLORS_BLUE,
+                }}
+                onClick={() => {
+                  const remainingLangDialects = getRemainingLangDialectIds();
+                  const newLangDialectId = parseInt(remainingLangDialects[0][0]);
+                  example.setPhrasesByLangDialect(newLangDialectId, [{ phrase: '' }]);
+                  onChange(example);
+                }}
+              />
+            )}
+          </Box>
+        )}
       </Box>
     </Box>
   );
@@ -519,6 +522,23 @@ const DefinitionBlock: React.FC<{
                 slotProps={{
                   input: {
                     readOnly: readonly,
+                    endAdornment: !readonly && def.getValues().length > 1 && (
+                      <InputAdornment position="end">
+                        {/* TODO: Add "add" button for new definition value */}
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            const updatedValues = def.getValues().filter((_, idx) => idx !== i);
+                            def.setValues(updatedValues);
+                            onChange(def);
+                          }}
+                          color="error"
+                          edge="end"
+                        >
+                          <DeleteOutlineIcon fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
                     // It works buggy on MUI, so skipping for now
                     // onInvalid: (e) =>
                     //   (e.target as HTMLInputElement).setCustomValidity('Definition cannot be empty'),
@@ -529,9 +549,6 @@ const DefinitionBlock: React.FC<{
                 fullWidth
                 value={defVal.value}
                 onChange={(e) => {
-                  // const updatedPhrases = example.getPhrasesByLangDialect(langDialectId)!;
-                  //   updatedPhrases[i].phrase = e.target.value;
-                  //   example.setPhrasesByLangDialect(langDialectId, updatedPhrases);
                   const updatedValues = def.getValues();
                   updatedValues[i].value = e.target.value;
                   def.setValues(updatedValues);
