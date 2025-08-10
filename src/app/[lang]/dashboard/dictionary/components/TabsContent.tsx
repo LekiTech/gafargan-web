@@ -9,9 +9,10 @@ import { WebsiteLang } from '@api/types.model';
 import { PaginatedResponse } from '@repository/types.model';
 import { Word } from '@repository/entities/Word';
 import { WordEntryForm } from '@/dashboard/dictionary/components/WordEntryForm';
-import { SourceModelType } from '@/dashboard/models/proposal.model';
-import ProposalsOverview from './ProposalsOverview';
+import { DictionaryProposalModel, SourceModelType } from '@/dashboard/models/proposal.model';
+import DictionaryProposalsOverview from './DictionaryProposalsOverview';
 import { useTranslation } from 'react-i18next';
+import { Proposal } from '@repository/entities/Proposal';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -46,8 +47,10 @@ const TabsContent: React.FC<{
   lang: WebsiteLang;
   paginatedWords: PaginatedResponse<Word>;
   sourceModels: SourceModelType[];
-}> = ({ lang, paginatedWords, sourceModels }) => {
+  proposals: Proposal[];
+}> = ({ lang, paginatedWords, sourceModels, proposals }) => {
   const { t } = useTranslation();
+  // TODO: create page per tab, for optimized performance and workflow
   const [value, setValue] = React.useState(0);
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
@@ -74,11 +77,22 @@ const TabsContent: React.FC<{
         <WordEntryForm lang={lang} sourceModels={sourceModels} readonly={false} />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={2}>
-        <ProposalsOverview />
+        {/* Need to see here only proposals made by the user */}
+        <DictionaryProposalsOverview
+          proposals={proposals}
+          lang={lang}
+          sourceModels={sourceModels}
+          readonly={false}
+        />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={3}>
-        Review Proposals {[<br />, <br />]}Only admins can access this page
-        <ProposalsOverview />
+        Review Proposals {[<br key={1} />, <br key={2} />]}Only admins can access this page
+        <DictionaryProposalsOverview
+          proposals={proposals}
+          lang={lang}
+          sourceModels={sourceModels}
+          readonly={true}
+        />
       </CustomTabPanel>
     </Box>
   );

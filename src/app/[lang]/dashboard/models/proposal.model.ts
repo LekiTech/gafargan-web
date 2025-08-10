@@ -180,6 +180,21 @@ export type DefinitionModelType =
       examples?: TranslationModel[];
     };
 
+export type DefinitionModelNestedType =
+  | {
+      state: 'added';
+      value: string;
+      tags?: string[];
+      examples?: TranslationModelType[];
+    }
+  | {
+      state: 'unchanged' | 'modified' | 'deleted';
+      id: number;
+      value: string;
+      tags?: string[];
+      examples?: TranslationModelType[];
+    };
+
 export class DefinitionModel extends Model {
   private value: string;
   private tags?: string[];
@@ -291,6 +306,13 @@ export class DefinitionModel extends Model {
       examples: [],
     });
   }
+
+  static fromNestedTypes(data: DefinitionModelNestedType): DefinitionModel {
+    return new DefinitionModel({
+      ...data,
+      examples: data.examples?.map((e) => new TranslationModel(e)),
+    });
+  }
 }
 
 // ============== WordDetailModel ==============
@@ -314,6 +336,26 @@ export type WordDetailModelType =
       tags?: string[];
       definitions: DefinitionModel[];
       examples?: TranslationModel[];
+    };
+export type WordDetailModelNestedType =
+  | {
+      state: 'added';
+      inflection?: string;
+      langDialectId: number;
+      sourceId: number;
+      tags?: string[];
+      definitions: DefinitionModelNestedType[];
+      examples?: TranslationModelType[];
+    }
+  | {
+      state: 'unchanged' | 'modified' | 'deleted';
+      id: number;
+      inflection?: string;
+      langDialectId: number;
+      sourceId: number;
+      tags?: string[];
+      definitions: DefinitionModelNestedType[];
+      examples?: TranslationModelType[];
     };
 
 export class WordDetailModel extends Model {
@@ -473,6 +515,14 @@ export class WordDetailModel extends Model {
       examples: [],
     });
   }
+
+  static fromNestedTypes(data: WordDetailModelNestedType): WordDetailModel {
+    return new WordDetailModel({
+      ...data,
+      definitions: data.definitions.map((d) => DefinitionModel.fromNestedTypes(d)),
+      examples: data.examples?.map((e) => new TranslationModel(e)),
+    });
+  }
 }
 
 // ============== WordModel ==============
@@ -494,6 +544,25 @@ export type WordModelType =
       sourceId: number;
       spellingVariants: SpellingVariantModel[];
       wordDetails: WordDetailModel[];
+    };
+
+export type WordModelNestedType =
+  | {
+      state: 'added';
+      spelling: string;
+      langDialectId: number;
+      sourceId: number;
+      spellingVariants: SpellingVariantModelType[];
+      wordDetails: WordDetailModelNestedType[];
+    }
+  | {
+      state: 'unchanged' | 'modified' | 'deleted';
+      id: number;
+      spelling: string;
+      langDialectId: number;
+      sourceId: number;
+      spellingVariants: SpellingVariantModelType[];
+      wordDetails: WordDetailModelNestedType[];
     };
 
 export class WordModel extends Model {
@@ -637,6 +706,14 @@ export class WordModel extends Model {
       sourceId: wordMeta.sourceId,
       wordDetails: [WordDetailModel.createEmpty(defMeta.langDialectId, defMeta.sourceId)],
       spellingVariants: [],
+    });
+  }
+
+  static fromNestedTypes(data: WordModelNestedType): WordModel {
+    return new WordModel({
+      ...data,
+      spellingVariants: data.spellingVariants?.map((sv) => new SpellingVariantModel(sv)),
+      wordDetails: data.wordDetails.map((wd) => WordDetailModel.fromNestedTypes(wd)),
     });
   }
 }
@@ -987,6 +1064,16 @@ export class DictionaryProposalModel {
   constructor(entries: WordModel[], source: SourceModel) {
     this.entries = entries;
     this.source = source;
+  }
+
+  static fromNestedTypes(
+    entries: WordModelNestedType[],
+    source: SourceModelType,
+  ): DictionaryProposalModel {
+    return new DictionaryProposalModel(
+      entries.map((e) => WordModel.fromNestedTypes(e)),
+      new SourceModel(source),
+    );
   }
 }
 

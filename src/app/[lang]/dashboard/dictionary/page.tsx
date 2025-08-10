@@ -12,7 +12,9 @@ import { LangToId } from '@api/languages';
 import { toNumber } from '../../../utils';
 import TabsContent from './components/TabsContent';
 import { getSources } from '@repository/source.repository';
-import { SourceModelType, STATE } from '../models/proposal.model';
+import { DictionaryProposalModel, SourceModelType, STATE } from '../models/proposal.model';
+import { getPaginatedProposals } from '@repository/proposal.repository';
+import { ProposalType } from '@repository/entities/enums';
 
 const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
   params,
@@ -65,8 +67,19 @@ const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async
       // description: source.description ?? undefined,
     };
   });
-
-  return <TabsContent lang={lang} paginatedWords={paginatedWords} sourceModels={sourceModels} />;
+  const proposals = await getPaginatedProposals({
+    type: ProposalType.DICTIONARY,
+    page: 0,
+    size: 10,
+  });
+  return (
+    <TabsContent
+      lang={lang}
+      paginatedWords={paginatedWords}
+      sourceModels={sourceModels}
+      proposals={proposals}
+    />
+  );
 };
 
 export default DictionaryPage;

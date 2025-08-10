@@ -232,39 +232,41 @@ const ExampleLine: React.FC<{
           </Box>
         )}
         {/* tags */}
-        {!readonly && (
-          <Box display="flex" gap={1} flexWrap="wrap">
-            {example
-              .getTags()
-              ?.map((t) => (
-                <Chip
-                  key={t}
-                  label={tagEntries[t.split(';')[0]]}
-                  size="small"
-                  onDelete={() => patch({ tags: example.getTags()?.filter((x) => x !== t) })}
-                />
-              ))}
-            <Chip
-              label={t('addNewWord.tags', { ns: 'dashboard' })}
-              icon={<AddIcon />}
-              variant="filled"
-              size="small"
-              color="info"
-              sx={{
-                ...BUTTON_PASTEL_COLORS_BLUE,
-              }}
-              onClick={(e) => setAnchor(e.currentTarget)}
-            />
-            <TagSelector
-              anchorEl={anchor}
-              selected={example.getTags() ?? []}
-              onClose={() => setAnchor(null)}
-              onChange={(tags) => patch({ tags })}
-              allTags={allTags}
-              lang={lang}
-            />
-          </Box>
-        )}
+        <Box display="flex" gap={1} flexWrap="wrap">
+          {example
+            .getTags()
+            ?.map((t) => (
+              <Chip
+                key={t}
+                label={tagEntries[t.split(';')[0]]}
+                size="small"
+                onDelete={() => patch({ tags: example.getTags()?.filter((x) => x !== t) })}
+              />
+            ))}
+          {!readonly && (
+            <>
+              <Chip
+                label={t('addNewWord.tags', { ns: 'dashboard' })}
+                icon={<AddIcon />}
+                variant="filled"
+                size="small"
+                color="info"
+                sx={{
+                  ...BUTTON_PASTEL_COLORS_BLUE,
+                }}
+                onClick={(e) => setAnchor(e.currentTarget)}
+              />
+              <TagSelector
+                anchorEl={anchor}
+                selected={example.getTags() ?? []}
+                onClose={() => setAnchor(null)}
+                onChange={(tags) => patch({ tags })}
+                allTags={allTags}
+                lang={lang}
+              />
+            </>
+          )}
+        </Box>
         {example.getAllLangDialectIds().map((langDialectId, i) => (
           <Box
             key={`ld_${langDialectId}_i_${i}`}
@@ -453,49 +455,51 @@ const DefinitionBlock: React.FC<{
           })}
         >
           {/* tags */}
-          {!readonly && (
-            <Box
-              display="flex"
-              alignItems="baseline"
-              gap={1}
-              flexWrap="wrap"
-              sx={(theme) => ({
-                alignSelf: 'end',
-                mt: '5px',
-                [theme.breakpoints.down('md')]: { mt: '0', alignSelf: 'start' },
-              })}
-            >
-              {def
-                .getTags()
-                ?.map((t) => (
-                  <Chip
-                    key={t}
-                    label={tagEntries[t.split(';')[0]]}
-                    size="small"
-                    onDelete={() => patch({ tags: def.getTags()?.filter((x) => x !== t) })}
-                  />
-                ))}
-              <Chip
-                label={t('addNewWord.tags', { ns: 'dashboard' })}
-                icon={<AddIcon />}
-                variant="filled"
-                size="small"
-                color="info"
-                sx={{
-                  ...BUTTON_PASTEL_COLORS_BLUE,
-                }}
-                onClick={(e) => setAnchor(e.currentTarget)}
-              />
-              <TagSelector
-                anchorEl={anchor}
-                selected={def.getTags() ?? []}
-                onClose={() => setAnchor(null)}
-                onChange={(tags) => patch({ tags })}
-                allTags={allTags}
-                lang={lang}
-              />
-            </Box>
-          )}
+          <Box
+            display="flex"
+            alignItems="baseline"
+            gap={1}
+            flexWrap="wrap"
+            sx={(theme) => ({
+              alignSelf: 'end',
+              mt: '5px',
+              [theme.breakpoints.down('md')]: { mt: '0', alignSelf: 'start' },
+            })}
+          >
+            {def
+              .getTags()
+              ?.map((t) => (
+                <Chip
+                  key={t}
+                  label={tagEntries[t.split(';')[0]]}
+                  size="small"
+                  onDelete={() => patch({ tags: def.getTags()?.filter((x) => x !== t) })}
+                />
+              ))}
+            {!readonly && (
+              <>
+                <Chip
+                  label={t('addNewWord.tags', { ns: 'dashboard' })}
+                  icon={<AddIcon />}
+                  variant="filled"
+                  size="small"
+                  color="info"
+                  sx={{
+                    ...BUTTON_PASTEL_COLORS_BLUE,
+                  }}
+                  onClick={(e) => setAnchor(e.currentTarget)}
+                />
+                <TagSelector
+                  anchorEl={anchor}
+                  selected={def.getTags() ?? []}
+                  onClose={() => setAnchor(null)}
+                  onChange={(tags) => patch({ tags })}
+                  allTags={allTags}
+                  lang={lang}
+                />
+              </>
+            )}
+          </Box>
           <TextField
             variant="standard"
             required
@@ -701,39 +705,41 @@ const WordDetailBlock: React.FC<{
           })}
         >
           {/* tags */}
-          {!readonly && (
-            <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
-              {data
-                .getTags()
-                ?.map((t) => (
-                  <Chip
-                    key={t}
-                    label={tagEntries[t.split(';')[0]]}
-                    size="small"
-                    onDelete={() => patch({ tags: data.getTags()?.filter((x) => x !== t) })}
-                  />
-                ))}
-              <Chip
-                label={t('addNewWord.tags', { ns: 'dashboard' })}
-                icon={<AddIcon />}
-                variant="filled"
-                size="small"
-                color="info"
-                sx={{
-                  ...BUTTON_PASTEL_COLORS_BLUE,
-                }}
-                onClick={(e) => setAnchor(e.currentTarget)}
-              />
-              <TagSelector
-                anchorEl={anchor}
-                selected={data.getTags() ?? []}
-                onClose={() => setAnchor(null)}
-                onChange={(tags) => patch({ tags })}
-                allTags={allTags}
-                lang={lang}
-              />
-            </Box>
-          )}
+          <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
+            {data
+              .getTags()
+              ?.map((t) => (
+                <Chip
+                  key={t}
+                  label={tagEntries[t.split(';')[0]]}
+                  size="small"
+                  onDelete={() => patch({ tags: data.getTags()?.filter((x) => x !== t) })}
+                />
+              ))}
+            {!readonly && (
+              <>
+                <Chip
+                  label={t('addNewWord.tags', { ns: 'dashboard' })}
+                  icon={<AddIcon />}
+                  variant="filled"
+                  size="small"
+                  color="info"
+                  sx={{
+                    ...BUTTON_PASTEL_COLORS_BLUE,
+                  }}
+                  onClick={(e) => setAnchor(e.currentTarget)}
+                />
+                <TagSelector
+                  anchorEl={anchor}
+                  selected={data.getTags() ?? []}
+                  onClose={() => setAnchor(null)}
+                  onChange={(tags) => patch({ tags })}
+                  allTags={allTags}
+                  lang={lang}
+                />
+              </>
+            )}
+          </Box>
           {/* inflection */}
           <TextField
             variant="standard"
@@ -975,6 +981,7 @@ const SpellingVariants: React.FC<{
               input: {
                 disableUnderline: true,
                 style: { borderBottom: '1px dashed #000' },
+                readOnly: readonly,
               },
             }}
           />
@@ -1376,8 +1383,8 @@ export const WordEntryForm: React.FC<{
   lang: WebsiteLang;
   sourceModels: SourceModelType[];
   readonly: boolean;
-  words?: WordModel[];
-}> = ({ lang, sourceModels, readonly = false, words }) => {
+  dictionaryModel?: DictionaryProposalModel;
+}> = ({ lang, sourceModels, readonly = false, dictionaryModel }) => {
   const { t } = useTranslation(lang);
   // const langs = t('languages', { ns: 'common', returnObjects: true }) as Record<
   //   DictionaryLang,
@@ -1393,7 +1400,9 @@ export const WordEntryForm: React.FC<{
   const [sources, setSources] = useState<SourceModel[]>(
     sourceModels.map((smt) => new SourceModel(smt)) || [],
   );
-  const [selectedSource, setSelectedSource] = useState<SourceModel>(sources[0]);
+  const [selectedSource, setSelectedSource] = useState<SourceModel>(
+    dictionaryModel ? dictionaryModel.source : sources[0],
+  );
   // Entries
   const wordMeta = { langDialectId: fromLangDialectId, sourceId: selectedSource.getId()! };
   const defMeta = { langDialectId: toLangDialectId, sourceId: selectedSource.getId()! };
@@ -1419,7 +1428,13 @@ export const WordEntryForm: React.FC<{
   //   });
   // };
   // keep the up-to-date entries in a ref
-  const entriesRef = useRef<WordModel[]>(words ?? [WordModel.createEmpty(wordMeta, defMeta)]);
+  console.log(
+    'dictionaryModel?.entries[0].getWordDetails()',
+    dictionaryModel?.entries[0].getWordDetails(),
+  );
+  const entriesRef = useRef<WordModel[]>(
+    dictionaryModel ? dictionaryModel.entries : [WordModel.createEmpty(wordMeta, defMeta)],
+  );
   // expose a stable snapshot for render (won’t update unless we forceRender)
   const entries = entriesRef.current;
 

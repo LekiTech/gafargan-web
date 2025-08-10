@@ -37,7 +37,7 @@ export async function getPaginatedProposals({
   // wordLangDialectId,
   // definitionsLangDialectId,
 }: PaginationQuery): Promise<Proposal[]> {
-  status = status ?? ProposalStatus.PENDING;
+  // status = status ?? ProposalStatus.PENDING;
   const AppDataSource = await getDataSource();
   const proposalRepo = AppDataSource.getRepository<Proposal>(ProposalSchema.options.tableName!);
   const proposals = await proposalRepo.find({
@@ -49,6 +49,10 @@ export async function getPaginatedProposals({
     },
     take: size,
     skip: page * size,
+    relations: {
+      proposedBy: true,
+      reviewedBy: true,
+    },
   });
   // console.log('search', JSON.stringify(word, null, 2));
   return JSON.parse(JSON.stringify(proposals));
@@ -92,15 +96,16 @@ export async function approveProposal(proposalId: number, adminId: number) {
   if (!proposalEntity) {
     throw new Error(`Proposal ${proposalId} not found`);
   }
-  if (proposalEntity.status !== ProposalStatus.PENDING) {
-    throw new Error(`Proposal ${proposalId} is not pending`);
-  }
-  proposalEntity.status = ProposalStatus.REJECTED;
+  // NOTE: for the case if someone changes his mind
+  // if (proposalEntity.status !== ProposalStatus.PENDING) {
+  //   throw new Error(`Proposal ${proposalId} is not pending`);
+  // }
+  proposalEntity.status = ProposalStatus.APPROVED;
   proposalEntity.reviewedById = adminId;
   proposalEntity.reviewedAt = new Date();
   // Save the proposal
-  const saved = await proposalRepo.save(proposalEntity);
-  return saved;
+  await proposalRepo.save(proposalEntity);
+  // TODO: add/modify/delete all values to the correct tables
 }
 
 /**

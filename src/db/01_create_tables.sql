@@ -181,11 +181,11 @@ CREATE TABLE proposal (
   id                SERIAL PRIMARY KEY,
   type              ProposalType NOT NULL,
   data              JSONB      NOT NULL,
-  proposed_by       INTEGER    NOT NULL REFERENCES "user"(id),
+  proposed_by_id    INTEGER    NOT NULL REFERENCES "user"(id),
   proposed_at       TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
   status            ProposalStatus NOT NULL DEFAULT 'pending',
-  comment			TEXT	   NULL,
-  reviewed_by       INTEGER    NULL REFERENCES "user"(id),
+  comment			      TEXT	   NULL,
+  reviewed_by_id    INTEGER    NULL REFERENCES "user"(id),
   reviewed_at       TIMESTAMP  NULL
 );
 
