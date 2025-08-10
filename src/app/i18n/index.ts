@@ -1,6 +1,7 @@
 import { createInstance, i18n } from 'i18next';
 import resourcesToBackend from 'i18next-resources-to-backend';
 import { initReactI18next } from 'react-i18next/initReactI18next';
+import { getResource } from './cache';
 
 import i18nConfig from './i18nConfig';
 
@@ -14,16 +15,17 @@ export async function initTranslations(locale: string, i18nInstance?: i18n) {
   i18nInstance.use(
     resourcesToBackend(
       (language: string = i18nConfig.defaultLocale, namespace: string = namespaces[0]) => {
-        if (!languages.includes(language)) {
-          return import(`./locales/${i18nConfig.defaultLocale}/${namespace}.json`);
-        }
-        if (!namespaces.includes(namespace)) {
-          return import(`./locales/${language}/${namespaces[0]}.json`);
-        }
-        if (!languages.includes(language) && !namespaces.includes(namespace)) {
-          return import(`./locales/${i18nConfig.defaultLocale}/${namespaces[0]}.json`);
-        }
-        return import(`./locales/${language}/${namespace}.json`);
+        // if (!languages.includes(language)) {
+        //   return import(`./locales/${i18nConfig.defaultLocale}/${namespace}.json`);
+        // }
+        // if (!namespaces.includes(namespace)) {
+        //   return import(`./locales/${language}/${namespaces[0]}.json`);
+        // }
+        // if (!languages.includes(language) && !namespaces.includes(namespace)) {
+        //   return import(`./locales/${i18nConfig.defaultLocale}/${namespaces[0]}.json`);
+        // }
+        // return import(`./locales/${language}/${namespace}.json`);
+        return Promise.resolve(getResource(language, namespace));
       },
     ),
   );
