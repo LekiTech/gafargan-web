@@ -24,8 +24,10 @@ export class Source {
 
   description!: string | null;
 
+  createdById!: number;
   createdBy!: User;
 
+  updatedById!: number;
   updatedBy!: User;
 
   createdAt!: Date;

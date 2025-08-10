@@ -5,14 +5,17 @@ import { Translation } from './Translation';
 export class Definition {
   id!: number;
 
+  wordDetailsId!: number;
   wordDetails!: WordDetail | null;
 
   values!: DefinitionValue[];
 
   tags!: string[];
 
+  createdById!: number;
   createdBy!: User;
 
+  updatedById!: number;
   updatedBy!: User;
   createdAt!: Date;
   updatedAt!: Date;

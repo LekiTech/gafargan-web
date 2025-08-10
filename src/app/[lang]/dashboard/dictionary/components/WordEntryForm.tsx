@@ -500,24 +500,46 @@ const DefinitionBlock: React.FC<{
               </>
             )}
           </Box>
-          <TextField
-            variant="standard"
-            required
-            placeholder={`${t('addNewWord.definition', { ns: 'dashboard' })}*`}
-            slotProps={{
-              input: {
-                readOnly: readonly,
-                // It works buggy on MUI, so skipping for now
-                // onInvalid: (e) =>
-                //   (e.target as HTMLInputElement).setCustomValidity('Definition cannot be empty'),
-              },
+          <Box
+            gap={1}
+            sx={{
+              display: 'flex',
+              flex: 1,
+              flexDirection: 'column',
+              alignItems: 'flex-start',
+              gap: 1,
             }}
-            sx={{ bgcolor: INPUT_PASTEL_BEIGE, '& .MuiInputBase-root': { pl: 1 } }}
-            autoComplete="off"
-            fullWidth
-            value={def.getValue()}
-            onChange={(e) => patch({ value: e.target.value })}
-          />
+          >
+            {def.getValues().map((defVal, i) => (
+              <TextField
+                key={`${i}_def-value`}
+                variant="standard"
+                required
+                placeholder={`${t('addNewWord.definition', { ns: 'dashboard' })}*`}
+                slotProps={{
+                  input: {
+                    readOnly: readonly,
+                    // It works buggy on MUI, so skipping for now
+                    // onInvalid: (e) =>
+                    //   (e.target as HTMLInputElement).setCustomValidity('Definition cannot be empty'),
+                  },
+                }}
+                sx={{ bgcolor: INPUT_PASTEL_BEIGE, '& .MuiInputBase-root': { pl: 1 } }}
+                autoComplete="off"
+                fullWidth
+                value={defVal.value}
+                onChange={(e) => {
+                  // const updatedPhrases = example.getPhrasesByLangDialect(langDialectId)!;
+                  //   updatedPhrases[i].phrase = e.target.value;
+                  //   example.setPhrasesByLangDialect(langDialectId, updatedPhrases);
+                  const updatedValues = def.getValues();
+                  updatedValues[i].value = e.target.value;
+                  def.setValues(updatedValues);
+                  onChange(def);
+                }}
+              />
+            ))}
+          </Box>
         </Box>
         {!readonly && (
           <IconButton size="small" onClick={onDelete} color="error">
@@ -1087,6 +1109,7 @@ const WordEntry: React.FC<{
   const toggleOpen = () => {
     setIsOpen(!isOpen);
   };
+  const firstDefinitionValues = wordEntry.getWordDetails()[0].getDefinitions()[0].getValues();
   // Spelling variants handling
   const addSV = () => {
     const copyWordEntry = wordEntry.getCopy();
@@ -1229,7 +1252,7 @@ const WordEntry: React.FC<{
             variant="standard"
             fullWidth
             sx={{ bgcolor: INPUT_PASTEL_BEIGE, '& .MuiInputBase-root': { pl: 1 } }}
-            value={wordEntry.getWordDetails()[0].getDefinitions()[0].getValue()}
+            value={firstDefinitionValues[0].value}
             required
             placeholder={`${t('addNewWord.definition', { ns: 'dashboard' })} *`}
             slotProps={{
@@ -1246,7 +1269,11 @@ const WordEntry: React.FC<{
             autoComplete="off"
             onChange={(e) => {
               const copyWordEntry = wordEntry.getCopy();
-              copyWordEntry.getWordDetails()[0].getDefinitions()[0].setValue(e.target.value);
+              firstDefinitionValues[0].value = e.target.value;
+              copyWordEntry
+                .getWordDetails()[0]
+                .getDefinitions()[0]
+                .setValues(firstDefinitionValues);
               setWordEntry(copyWordEntry);
               onChange(copyWordEntry);
             }}
@@ -1567,6 +1594,8 @@ export const WordEntryForm: React.FC<{
               const proposalValue = new DictionaryProposalModel(
                 entries.filter((e) => !e.isEmpty()),
                 selectedSource,
+                fromLangDialectId,
+                toLangDialectId,
               );
               if (proposalValue.entries.length === 0) {
                 setAlertMessage({
@@ -1625,7 +1654,16 @@ export const WordEntryForm: React.FC<{
             overflowX: 'scroll',
           }}
         >
-          {JSON.stringify(new DictionaryProposalModel(entries, selectedSource), null, 2)}
+          {JSON.stringify(
+            new DictionaryProposalModel(
+              entries,
+              selectedSource,
+              fromLangDialectId,
+              toLangDialectId,
+            ),
+            null,
+            2,
+          )}
         </pre> */}
       </Box>
       <Snackbar

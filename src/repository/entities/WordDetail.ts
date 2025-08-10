@@ -8,18 +8,23 @@ import { Translation } from './Translation';
 export class WordDetail {
   id!: number;
 
+  wordId!: number;
   word!: Word;
 
   orderIdx!: number | null;
 
   inflection!: string | null;
 
+  langDialectId!: number;
   langDialect!: LangDialect;
 
+  sourceId!: number;
   source!: Source | null;
 
+  createdById!: number;
   createdBy!: User;
 
+  updatedById!: number;
   updatedBy!: User;
 
   createdAt!: Date;

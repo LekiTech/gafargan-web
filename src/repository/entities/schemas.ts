@@ -21,12 +21,24 @@ export const DefinitionSchema = new EntitySchema<Definition>({
       generated: true,
     },
     values: {
-      type: 'json',
-      array: true,
+      type: 'jsonb',
+      default: () => "'[]'::jsonb",
     },
     tags: {
       type: 'text',
       array: true,
+    },
+    wordDetailsId: {
+      name: 'word_details_id',
+      type: 'int',
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
     },
     createdAt: {
       name: 'created_at',
@@ -173,6 +185,14 @@ export const SourceSchema = new EntitySchema<Source>({
       nullable: true,
       select: false,
     },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
+    },
     createdAt: {
       name: 'created_at',
       type: 'timestamp',
@@ -217,6 +237,14 @@ export const SpellingVariantSchema = new EntitySchema<SpellingVariant>({
     },
     spelling: {
       type: 'text',
+    },
+    langDialectId: {
+      name: 'lang_dialect_id',
+      type: 'int',
+    },
+    sourceId: {
+      name: 'source_id',
+      type: 'int',
     },
     createdAt: {
       name: 'created_at',
@@ -273,6 +301,14 @@ export const TranslationSchema = new EntitySchema<Translation>({
     raw: {
       type: 'text',
       nullable: true,
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
     },
     createdAt: {
       name: 'created_at',
@@ -420,6 +456,22 @@ export const WordSchema = new EntitySchema<Word>({
     spelling: {
       type: 'text',
     },
+    langDialectId: {
+      name: 'lang_dialect_id',
+      type: 'int',
+    },
+    sourceId: {
+      name: 'source_id',
+      type: 'int',
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
+    },
     createdAt: {
       name: 'created_at',
       type: 'timestamp',
@@ -487,6 +539,26 @@ export const WordDetailSchema = new EntitySchema<WordDetail>({
     inflection: {
       type: 'text',
       nullable: true,
+    },
+    langDialectId: {
+      name: 'lang_dialect_id',
+      type: 'int',
+    },
+    wordId: {
+      name: 'word_id',
+      type: 'int',
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
+    },
+    sourceId: {
+      name: 'source_id',
+      type: 'int',
     },
     createdAt: {
       name: 'created_at',

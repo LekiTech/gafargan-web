@@ -132,7 +132,7 @@ CREATE TRIGGER word_details_ts
 CREATE TABLE definition (
   id                 INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   word_details_id    INTEGER    REFERENCES word_details(id),
-  values             JSON[],
+  values             JSONB      NOT NULL DEFAULT '[]'::jsonb,
   tags               TEXT[],
   created_by         INTEGER    NOT NULL REFERENCES "user"(id),
   updated_by         INTEGER    NOT NULL REFERENCES "user"(id),

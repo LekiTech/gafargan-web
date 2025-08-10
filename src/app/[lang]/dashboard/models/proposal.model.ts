@@ -168,14 +168,14 @@ export class TranslationModel extends Model {
 export type DefinitionModelType =
   | {
       state: 'added';
-      value: string;
+      values: DefinitionValue[];
       tags?: string[];
       examples?: TranslationModel[];
     }
   | {
       state: 'unchanged' | 'modified' | 'deleted';
       id: number;
-      value: string;
+      values: DefinitionValue[];
       tags?: string[];
       examples?: TranslationModel[];
     };
@@ -183,32 +183,36 @@ export type DefinitionModelType =
 export type DefinitionModelNestedType =
   | {
       state: 'added';
-      value: string;
+      values: DefinitionValue[];
       tags?: string[];
       examples?: TranslationModelType[];
     }
   | {
       state: 'unchanged' | 'modified' | 'deleted';
       id: number;
-      value: string;
+      values: DefinitionValue[];
       tags?: string[];
       examples?: TranslationModelType[];
     };
+interface DefinitionValue {
+  value: string;
+  tags?: string[];
+}
 
 export class DefinitionModel extends Model {
-  private value: string;
+  private values: DefinitionValue[];
   private tags?: string[];
   private examples?: TranslationModel[];
 
   constructor(data: DefinitionModelType) {
     super(data.state, data.state === 'unchanged' ? data.id : undefined);
-    this.value = data.value;
+    this.values = data.values;
     this.tags = data.tags;
     this.examples = data.examples;
   }
 
-  getValue(): string {
-    return this.value;
+  getValues(): DefinitionValue[] {
+    return this.values;
   }
 
   getTags(): string[] | undefined {
@@ -219,8 +223,8 @@ export class DefinitionModel extends Model {
     return this.examples;
   }
 
-  setValue(value: string): void {
-    this.value = value;
+  setValues(values: DefinitionValue[]): void {
+    this.values = values;
     this.setModified();
   }
 
@@ -246,8 +250,8 @@ export class DefinitionModel extends Model {
    */
   merge(data: Partial<DefinitionModelType>): DefinitionModel {
     this.setModified();
-    if (data.value !== undefined) {
-      this.value = data.value;
+    if (data.values !== undefined) {
+      this.values = data.values;
     }
     if (data.tags !== undefined) {
       this.tags = data.tags;
@@ -262,7 +266,7 @@ export class DefinitionModel extends Model {
     if (this.state === STATE.ADDED) {
       return new DefinitionModel({
         state: this.state,
-        value: this.value,
+        values: this.values,
         tags: this.tags,
         examples: this.examples?.map((e) => e.getCopy()),
       });
@@ -270,7 +274,7 @@ export class DefinitionModel extends Model {
     return new DefinitionModel({
       state: this.state,
       id: this.id!,
-      value: this.value,
+      values: this.values,
       tags: this.tags,
       examples: this.examples?.map((e) => e.getCopy()),
     });
@@ -278,7 +282,7 @@ export class DefinitionModel extends Model {
 
   isEmpty(): boolean {
     return (
-      this.value.trim() === '' &&
+      (!this.values || this.values.length === 0) &&
       (!this.tags || this.tags.length === 0) &&
       (!this.examples || this.examples.length === 0 || this.examples.every((e) => e.isEmpty()))
     );
@@ -288,7 +292,7 @@ export class DefinitionModel extends Model {
     return (
       m1.state === m2.state &&
       m1.id === m2.id &&
-      m1.value === m2.value &&
+      JSON.stringify(m1.values) === JSON.stringify(m2.values) &&
       JSON.stringify(m1.tags) === JSON.stringify(m2.tags) &&
       m1.examples?.length === m2.examples?.length &&
       // Both true and undefined values are ok
@@ -301,7 +305,7 @@ export class DefinitionModel extends Model {
   static createEmpty(): DefinitionModel {
     return new DefinitionModel({
       state: STATE.ADDED,
-      value: '',
+      values: [{ value: '' }],
       tags: [],
       examples: [],
     });
@@ -1056,23 +1060,45 @@ export class SourceModel extends Model {
 
 // ============== DictionaryModel ==============
 
+// This one is used in the backend, as it receives only json data through HTTP API requests
+export type DictionaryProposalModelNestedType = {
+  version: string;
+  entries: WordModelNestedType[];
+  source: SourceModelType;
+  fromLangDialectId: number;
+  toLangDialectId: number;
+};
+
 export class DictionaryProposalModel {
   readonly version = 'V3';
   readonly entries: WordModel[];
   readonly source: SourceModel;
+  readonly fromLangDialectId: number;
+  readonly toLangDialectId: number;
 
-  constructor(entries: WordModel[], source: SourceModel) {
+  constructor(
+    entries: WordModel[],
+    source: SourceModel,
+    fromLangDialectId: number,
+    toLangDialectId: number,
+  ) {
     this.entries = entries;
     this.source = source;
+    this.fromLangDialectId = fromLangDialectId;
+    this.toLangDialectId = toLangDialectId;
   }
 
   static fromNestedTypes(
     entries: WordModelNestedType[],
     source: SourceModelType,
+    fromLangDialectId: number,
+    toLangDialectId: number,
   ): DictionaryProposalModel {
     return new DictionaryProposalModel(
       entries.map((e) => WordModel.fromNestedTypes(e)),
       new SourceModel(source),
+      fromLangDialectId,
+      toLangDialectId,
     );
   }
 }

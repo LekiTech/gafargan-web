@@ -9,12 +9,16 @@ export class Word {
 
   spelling!: string;
 
+  langDialectId!: number;
   langDialect!: LangDialect;
 
+  sourceId!: number;
   source!: Source | null;
 
+  createdById!: number;
   createdBy!: User;
 
+  updatedById!: number;
   updatedBy!: User;
 
   createdAt!: Date;

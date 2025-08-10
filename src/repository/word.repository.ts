@@ -188,9 +188,9 @@ export async function searchAdvanced({
           WHERE t = ANY(definition.tags)
         )
         OR EXISTS (
-          SELECT 1 FROM unnest(definition.values) AS val,
+          SELECT 1 FROM jsonb_array_elements(definition.values) AS v(elem),
                        unnest(:tags::text[]) AS t
-          WHERE val::jsonb ? 'tags' AND val::jsonb -> 'tags' @> to_jsonb(ARRAY[t])
+          WHERE v.elem ? 'tags' AND (v.elem -> 'tags') @> to_jsonb(ARRAY[t])
         )
       )`,
         { tags },
@@ -199,8 +199,8 @@ export async function searchAdvanced({
       query.andWhere(
         `(:tag = ANY(definition.tags)
           OR EXISTS (
-            SELECT 1 FROM unnest(definition.values) AS val
-            WHERE val::jsonb ? 'tags' AND val::jsonb -> 'tags' @> to_jsonb(ARRAY[:tag]::text[])
+            SELECT 1 FROM jsonb_array_elements(definition.values) AS v(elem)
+            WHERE v.elem ? 'tags' AND (v.elem -> 'tags') @> to_jsonb(ARRAY[:tag]::text[])
           ))`,
         { tag: tag },
       );
@@ -322,7 +322,7 @@ export async function search({
     // If both match or neither matches, sort by createdAt date
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
-  // console.log('search', JSON.stringify(word, null, 2));
+  console.log('search', JSON.stringify(wordWithDefinitions, null, 2));
   return JSON.parse(JSON.stringify(wordWithDefinitions));
 }
 
@@ -374,12 +374,11 @@ export async function searchInDefinitions({
     FROM definition d  
       JOIN word_details AS wd ON d.word_details_id = wd.id 
       JOIN word w ON w.id = word_id
-      -- 1) UNNEST the SQL JSON[] array into individual JSON objects:
-      CROSS JOIN LATERAL unnest(d.values) AS v(elem)
+      CROSS JOIN LATERAL jsonb_array_elements(d.values) AS v(elem)
     WHERE
-      -- 2) Search inside each JSON object’s "value" field:
+      -- 1) Search inside each JSON object’s "value" field:
       v.elem ->> 'value' ILIKE '%' || $1 || '%'
-      -- 3) Compare your dialect IDs as normal integers:
+      -- 2) Compare your dialect IDs as normal integers:
       AND w.lang_dialect_id = ANY($3) 
       AND wd.lang_dialect_id = ANY($2)
     ORDER BY value, d.id DESC

@@ -33,6 +33,7 @@ import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 
 import {
   DictionaryProposalModel,
+  DictionaryProposalModelNestedType,
   SourceModel,
   SourceModelType,
 } from '@/dashboard/models/proposal.model';
@@ -40,6 +41,8 @@ import { Proposal } from '@repository/entities/Proposal';
 import { WordEntryForm } from './WordEntryForm';
 import { WebsiteLang } from '@api/types.model';
 import { approveProposal, rejectProposal } from '@repository/proposal.repository';
+import { langDialectIdToString } from '@/dashboard/utils';
+import { useTranslation } from 'react-i18next';
 
 function createData(
   id: number,
@@ -97,6 +100,7 @@ const DictionaryProposalsOverview: React.FC<{
   proposals: Proposal[];
   readonly: boolean;
 }> = ({ lang, sourceModels, proposals, readonly }) => {
+  const { t } = useTranslation(lang);
   const [selectedProposal, setSelectedProposal] = React.useState<Proposal | undefined>();
   return (
     <>
@@ -109,36 +113,50 @@ const DictionaryProposalsOverview: React.FC<{
               <TableCell align="left">ID</TableCell>
               <TableCell align="left">Proposed at</TableCell>
               <TableCell align="left">Proposed by</TableCell>
-              <TableCell align="left">Reviewed by</TableCell>
+              {/* <TableCell align="left">Reviewed by</TableCell> */}
+              <TableCell align="left">Words amount</TableCell>
+              <TableCell align="left">Languages</TableCell>
               <TableCell align="left">Status</TableCell>
               <TableCell align="left">Comment</TableCell>
               <TableCell align="right"></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {proposals.map((proposal) => (
-              <TableRow
-                key={proposal.id}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-              >
-                {/* <TableCell component="th" scope="row">
+            {proposals.map((proposal) => {
+              const dictionaryData: DictionaryProposalModelNestedType =
+                proposal.data! as DictionaryProposalModelNestedType;
+              return (
+                <TableRow
+                  key={proposal.id}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  {/* <TableCell component="th" scope="row">
                   <ProposalsTypeChip type={row.type} />
                 </TableCell> */}
-                <TableCell align="left">{proposal.id}</TableCell>
-                <TableCell align="left">{new Date(proposal.proposedAt).toLocaleString()}</TableCell>
-                <TableCell align="left">{proposal.proposedBy.name}</TableCell>
-                <TableCell align="left">{proposal.reviewedBy?.name}</TableCell>
-                <TableCell align="left">
-                  <ProposalsStatusChip status={proposal.status} />
-                </TableCell>
-                <TableCell align="left">{proposal.comment}</TableCell>
-                <TableCell align="right">
-                  <IconButton onClick={() => setSelectedProposal(proposal)}>
-                    <VisibilityIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+                  <TableCell align="left">{proposal.id}</TableCell>
+                  <TableCell align="left">
+                    {new Date(proposal.proposedAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell align="left">{proposal.proposedBy.name}</TableCell>
+                  {/* <TableCell align="left">{proposal.reviewedBy?.name}</TableCell> */}
+                  <TableCell align="left">{dictionaryData.entries.length}</TableCell>
+                  <TableCell align="left">
+                    {langDialectIdToString(dictionaryData.fromLangDialectId, t) +
+                      ' → ' +
+                      langDialectIdToString(dictionaryData.toLangDialectId, t)}
+                  </TableCell>
+                  <TableCell align="left">
+                    <ProposalsStatusChip status={proposal.status} />
+                  </TableCell>
+                  <TableCell align="left">{proposal.comment}</TableCell>
+                  <TableCell align="right">
+                    <IconButton onClick={() => setSelectedProposal(proposal)}>
+                      <VisibilityIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>
@@ -179,6 +197,8 @@ const DictionaryProposalsOverview: React.FC<{
                 dictionaryModel={DictionaryProposalModel.fromNestedTypes(
                   selectedProposal!.data!.entries,
                   selectedProposal!.data!.source,
+                  selectedProposal!.data!.fromLangId,
+                  selectedProposal!.data!.toLangId,
                 )}
                 readonly={true}
               />
