@@ -441,8 +441,10 @@ const DefinitionBlock: React.FC<{
   };
   return (
     <Box mt={1}>
-      <Box display="flex" gap={1} alignItems="baseline">
-        <Typography fontWeight={600}>{idx + 1}.</Typography>
+      <Box display="flex" gap={1} alignItems="start">
+        <Typography fontWeight={600} mt={'5px'}>
+          {idx + 1}.
+        </Typography>
         <Box
           gap={1}
           sx={(theme) => ({
@@ -464,7 +466,7 @@ const DefinitionBlock: React.FC<{
             gap={1}
             flexWrap="wrap"
             sx={(theme) => ({
-              alignSelf: 'end',
+              alignSelf: 'start',
               mt: '5px',
               [theme.breakpoints.down('md')]: { mt: '0', alignSelf: 'start' },
             })}
@@ -517,14 +519,13 @@ const DefinitionBlock: React.FC<{
               <TextField
                 key={`${i}_def-value`}
                 variant="standard"
-                required
-                placeholder={`${t('addNewWord.definition', { ns: 'dashboard' })}*`}
+                required={i === 0}
+                placeholder={`${t('addNewWord.definition', { ns: 'dashboard' })}${i === 0 ? '*' : ''}`}
                 slotProps={{
                   input: {
                     readOnly: readonly,
                     endAdornment: !readonly && def.getValues().length > 1 && (
                       <InputAdornment position="end">
-                        {/* TODO: Add "add" button for new definition value */}
                         <IconButton
                           size="small"
                           onClick={() => {
@@ -559,9 +560,22 @@ const DefinitionBlock: React.FC<{
           </Box>
         </Box>
         {!readonly && (
-          <IconButton size="small" onClick={onDelete} color="error">
-            <DeleteOutlineIcon fontSize="small" />
-          </IconButton>
+          <>
+            <IconButton
+              size="small"
+              onClick={() => {
+                const updatedValues = def.getValues();
+                updatedValues.push({ value: '' });
+                def.setValues(updatedValues);
+                onChange(def);
+              }}
+            >
+              <AddIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" onClick={onDelete} color="error">
+              <DeleteOutlineIcon fontSize="small" />
+            </IconButton>
+          </>
         )}
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', ml: 2.5 }}>
@@ -780,17 +794,22 @@ const WordDetailBlock: React.FC<{
             )}
           </Box>
           {/* inflection */}
-          <TextField
-            variant="standard"
-            placeholder={t('addNewWord.inflection', { ns: 'dashboard' })}
-            autoComplete="off"
-            value={data.getInflection()}
-            onChange={(e) => patch({ inflection: e.target.value })}
-            sx={{ minWidth: 200, width: '100%' }}
-            slotProps={{
-              input: { readOnly: readonly },
-            }}
-          />
+          {!(
+            readonly &&
+            (data.getInflection() === undefined || data.getInflection()?.trim() === '')
+          ) && (
+            <TextField
+              variant="standard"
+              placeholder={t('addNewWord.inflection', { ns: 'dashboard' })}
+              autoComplete="off"
+              value={data.getInflection()}
+              onChange={(e) => patch({ inflection: e.target.value })}
+              sx={{ minWidth: 200, width: '100%' }}
+              slotProps={{
+                input: { readOnly: readonly },
+              }}
+            />
+          )}
         </Box>
         <Box sx={{ width: '100%' }} />
       </Stack>
