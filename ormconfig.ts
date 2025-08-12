@@ -8,6 +8,8 @@ import {
   SpellingVariantSchema,
   TranslationSchema,
   ProposalSchema,
+  DefinitionExampleSchema,
+  WordDetailsExampleSchema,
 } from '@repository/entities/schemas';
 import { DataSource } from 'typeorm';
 
@@ -42,6 +44,8 @@ export const AppDataSource = new DataSource({
     SpellingVariantSchema,
     TranslationSchema,
     ProposalSchema,
+    DefinitionExampleSchema,
+    WordDetailsExampleSchema,
   ],
   migrations: [],
   subscribers: [],

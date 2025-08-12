@@ -9,6 +9,8 @@ import { Word } from './Word';
 import { WordDetail } from './WordDetail';
 import { Proposal } from './Proposal';
 import { Language, Role, ProposalType, ProposalStatus } from './enums';
+import { DefinitionExample } from './DefinitionExample';
+import { WordDetailsExample } from './WordDetailsExample';
 
 export const DefinitionSchema = new EntitySchema<Definition>({
   name: 'Definition',
@@ -72,15 +74,20 @@ export const DefinitionSchema = new EntitySchema<Definition>({
       inverseSide: 'updatedDefinitions',
     },
     examples: {
-      type: 'many-to-many',
-      target: () => Translation,
-      joinTable: {
-        name: 'definition_example',
-        joinColumn: { name: 'definition_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'translation_id', referencedColumnName: 'id' },
-      },
-      cascade: false,
+      type: 'one-to-many',
+      target: () => DefinitionExample,
+      inverseSide: 'definition',
     },
+    // examples: {
+    //   type: 'many-to-many',
+    //   target: () => Translation,
+    //   joinTable: {
+    //     name: 'definition_example',
+    //     joinColumn: { name: 'definition_id', referencedColumnName: 'id' },
+    //     inverseJoinColumn: { name: 'translation_id', referencedColumnName: 'id' },
+    //   },
+    //   cascade: false,
+    // },
   },
 });
 
@@ -609,15 +616,20 @@ export const WordDetailSchema = new EntitySchema<WordDetail>({
       inverseSide: 'wordDetails',
     },
     examples: {
-      type: 'many-to-many',
-      target: () => Translation,
-      joinTable: {
-        name: 'word_details_example',
-        joinColumn: { name: 'word_details_id', referencedColumnName: 'id' },
-        inverseJoinColumn: { name: 'translation_id', referencedColumnName: 'id' },
-      },
-      cascade: false,
+      type: 'one-to-many',
+      target: () => WordDetailsExample,
+      inverseSide: 'wordDetails',
     },
+    // examples: {
+    //   type: 'many-to-many',
+    //   target: () => Translation,
+    //   joinTable: {
+    //     name: 'word_details_example',
+    //     joinColumn: { name: 'word_details_id', referencedColumnName: 'id' },
+    //     inverseJoinColumn: { name: 'translation_id', referencedColumnName: 'id' },
+    //   },
+    //   cascade: false,
+    // },
   },
 });
 
@@ -685,4 +697,84 @@ export const ProposalSchema = new EntitySchema<Proposal>({
       nullable: true,
     },
   },
+});
+
+export const DefinitionExampleSchema = new EntitySchema<DefinitionExample>({
+  name: 'DefinitionExample',
+  tableName: 'definition_example',
+  columns: {
+    definitionId: {
+      name: 'definition_id',
+      type: 'int',
+    },
+    translationId: {
+      name: 'translation_id',
+      type: 'int',
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    createdAt: { name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' },
+  },
+  relations: {
+    definition: {
+      type: 'many-to-one',
+      target: () => Definition,
+      joinColumn: { name: 'definition_id' },
+      onDelete: 'CASCADE',
+    },
+    translation: {
+      type: 'many-to-one',
+      target: () => Translation,
+      joinColumn: { name: 'translation_id' },
+      onDelete: 'CASCADE',
+    },
+    createdBy: {
+      type: 'many-to-one',
+      target: () => User,
+      joinColumn: { name: 'created_by' },
+    },
+  },
+  uniques: [{ columns: ['definition_id', 'translation_id'] }],
+});
+
+export const WordDetailsExampleSchema = new EntitySchema<WordDetailsExample>({
+  name: 'DefinitionExample',
+  tableName: 'definition_example',
+  columns: {
+    wordDetailsId: {
+      name: 'word_details_id',
+      type: 'int',
+    },
+    translationId: {
+      name: 'translation_id',
+      type: 'int',
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    createdAt: { name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' },
+  },
+  relations: {
+    wordDetails: {
+      type: 'many-to-one',
+      target: () => WordDetail,
+      joinColumn: { name: 'word_details_id' },
+      onDelete: 'CASCADE',
+    },
+    translation: {
+      type: 'many-to-one',
+      target: () => Translation,
+      joinColumn: { name: 'translation_id' },
+      onDelete: 'CASCADE',
+    },
+    createdBy: {
+      type: 'many-to-one',
+      target: () => User,
+      joinColumn: { name: 'created_by' },
+    },
+  },
+  uniques: [{ columns: ['word_details_id', 'translation_id'] }],
 });
