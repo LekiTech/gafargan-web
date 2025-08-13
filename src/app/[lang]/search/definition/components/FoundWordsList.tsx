@@ -206,7 +206,7 @@ const WordListItem2: FC<{ word: Word; t: TFunction; lang: WebsiteLang }> = ({ wo
               >
                 {
                   LangToId['lez']
-                    .map((langId) => example.phrasesPerLangDialect[langId])
+                    .flatMap((langId) => example.phrasesPerLangDialect[langId])
                     .filter((p) => p)[0]?.phrase
                 }
                 <br />
@@ -214,7 +214,7 @@ const WordListItem2: FC<{ word: Word; t: TFunction; lang: WebsiteLang }> = ({ wo
                   {/* {example.phrasesPerLangDialect[LangToId['rus']].phrase} */}
                   {
                     LangToId['rus']
-                      .map((langId) => example.phrasesPerLangDialect[langId])
+                      .flatMap((langId) => example.phrasesPerLangDialect[langId])
                       .filter((p) => p)[0].phrase
                   }
                 </i>

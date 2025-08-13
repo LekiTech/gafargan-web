@@ -243,7 +243,7 @@ export async function searchAdvanced({
   const [dataRaw, totalItems] = await query.getManyAndCount();
 
   const items = JSON.parse(JSON.stringify(dataRaw)) as Word[];
-  console.log(items);
+  // console.log(items);
   return {
     items,
     totalItems,
@@ -322,7 +322,7 @@ export async function search({
     // If both match or neither matches, sort by createdAt date
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
-  console.log('search', JSON.stringify(wordWithDefinitions, null, 2));
+  // console.log('search', JSON.stringify(wordWithDefinitions, null, 2));
   return JSON.parse(JSON.stringify(wordWithDefinitions));
 }
 
