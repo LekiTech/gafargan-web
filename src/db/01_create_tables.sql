@@ -162,7 +162,6 @@ CREATE TRIGGER translations_ts
 CREATE TABLE word_details_example (
   word_details_id  INTEGER    NOT NULL REFERENCES word_details(id),
   translation_id   INTEGER    NOT NULL REFERENCES translations(id),
-  created_by       INTEGER    NOT NULL REFERENCES "user"(id),
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (word_details_id, translation_id)
 );
@@ -172,7 +171,6 @@ CREATE TABLE word_details_example (
 CREATE TABLE definition_example (
   definition_id    INTEGER    NOT NULL REFERENCES definition(id),
   translation_id   INTEGER    NOT NULL REFERENCES translations(id),
-  created_by       INTEGER    NOT NULL REFERENCES "user"(id),
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (definition_id, translation_id)
 );

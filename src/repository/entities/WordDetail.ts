@@ -4,7 +4,6 @@ import { Source } from './Source';
 import { User } from './User';
 import type { Definition } from './Definition';
 import { Translation } from './Translation';
-import { WordDetailsExample } from './WordDetailsExample';
 
 export class WordDetail {
   id!: number;
@@ -34,6 +33,5 @@ export class WordDetail {
 
   definitions!: Definition[];
 
-  // TODO: Do the same in Definition entity and fix all errors in proposals and dictionary UI
-  examples!: WordDetailsExample[];
+  examples!: Translation[];
 }

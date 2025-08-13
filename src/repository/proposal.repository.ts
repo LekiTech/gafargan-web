@@ -1,13 +1,11 @@
 'use server';
 import { getDataSource } from './dataSource';
 import {
-  DefinitionExampleSchema,
   DefinitionSchema,
   ProposalSchema,
   SpellingVariantSchema,
   TranslationSchema,
   WordDetailSchema,
-  WordDetailsExampleSchema,
   WordSchema,
 } from './entities/schemas';
 import { Proposal } from './entities/Proposal';
@@ -27,8 +25,6 @@ import { SpellingVariant } from './entities/SpellingVariant';
 import { WordDetail } from './entities/WordDetail';
 import { Definition } from './entities/Definition';
 import { DUMMY_USER_ID } from './constants';
-import { DefinitionExample } from './entities/DefinitionExample';
-import { WordDetailsExample } from './entities/WordDetailsExample';
 
 export type PaginationQuery = {
   type: ProposalType;
@@ -141,12 +137,6 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
       TranslationSchema.options.tableName!,
     );
     const definitionRepo = manager.getRepository<Definition>(DefinitionSchema.options.tableName!);
-    const definitionExampleRepo = manager.getRepository<DefinitionExample>(
-      DefinitionExampleSchema.options.tableName!,
-    );
-    const wordDetailsExampleRepo = manager.getRepository<WordDetailsExample>(
-      WordDetailsExampleSchema.options.tableName!,
-    );
 
     const dictionaryProposal: DictionaryProposalModelNestedType =
       proposal.data as DictionaryProposalModelNestedType;
@@ -193,6 +183,12 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
         }
         for (let i = 0; i < word.wordDetails.length; i++) {
           const wordDetail = word.wordDetails[i];
+          // TODO: need to see if we need to handle the case when translation is deleted
+          const wordDetailExamples = wordDetail.examples?.map((example) => ({
+            ...example,
+            createdById: DUMMY_USER_ID,
+            updatedById: DUMMY_USER_ID,
+          }));
           let createdWordDetail: WordDetail | undefined = undefined;
           if (wordDetail.state === STATE.DELETED) {
             await wordDetailRepo.delete(wordDetail.id);
@@ -208,45 +204,26 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                 sourceId: wordDetail.sourceId,
                 createdById: DUMMY_USER_ID,
                 updatedById: DUMMY_USER_ID,
+                examples: wordDetailExamples,
               });
               createdWordDetail = await wordDetailRepo.save(wordEntity);
             } else if (wordDetail.state === STATE.MODIFIED) {
               await wordDetailRepo.update(wordDetail.id, {
                 ...wordDetail,
                 updatedById: DUMMY_USER_ID,
+                examples: wordDetailExamples,
               });
             }
-            if (wordDetail.examples != undefined) {
-              await handleTranslationsProposalDbChanges(
-                translationRepo,
-                wordDetail.examples,
-                async (translationId, state) => {
-                  switch (state) {
-                    case STATE.ADDED:
-                      const wordDetailsExampleEntity = wordDetailsExampleRepo.create({
-                        wordDetailsId:
-                          wordDetail.state === STATE.ADDED ? createdWordDetail!.id : wordDetail.id,
-                        translationId: translationId,
-                        createdById: DUMMY_USER_ID,
-                      });
-                      await wordDetailsExampleRepo.save(wordDetailsExampleEntity);
-                      break;
-                    case STATE.DELETED:
-                      await wordDetailsExampleRepo.delete(translationId);
-                      break;
-                    case STATE.MODIFIED:
-                      console.log(
-                        `Junction tables should not be modified. Translation with ID = ${translationId}`,
-                      );
-                      break;
-                    default:
-                      console.log(`Nothing to do with translation with ID = ${translationId}`);
-                  }
-                },
-              );
-            }
+            // if (wordDetail.examples != undefined) {
+            //   await handleTranslationsProposalDbChanges(translationRepo, wordDetail.examples);
+            // }
             for (const definition of wordDetail.definitions) {
-              let createdDefinition: Definition | undefined = undefined;
+              // TODO: need to see if we need to handle the case when translation is deleted
+              const definitionExamples = definition.examples?.map((example) => ({
+                ...example,
+                createdById: DUMMY_USER_ID,
+                updatedById: DUMMY_USER_ID,
+              }));
               switch (definition.state) {
                 case STATE.ADDED:
                   const definitionEntity = definitionRepo.create({
@@ -256,8 +233,9 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                     values: definition.values,
                     createdById: DUMMY_USER_ID,
                     updatedById: DUMMY_USER_ID,
+                    examples: definitionExamples,
                   });
-                  createdDefinition = await definitionRepo.save(definitionEntity);
+                  await definitionRepo.save(definitionEntity);
                   break;
                 case STATE.DELETED:
                   await definitionRepo.delete(definition.id);
@@ -266,42 +244,15 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                   await definitionRepo.update(definition.id, {
                     ...definition,
                     updatedById: DUMMY_USER_ID,
+                    examples: definitionExamples,
                   });
                   break;
                 default:
                   console.log(`Nothing to do with definition with ID = ${definition.id}`);
               }
-              if (definition.examples != undefined && definition.state !== STATE.DELETED) {
-                await handleTranslationsProposalDbChanges(
-                  translationRepo,
-                  definition.examples,
-                  async (translationId, state) => {
-                    switch (state) {
-                      case STATE.ADDED:
-                        const definitionExampleEntity = definitionExampleRepo.create({
-                          definitionId:
-                            definition.state === STATE.ADDED
-                              ? createdDefinition!.id
-                              : definition.id,
-                          translationId: translationId,
-                          createdById: DUMMY_USER_ID,
-                        });
-                        await definitionExampleRepo.save(definitionExampleEntity);
-                        break;
-                      case STATE.DELETED:
-                        await definitionExampleRepo.delete(translationId);
-                        break;
-                      case STATE.MODIFIED:
-                        console.log(
-                          `Junction tables should not be modified. Translation with ID = ${translationId}`,
-                        );
-                        break;
-                      default:
-                        console.log(`Nothing to do with translation with ID = ${translationId}`);
-                    }
-                  },
-                );
-              }
+              // if (definition.examples != undefined && definition.state !== STATE.DELETED) {
+              //   await handleTranslationsProposalDbChanges(translationRepo, definition.examples);
+              // }
             }
           }
         }
@@ -313,7 +264,6 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
 async function handleTranslationsProposalDbChanges(
   translationRepo: Repository<Translation>,
   translations: TranslationModelType[],
-  handleJunctionRecord: (translationId: number, state: StateType) => Promise<void>,
 ) {
   for (const translation of translations) {
     switch (translation.state) {
@@ -324,18 +274,15 @@ async function handleTranslationsProposalDbChanges(
           createdById: DUMMY_USER_ID,
           updatedById: DUMMY_USER_ID,
         });
-        await handleJunctionRecord(createdEntity.id, translation.state);
         break;
       case STATE.DELETED:
         await translationRepo.delete(translation.id);
-        await handleJunctionRecord(translation.id, translation.state);
         break;
       case STATE.MODIFIED:
         await translationRepo.update(translation.id, {
           ...translation,
           updatedById: DUMMY_USER_ID,
         });
-        // Should not do anything about junction table
         break;
       default:
         console.log(`Nothing to do with translation with ID = ${translation.id}`);

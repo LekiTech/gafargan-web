@@ -14,6 +14,9 @@ CREATE TABLE proposal (
   reviewed_at       TIMESTAMP  NULL
 );
 
+-- =========================================================
+-- JSONB stuff --
+-- =========================================================
 -- json[]  ->  jsonb (single JSONB array)
 ALTER TABLE definition 
   ALTER COLUMN "values" TYPE jsonb
@@ -23,3 +26,22 @@ ALTER TABLE definition
 ALTER TABLE definition 
   ALTER COLUMN "values" SET DEFAULT '[]'::jsonb,
   ALTER COLUMN "values" SET NOT NULL;
+
+-- json[]  ->  jsonb (single JSONB array)
+ALTER TABLE history_definition 
+  ALTER COLUMN "values" TYPE jsonb
+  USING COALESCE(array_to_json("values")::jsonb, '[]'::jsonb);
+
+-- Optional niceties
+ALTER TABLE history_definition 
+  ALTER COLUMN "values" SET DEFAULT '[]'::jsonb,
+  ALTER COLUMN "values" SET NOT NULL;
+
+-- =========================================================
+
+-- remove unused columns
+ALTER TABLE public.definition_example DROP CONSTRAINT definition_example_created_by_fkey;
+ALTER TABLE public.definition_example DROP COLUMN created_by;
+
+ALTER TABLE public.word_details_example DROP CONSTRAINT word_details_example_created_by_fkey;
+ALTER TABLE public.word_details_example DROP COLUMN created_by;
