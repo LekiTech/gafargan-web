@@ -117,6 +117,12 @@
     "add": "add",
     "otherExamples": "Other examples",
     "definitionGroup": "Definition group",
+    "stats": {
+      "wordVariants": "Word variants",
+      "definitionGroups": "Definition groups",
+      "definitions": "Definitions",
+      "examples": "Examples"
+    },
     "messages": {
       "cancelMessage": "Are you sure? All unsaved changes will be lost!",
       "cannotDeleteOnlyDefinition": "Cannot delete the only definition",

@@ -120,6 +120,12 @@
     "add": "добавить",
     "otherExamples": "Другие примеры",
     "definitionGroup": "Группа значений",
+    "stats": {
+      "wordVariants": "Варианты слов",
+      "definitionGroups": "Группы значений",
+      "definitions": "Значения",
+      "examples": "Примеры"
+    },
     "messages": {
       "cancelMessage": "Вы уверены? Все несохраненные изменения будут утеряны!",
       "cannotDeleteOnlyDefinition": "Невозможно удалить единственное значение",

@@ -1215,6 +1215,24 @@ const WordEntry: React.FC<{
       setShowCannotDeleteMessage(true);
     }
   };
+
+  // WordEntry stats
+  // adding 1 because we have one default spelling always
+  const wordVariantsAmount = wordEntry.getSpellingVariants().length + 1;
+  const wordDetailsAmount = wordEntry.getWordDetails().length;
+  const definitionsAmount = wordEntry
+    .getWordDetails()
+    .reduce((acc, wd) => acc + wd.getDefinitions().length, 0);
+  const examplesAmount =
+    wordEntry.getWordDetails().reduce((acc, wd) => acc + (wd.getExamples()?.length || 0), 0) +
+    wordEntry
+      .getWordDetails()
+      .reduce(
+        (acc, wd) =>
+          acc +
+          wd.getDefinitions().reduce((defAcc, def) => defAcc + (def.getExamples()?.length || 0), 0),
+        0,
+      );
   return (
     <Box
       sx={{
@@ -1244,7 +1262,11 @@ const WordEntry: React.FC<{
       <Box
         display="flex"
         alignItems="flex-end"
-        sx={{ width: '100%', bgcolor: isOpen ? 'unset' : INPUT_PASTEL_BEIGE }}
+        sx={{
+          width: '100%',
+          bgcolor: isOpen ? 'unset' : INPUT_PASTEL_BEIGE,
+          borderBottom: isOpen ? 'unset' : '1px solid #ccc',
+        }}
       >
         <IconButton size="small" onClick={toggleOpen}>
           {isOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -1287,7 +1309,10 @@ const WordEntry: React.FC<{
           <TextField
             variant="standard"
             fullWidth
-            sx={{ bgcolor: INPUT_PASTEL_BEIGE, '& .MuiInputBase-root': { pl: 1 } }}
+            sx={{
+              bgcolor: INPUT_PASTEL_BEIGE,
+              '& .MuiInputBase-root': { pl: 1 },
+            }}
             value={firstDefinitionValues[0].value}
             required
             placeholder={`${t('addNewWord.definition', { ns: 'dashboard' })} *`}
@@ -1437,6 +1462,27 @@ const WordEntry: React.FC<{
           )}
         </Box>
       )}
+      <Box sx={{ display: 'flex', flexDirection: 'row', p: 0.5, gap: 1 }}>
+        <Typography variant="caption" color="text.secondary">
+          {t('addNewWord.stats.wordVariants', { ns: 'dashboard' }) + ': '}
+          <b>{wordVariantsAmount}</b>
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {/* {t('addNewWord.spellingVariants', { ns: 'dashboard' })} */}
+          {t('addNewWord.stats.definitionGroups', { ns: 'dashboard' }) + ': '}
+          <b>{wordDetailsAmount}</b>
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {/* {t('addNewWord.spellingVariants', { ns: 'dashboard' })} */}
+          {t('addNewWord.stats.definitions', { ns: 'dashboard' }) + ': '}
+          <b>{definitionsAmount}</b>
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {/* {t('addNewWord.spellingVariants', { ns: 'dashboard' })} */}
+          {t('addNewWord.stats.examples', { ns: 'dashboard' }) + ': '}
+          <b>{examplesAmount}</b>
+        </Typography>
+      </Box>
     </Box>
   );
 };

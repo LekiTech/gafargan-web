@@ -132,6 +132,12 @@
     "add": "хъвегьин",
     "otherExamples": "Маса мисалар",
     "definitionGroup": "Группа значений",
+    "stats": {
+      "wordVariants": "Гафунин жуьреяр",
+      "definitionGroups": "Группы значений",
+      "definitions": "Манаяр",
+      "examples": "Мисалар"
+    },
     "messages": {
       "cancelMessage": "Вы уверены? Все несохраненные изменения будут утеряны!",
       "cannotDeleteOnlyDefinition": "Невозможно удалить единственное значение",
