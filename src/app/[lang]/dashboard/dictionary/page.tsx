@@ -12,9 +12,17 @@ import { LangToId } from '@api/languages';
 import { toNumber } from '../../../utils';
 import TabsContent from './components/TabsContent';
 import { getSources } from '@repository/source.repository';
-import { DictionaryProposalModel, SourceModelType, STATE } from '../models/proposal.model';
+import {
+  DictionaryProposalModel,
+  SourceModelType,
+  STATE,
+  WordModelExistingNestedType,
+  WordModelNestedType,
+} from '../models/proposal.model';
 import { getPaginatedProposals } from '@repository/proposal.repository';
 import { ProposalType } from '@repository/entities/enums';
+import { mapWordToModelNestedType } from '../models/proposal.mapper';
+import { PaginatedResponse } from '@repository/types.model';
 
 const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
   params,
@@ -51,6 +59,10 @@ const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async
           .join('&'),
     );
   }
+  const paginatedWordsModel: PaginatedResponse<WordModelExistingNestedType> = {
+    ...paginatedWords,
+    items: paginatedWords.items.map(mapWordToModelNestedType),
+  };
   const sources = await getSources();
   const sourceModels: SourceModelType[] = sources.map((source) => {
     return {
@@ -75,7 +87,7 @@ const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async
   return (
     <TabsContent
       lang={lang}
-      paginatedWords={paginatedWords}
+      paginatedWords={paginatedWordsModel}
       sourceModels={sourceModels}
       proposals={proposals}
     />

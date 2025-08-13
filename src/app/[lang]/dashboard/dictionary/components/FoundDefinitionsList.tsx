@@ -24,11 +24,21 @@ import { AdvancedSearchInput } from '@/components/Search/AdvancedSearchInput';
 import { PaginatedResponse } from '@repository/types.model';
 import { toNumber } from '../../../../utils';
 import { DictionarySelect } from '@/components/Search/DictionarySelect';
+import {
+  SourceModel,
+  SourceModelType,
+  WordDetailModel,
+  WordModel,
+  WordModelExistingNestedType,
+  WordModelNestedType,
+} from '@/dashboard/models/proposal.model';
+import { WordEntry } from './WordEntryForm';
 
 export const FoundDefinitionsList: FC<{
   lang: WebsiteLang;
-  paginatedWords: PaginatedResponse<Word>;
-}> = ({ lang, paginatedWords }) => {
+  paginatedWords: PaginatedResponse<WordModelExistingNestedType>;
+  sourceModels: SourceModelType[];
+}> = ({ lang, paginatedWords, sourceModels }) => {
   const { t } = useTranslation(lang);
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -78,7 +88,23 @@ export const FoundDefinitionsList: FC<{
         onChange={handleChange}
       />
       <List sx={{ width: '100%' }} disablePadding>
-        {words.flatMap((word, i) => {
+        {words.flatMap((word, idx) => (
+          <WordEntry
+            key={`${word.id}`}
+            idx={idx + 1}
+            wordEntry={WordModel.fromNestedTypes(word)}
+            onChange={(e) => {}}
+            onDelete={() => {}}
+            lang={lang}
+            defLangDialectId={word.wordDetails[0].langDialectId}
+            defSourceId={word.wordDetails[0].sourceId}
+            allSources={sourceModels.map((s) => new SourceModel(s))}
+            isFirst={idx === 0}
+            isLast={idx === word.wordDetails.length - 1}
+            readonly={true}
+          />
+        ))}
+        {/* {words.flatMap((word, i) => {
           return [
             <Divider key={`${word.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,
             <ListItem key={`${word.id}_item_${i}`} sx={{ pt: 0, minHeight: '125px' }}>
@@ -87,40 +113,38 @@ export const FoundDefinitionsList: FC<{
                   key={`${word.id}_spelling_${i}`}
                   id={word.id}
                   spelling={word.spelling}
-                  fromLang={IdToLang[word.langDialect.id]}
-                  // toLang={IdToLang[word.definitions_lang_dialect_id]}
+                  // fromLang={IdToLang[word.langDialect.id]}
+                  fromLang={IdToLang[word.langDialectId]}
                   sx={{ ml: 0, pl: 0 }}
                 />
-                {word.details.map((wordDetail) => (
+                {word.wordDetails.map((wordDetail, idx) => (
                   <Box key={`${word.id}_${wordDetail.id}`}>
-                    <ListItemText
-                      primary={
-                        <Stack direction="row" spacing={2} sx={{ mt: '10px !important' }}>
-                          {wordDetail?.definitions[0]?.values[0]?.tags &&
-                            wordDetail?.definitions[0]?.values[0]?.tags.length > 0 &&
-                            wordDetail?.definitions[0]?.values[0]?.tags.map((tag, t_i) => (
-                              <TagComp
-                                key={`${word.id}_definition_${i}_tags_${tag}_${t_i}`}
-                                label={t(tag, { ns: 'tags' })}
-                              />
-                            ))}
-                          <ParsedTextComp
-                            text={wordDetail?.definitions[0]?.values[0].value ?? ''}
-                          />
-                        </Stack>
-                      }
-                    />
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: '10px' }}>
-                      {/* {t(`languages.${IdToLang[word.langDialect.id]}`, { ns: 'common' })} →{' '}
-                  {t(`languages.${IdToLang[wordDetail?.langDialect.id]}`, { ns: 'common' })} */}
-                      {wordDetail?.source?.name} - {wordDetail?.source?.authors}
-                    </Typography>
+                <ListItemText
+                    primary={
+                      <Stack direction="row" spacing={2} sx={{ mt: '10px !important' }}>
+                        {wordDetail?.definitions[0]?.values[0]?.tags &&
+                          wordDetail?.definitions[0]?.values[0]?.tags.length > 0 &&
+                          wordDetail?.definitions[0]?.values[0]?.tags.map((tag, t_i) => (
+                            <TagComp
+                              key={`${word.id}_definition_${i}_tags_${tag}_${t_i}`}
+                              label={t(tag, { ns: 'tags' })}
+                            />
+                          ))}
+                        <ParsedTextComp
+                          text={wordDetail?.definitions[0]?.values[0].value ?? ''}
+                        />
+                      </Stack>
+                    }
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ mt: '10px' }}>
+                    {wordDetail?.source?.name} - {wordDetail?.source?.authors}
+                  </Typography>
                   </Box>
                 ))}
               </Stack>
             </ListItem>,
           ];
-        })}
+        })} */}
       </List>
       <Pagination
         count={paginatedWords.totalPages}

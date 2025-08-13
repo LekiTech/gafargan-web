@@ -9,7 +9,12 @@ import { WebsiteLang } from '@api/types.model';
 import { PaginatedResponse } from '@repository/types.model';
 import { Word } from '@repository/entities/Word';
 import { WordEntryForm } from '@/dashboard/dictionary/components/WordEntryForm';
-import { DictionaryProposalModel, SourceModelType } from '@/dashboard/models/proposal.model';
+import {
+  DictionaryProposalModel,
+  SourceModelType,
+  WordModelExistingNestedType,
+  WordModelNestedType,
+} from '@/dashboard/models/proposal.model';
 import DictionaryProposalsOverview from './DictionaryProposalsOverview';
 import { useTranslation } from 'react-i18next';
 import { Proposal } from '@repository/entities/Proposal';
@@ -45,7 +50,7 @@ function a11yProps(index: number) {
 
 const TabsContent: React.FC<{
   lang: WebsiteLang;
-  paginatedWords: PaginatedResponse<Word>;
+  paginatedWords: PaginatedResponse<WordModelExistingNestedType>;
   sourceModels: SourceModelType[];
   proposals: Proposal[];
 }> = ({ lang, paginatedWords, sourceModels, proposals }) => {
@@ -71,7 +76,11 @@ const TabsContent: React.FC<{
         </Tabs>
       </Box>
       <CustomTabPanel value={value} index={0}>
-        <FoundDefinitionsList lang={lang} paginatedWords={paginatedWords} />
+        <FoundDefinitionsList
+          lang={lang}
+          paginatedWords={paginatedWords}
+          sourceModels={sourceModels}
+        />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
         <WordEntryForm lang={lang} sourceModels={sourceModels} readonly={false} />

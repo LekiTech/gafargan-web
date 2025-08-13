@@ -39,19 +39,19 @@ abstract class Model {
 }
 
 // ============== TranslationModel ==============
-
+export type TranslationModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  phrasesPerLangDialect: Record<string, Phrase[]>;
+  tags?: string[];
+};
 export type TranslationModelType =
   | {
       state: 'added';
       phrasesPerLangDialect: Record<string, Phrase[]>;
       tags?: string[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      phrasesPerLangDialect: Record<string, Phrase[]>;
-      tags?: string[];
-    };
+  | TranslationModelExistingType;
 
 interface Phrase {
   phrase: string;
@@ -165,6 +165,13 @@ export class TranslationModel extends Model {
 
 // ============== DefinitionModel ==============
 
+export type DefinitionModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  values: DefinitionValue[];
+  tags?: string[];
+  examples?: TranslationModel[];
+};
 export type DefinitionModelType =
   | {
       state: 'added';
@@ -172,14 +179,15 @@ export type DefinitionModelType =
       tags?: string[];
       examples?: TranslationModel[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      values: DefinitionValue[];
-      tags?: string[];
-      examples?: TranslationModel[];
-    };
+  | DefinitionModelExistingType;
 
+export type DefinitionModelExistingNestedType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  values: DefinitionValue[];
+  tags?: string[];
+  examples?: TranslationModelExistingType[];
+};
 export type DefinitionModelNestedType =
   | {
       state: 'added';
@@ -187,13 +195,8 @@ export type DefinitionModelNestedType =
       tags?: string[];
       examples?: TranslationModelType[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      values: DefinitionValue[];
-      tags?: string[];
-      examples?: TranslationModelType[];
-    };
+  | DefinitionModelExistingNestedType;
+
 interface DefinitionValue {
   value: string;
   tags?: string[];
@@ -321,6 +324,16 @@ export class DefinitionModel extends Model {
 
 // ============== WordDetailModel ==============
 
+export type WordDetailModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  inflection?: string;
+  langDialectId: number;
+  sourceId: number;
+  tags?: string[];
+  definitions: DefinitionModel[];
+  examples?: TranslationModel[];
+};
 export type WordDetailModelType =
   | {
       state: 'added';
@@ -331,16 +344,18 @@ export type WordDetailModelType =
       definitions: DefinitionModel[];
       examples?: TranslationModel[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      inflection?: string;
-      langDialectId: number;
-      sourceId: number;
-      tags?: string[];
-      definitions: DefinitionModel[];
-      examples?: TranslationModel[];
-    };
+  | WordDetailModelExistingType;
+
+export type WordDetailModelExistingNestedType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  inflection?: string;
+  langDialectId: number;
+  sourceId: number;
+  tags?: string[];
+  definitions: DefinitionModelExistingNestedType[];
+  examples?: TranslationModelExistingType[];
+};
 export type WordDetailModelNestedType =
   | {
       state: 'added';
@@ -351,16 +366,7 @@ export type WordDetailModelNestedType =
       definitions: DefinitionModelNestedType[];
       examples?: TranslationModelType[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      inflection?: string;
-      langDialectId: number;
-      sourceId: number;
-      tags?: string[];
-      definitions: DefinitionModelNestedType[];
-      examples?: TranslationModelType[];
-    };
+  | WordDetailModelExistingNestedType;
 
 export class WordDetailModel extends Model {
   private inflection?: string;
@@ -531,6 +537,15 @@ export class WordDetailModel extends Model {
 
 // ============== WordModel ==============
 
+export type WordModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  spelling: string;
+  langDialectId: number;
+  sourceId: number;
+  spellingVariants: SpellingVariantModel[];
+  wordDetails: WordDetailModel[];
+};
 export type WordModelType =
   | {
       state: 'added';
@@ -540,16 +555,17 @@ export type WordModelType =
       spellingVariants: SpellingVariantModel[];
       wordDetails: WordDetailModel[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      spelling: string;
-      langDialectId: number;
-      sourceId: number;
-      spellingVariants: SpellingVariantModel[];
-      wordDetails: WordDetailModel[];
-    };
+  | WordModelExistingType;
 
+export type WordModelExistingNestedType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  spelling: string;
+  langDialectId: number;
+  sourceId: number;
+  spellingVariants: SpellingVariantModelExistingType[];
+  wordDetails: WordDetailModelExistingNestedType[];
+};
 export type WordModelNestedType =
   | {
       state: 'added';
@@ -559,15 +575,7 @@ export type WordModelNestedType =
       spellingVariants: SpellingVariantModelType[];
       wordDetails: WordDetailModelNestedType[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      spelling: string;
-      langDialectId: number;
-      sourceId: number;
-      spellingVariants: SpellingVariantModelType[];
-      wordDetails: WordDetailModelNestedType[];
-    };
+  | WordModelExistingNestedType;
 
 export class WordModel extends Model {
   private spelling: string;
@@ -723,6 +731,13 @@ export class WordModel extends Model {
 }
 
 // ============== SpellingVariantModel ==============
+export type SpellingVariantModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  spelling: string;
+  sourceId: number;
+  langDialectId: number;
+};
 export type SpellingVariantModelType =
   | {
       state: 'added';
@@ -730,13 +745,7 @@ export type SpellingVariantModelType =
       sourceId: number;
       langDialectId: number;
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      spelling: string;
-      sourceId: number;
-      langDialectId: number;
-    };
+  | SpellingVariantModelExistingType;
 
 export class SpellingVariantModel extends Model {
   private spelling: string;

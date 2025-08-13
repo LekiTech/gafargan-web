@@ -210,7 +210,11 @@ const ExampleLine: React.FC<{
                 key={t}
                 label={tagEntries[t.split(';')[0]]}
                 size="small"
-                onDelete={() => patch({ tags: example.getTags()?.filter((x) => x !== t) })}
+                onDelete={
+                  readonly
+                    ? undefined
+                    : () => patch({ tags: example.getTags()?.filter((x) => x !== t) })
+                }
               />
             ))}
           {!readonly && (
@@ -478,7 +482,11 @@ const DefinitionBlock: React.FC<{
                   key={t}
                   label={tagEntries[t.split(';')[0]]}
                   size="small"
-                  onDelete={() => patch({ tags: def.getTags()?.filter((x) => x !== t) })}
+                  onDelete={
+                    readonly
+                      ? undefined
+                      : () => patch({ tags: def.getTags()?.filter((x) => x !== t) })
+                  }
                 />
               ))}
             {!readonly && (
@@ -766,7 +774,11 @@ const WordDetailBlock: React.FC<{
                   key={t}
                   label={tagEntries[t.split(';')[0]]}
                   size="small"
-                  onDelete={() => patch({ tags: data.getTags()?.filter((x) => x !== t) })}
+                  onDelete={
+                    readonly
+                      ? undefined
+                      : () => patch({ tags: data.getTags()?.filter((x) => x !== t) })
+                  }
                 />
               ))}
             {!readonly && (
@@ -1113,7 +1125,7 @@ const SpellingVariants: React.FC<{
 /* ---------------- Entry ---------------- */
 // TODO: optimize by adding custom `arePropsEqual` function to memo
 //       memo isn't working as intended because of unoptimized onChange
-const WordEntry: React.FC<{
+export const WordEntry: React.FC<{
   idx: number;
   wordEntry: WordModel;
   onChange: (e: WordModel) => void;
@@ -1145,7 +1157,9 @@ const WordEntry: React.FC<{
   const toggleOpen = () => {
     setIsOpen(!isOpen);
   };
-  const firstDefinitionValues = wordEntry.getWordDetails()[0].getDefinitions()[0].getValues();
+  const firstDefinitionValues = wordEntry.getWordDetails()[0].getDefinitions()[0]?.getValues() ?? [
+    { value: '' },
+  ];
   // Spelling variants handling
   const addSV = () => {
     const copyWordEntry = wordEntry.getCopy();
