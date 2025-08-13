@@ -168,6 +168,8 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                 ...spellingVariant,
                 spelling: spellingVariant.spelling.toUpperCase(),
                 sourceId: spellingVariant.sourceId,
+                createdById: DUMMY_USER_ID,
+                updatedById: DUMMY_USER_ID,
               });
               await spellingVariantRepo.save(spellingVariantEntity);
               break;

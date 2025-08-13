@@ -246,6 +246,14 @@ export const SpellingVariantSchema = new EntitySchema<SpellingVariant>({
       name: 'source_id',
       type: 'int',
     },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
+    },
     createdAt: {
       name: 'created_at',
       type: 'timestamp',
@@ -258,6 +266,18 @@ export const SpellingVariantSchema = new EntitySchema<SpellingVariant>({
     },
   },
   relations: {
+    createdBy: {
+      type: 'many-to-one',
+      target: () => User,
+      joinColumn: { name: 'created_by' },
+      inverseSide: 'createdTranslations',
+    },
+    updatedBy: {
+      type: 'many-to-one',
+      target: () => User,
+      joinColumn: { name: 'updated_by' },
+      inverseSide: 'updatedTranslations',
+    },
     langDialect: {
       type: 'many-to-one',
       target: () => LangDialect,
