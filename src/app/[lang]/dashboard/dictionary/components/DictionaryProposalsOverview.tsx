@@ -43,6 +43,7 @@ import { WebsiteLang } from '@api/types.model';
 import { approveProposal, rejectProposal } from '@repository/proposal.repository';
 import { langDialectIdToString } from '@/dashboard/utils';
 import { useTranslation } from 'react-i18next';
+import { FORM_ENTRY_STATE } from './WordEntryForm/constants';
 
 function createData(
   id: number,
@@ -200,7 +201,7 @@ const DictionaryProposalsOverview: React.FC<{
                   selectedProposal!.data!.fromLangId,
                   selectedProposal!.data!.toLangId,
                 )}
-                readonly={true}
+                formEntryState={FORM_ENTRY_STATE.EDIT}
               />
             </CardContent>
             {!readonly && (

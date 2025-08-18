@@ -27,7 +27,7 @@ export interface FoundExample {
   word_id: number;
   spelling: string;
   id: number;
-  phrases_per_lang_dialect: Record<string, TranslationPhrase>;
+  phrases_per_lang_dialect: Record<string, TranslationPhrase[]>;
   word_lang_dialect_id: number;
   definitions_lang_dialect_id: number;
   raw: string;

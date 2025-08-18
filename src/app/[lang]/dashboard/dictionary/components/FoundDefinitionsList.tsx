@@ -1,23 +1,9 @@
 'use client';
 import React, { FC, useState } from 'react';
 import { DictionaryLang, WebsiteLang } from '@api/types.model';
-import {
-  Box,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  Pagination,
-  Stack,
-  Typography,
-} from '@mui/material';
-import { ParsedTextComp } from '../../../components/ParsedTextComp';
-import { TagComp } from '../../../components/TagComp';
+import { Box, Divider, List, Pagination, Stack } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { SpellingListItem } from '../../../components/SpellingListItem';
-import { IdToLang } from '@api/languages';
-import { Word } from '@repository/entities/Word';
 import { colors } from '@/colors';
 import { SearchLang } from '@/components/Search/types';
 import { AdvancedSearchInput } from '@/components/Search/AdvancedSearchInput';
@@ -27,12 +13,10 @@ import { DictionarySelect } from '@/components/Search/DictionarySelect';
 import {
   SourceModel,
   SourceModelType,
-  WordDetailModel,
   WordModel,
   WordModelExistingNestedType,
-  WordModelNestedType,
 } from '@/dashboard/models/proposal.model';
-import { WordEntry } from './WordEntryForm';
+import { WordEntry } from './WordEntryForm/WordEntry';
 
 export const FoundDefinitionsList: FC<{
   lang: WebsiteLang;

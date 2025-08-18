@@ -18,6 +18,7 @@ import {
 import DictionaryProposalsOverview from './DictionaryProposalsOverview';
 import { useTranslation } from 'react-i18next';
 import { Proposal } from '@repository/entities/Proposal';
+import { FORM_ENTRY_STATE } from './WordEntryForm/constants';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -83,7 +84,11 @@ const TabsContent: React.FC<{
         />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={1}>
-        <WordEntryForm lang={lang} sourceModels={sourceModels} readonly={false} />
+        <WordEntryForm
+          lang={lang}
+          sourceModels={sourceModels}
+          formEntryState={FORM_ENTRY_STATE.NEW}
+        />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={2}>
         {/* Need to see here only proposals made by the user */}
