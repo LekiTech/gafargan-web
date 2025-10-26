@@ -36,7 +36,7 @@ const WebLanguageSelect = (props: WebLanguageSelectProps) => {
       ? pathname.replace(`/${currentLang}`, `/${lang}`) + params
       : `/${lang}/${params}`;
     trackWebsiteLanguageChange(lang, getUid()!)
-      .then(() => console.log('language changed'))
+      .then(() => console.debug('language changed'))
       .catch((err) => console.error('Error tracking language change:', err));
     // it should be the last action to avoid issues
     router.push(path);

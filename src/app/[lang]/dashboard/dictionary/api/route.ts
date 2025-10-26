@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
       // TODO: replace after auth implementation
       proposedById: DUMMY_USER_ID,
     });
-    console.log('Proposal for dictionary created:', JSON.stringify(result, null, 2));
+    console.debug('Proposal for dictionary created:', JSON.stringify(result, null, 2));
   }
   // Handle the creation of a new word here
   return NextResponse.json({ success: true }, { status: 201 });

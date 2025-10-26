@@ -18,7 +18,7 @@ async function IP() {
   const FALLBACK_IP_ADDRESS = '0.0.0.0';
   const headersList = await headers();
   const forwardedFor = headersList.get('x-forwarded-for');
-  console.log('forwardedFor', forwardedFor);
+  console.debug('forwardedFor', forwardedFor);
   if (forwardedFor) {
     return forwardedFor.split(',')[0] ?? FALLBACK_IP_ADDRESS;
   }
@@ -31,7 +31,7 @@ class MixpanelClient {
       return;
     }
     const ip = await IP();
-    console.log('createUserProfile ip', ip);
+    console.debug('createUserProfile ip', ip);
     _mixpanel?.people.set(uid, {
       $created: new Date().toISOString(),
       ip,
@@ -44,7 +44,7 @@ class MixpanelClient {
       return;
     }
     const ip = await IP();
-    console.log('trackWebsiteLanguageChange ip', ip);
+    console.debug('trackWebsiteLanguageChange ip', ip);
     _mixpanel?.track('Website Language Change', {
       distinct_id: uid,
       ip,
@@ -65,7 +65,7 @@ class MixpanelClient {
       return;
     }
     const ip = await IP();
-    console.log('trackTranslationSearch ip', ip);
+    console.debug('trackTranslationSearch ip', ip);
     _mixpanel?.track('Translation Search', {
       distinct_id: uid,
       ip,
@@ -87,7 +87,7 @@ class MixpanelClient {
       return;
     }
     const ip = await IP();
-    console.log('trackAdvancedSearch ip', ip);
+    console.debug('trackAdvancedSearch ip', ip);
     _mixpanel?.track('Advanced Search', {
       distinct_id: uid,
       ip,
@@ -101,7 +101,7 @@ class MixpanelClient {
       return;
     }
     const ip = await IP();
-    console.log('trackNumbersToLezgi ip', ip);
+    console.debug('trackNumbersToLezgi ip', ip);
     _mixpanel?.track('Numbers to Lezgi', {
       distinct_id: uid,
       ip,
@@ -113,7 +113,7 @@ class MixpanelClient {
       return;
     }
     const ip = await IP();
-    console.log('trackLezgiToNumbers ip', ip);
+    console.debug('trackLezgiToNumbers ip', ip);
     _mixpanel?.track('Lezgi to Numbers', {
       distinct_id: uid,
       ip,
@@ -125,7 +125,7 @@ class MixpanelClient {
       return;
     }
     const ip = await IP();
-    console.log('trackWordOfTheDay ip', ip);
+    console.debug('trackWordOfTheDay ip', ip);
     _mixpanel?.track('Word of the Day', {
       distinct_id: uid,
       ip,

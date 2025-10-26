@@ -24,7 +24,7 @@ export default class BaseApi {
 
   protected log(...payload: any[]): void {
     if (this.logEnabled) {
-      console.log(...payload);
+      console.debug(...payload);
     }
   }
 

@@ -64,7 +64,7 @@ const goToPaginatedResult = (
   if (searchQuery.tag) {
     queryParams.push(`&tag=${searchQuery.tag}`);
   }
-  console.log('queryParams', queryParams);
+  console.debug('queryParams', queryParams);
   const href = `${prefix}?${queryParams.join('&')}`;
   router.push(href);
 };
@@ -156,7 +156,7 @@ export const AdvancedSearchInput: FC<{
   const [shouldPerformSearch, setShouldPerformSearch] = useState(false);
   useEffect(() => {
     if (shouldPerformSearch) {
-      console.log('areSearchParamsAllowingNewSearch', areSearchParamsAllowingNewSearch);
+      console.debug('areSearchParamsAllowingNewSearch', areSearchParamsAllowingNewSearch);
       if (
         areSearchParamsAllowingNewSearch ||
         JSON.stringify(prevInputValues) != JSON.stringify(inputValues)
@@ -181,7 +181,7 @@ export const AdvancedSearchInput: FC<{
   // useEffect(() => {
   //   goToPaginatedResult(inputValues, pathname, searchLang, router);
   // }, [inputValues, pathname, router, searchLang])
-  console.log('roundingRadiusPx', roundingRadiusPx);
+  console.debug('roundingRadiusPx', roundingRadiusPx);
   return (
     <Grid container spacing={0.5} columns={{ xs: 6, lg: 8 }}>
       <Grid size={{ xs: 3, lg: 2 }} order={1}>
@@ -345,7 +345,7 @@ export const AdvancedSearchInput: FC<{
           }
           onChange={(e) => {
             const value = JSON.parse(e.target.value);
-            console.log('selected tag value:', value);
+            console.debug('selected tag value:', value);
             setInputValues({ ...inputValues, tag: value[1] ?? undefined });
           }}
           size="small"
