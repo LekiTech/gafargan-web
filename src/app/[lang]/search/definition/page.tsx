@@ -106,7 +106,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
     return;
   }
   const normalizedExpValue = normalizeLezgiString(exp, { removePunctuation: false });
-  console.log('normalizedExpValue', normalizedExpValue);
+  console.debug('normalizedExpValue', normalizedExpValue);
   // const fromLang = fromLang as DictionaryLang;
   // const toLang = toLang as DictionaryLang;
   const data = await search({
@@ -140,7 +140,7 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
       limit: 100,
     });
 
-  console.log('data', data);
+  console.debug('data', data);
 
   const foundInDefinitions =
     // isExpressionFound

@@ -243,7 +243,7 @@ export async function searchAdvanced({
   const [dataRaw, totalItems] = await query.getManyAndCount();
 
   const items = JSON.parse(JSON.stringify(dataRaw)) as Word[];
-  console.log(items);
+  console.debug(items);
   return {
     items,
     totalItems,

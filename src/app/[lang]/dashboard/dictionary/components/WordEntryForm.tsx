@@ -1428,7 +1428,7 @@ export const WordEntryForm: React.FC<{
   //   });
   // };
   // keep the up-to-date entries in a ref
-  console.log(
+  console.debug(
     'dictionaryModel?.entries[0].getWordDetails()',
     dictionaryModel?.entries[0].getWordDetails(),
   );
