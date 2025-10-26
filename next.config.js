@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  compiler: {
+    // Remove console calls (except inside node_modules)
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      // keep console.error and console.warn, remove others in production
+      exclude: ['error', 'warn']
+    } : false,
+  },
   webpack: (config, options) => {
     config.module.rules.push({
       test: /\.(mp3|wav|m4a)$/,
