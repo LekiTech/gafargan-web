@@ -183,8 +183,8 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
               console.log(`Nothing to do with spellingVariant with ID = ${spellingVariant.id}`);
           }
         }
-        for (let i = 0; i < word.wordDetails.length; i++) {
-          const wordDetail = word.wordDetails[i];
+        for (let i = 0; i < word.details.length; i++) {
+          const wordDetail = word.details[i];
           // TODO: need to see if we need to handle the case when translation is deleted
           const wordDetailExamples = wordDetail.examples?.map((example) => ({
             ...example,

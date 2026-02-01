@@ -109,7 +109,7 @@ export const WordEntry: React.FC<{
   const addWD = () => {
     const copyWordEntry = wordEntry.getCopy();
     copyWordEntry.merge({
-      wordDetails: [
+      details: [
         ...copyWordEntry.getWordDetails(),
         WordDetailModel.createEmpty(defLangDialectId, defSourceId),
       ],
@@ -121,7 +121,7 @@ export const WordEntry: React.FC<{
   const updateWD = (i: number, wd: WordDetailModel) => {
     const copyWordEntry = wordEntry.getCopy();
     copyWordEntry.merge({
-      wordDetails: copyWordEntry.getWordDetails().map((w, idx) => (idx === i ? wd : w)),
+      details: copyWordEntry.getWordDetails().map((w, idx) => (idx === i ? wd : w)),
     });
     setWordEntry(copyWordEntry);
     onChange(copyWordEntry);
@@ -130,7 +130,7 @@ export const WordEntry: React.FC<{
     const copyWordEntry = wordEntry.getCopy();
     if (copyWordEntry.getWordDetails().length > 1) {
       copyWordEntry.merge({
-        wordDetails: copyWordEntry.getWordDetails().filter((_, idx) => idx !== i),
+        details: copyWordEntry.getWordDetails().filter((_, idx) => idx !== i),
       });
       setWordEntry(copyWordEntry);
       onChange(copyWordEntry);

@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { getPaginatedWords, searchAdvanced } from '@repository/word.repository';
+import { getSources } from '@repository/source.repository';
 import { redirect } from 'next/navigation';
 import { Routes } from '../../routes';
 import { AdvancedSearchParams, Params, SearchParams } from '@/types';
@@ -43,6 +44,7 @@ const EmployeesCrudPage: FC<{ params: Params; searchParams: SearchParams }> = as
   if (process.env.NODE_ENV === 'production') {
     redirect(`/${lang}/${Routes.UserSearchPage}`);
   }
+  const sources = await getSources();
 
   // const words = await getPaginatedWords({
   //   page: 0,
@@ -53,7 +55,7 @@ const EmployeesCrudPage: FC<{ params: Params; searchParams: SearchParams }> = as
   return (
     // <div>Hello world!</div>
     // <CustomPaginationActionsTable words={words} />
-    <FoundDefinitionsList lang={lang} paginatedWords={paginatedWords} />
+    <FoundDefinitionsList lang={lang} paginatedWords={paginatedWords} sourceModels={sources} />
   );
 };
 

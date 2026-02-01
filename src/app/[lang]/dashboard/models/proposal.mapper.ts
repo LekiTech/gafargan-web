@@ -94,7 +94,7 @@ export function mapWordToModelNestedType(word: Word): WordModelExistingNestedTyp
     langDialectId: word.langDialectId,
     sourceId: word.sourceId,
     spellingVariants: word.spellingVariants.map(mapSpellingVariantToModelNestedType),
-    wordDetails: word.details.map(mapWordDetailToModelNestedType),
+    details: word.details.map(mapWordDetailToModelNestedType),
   };
   return wordModelType;
 }

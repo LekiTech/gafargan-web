@@ -218,7 +218,7 @@ export const WordDetailBlock: React.FC<{
               variant="standard"
               placeholder={t('addNewWord.inflection', { ns: 'dashboard' })}
               autoComplete="off"
-              value={data.getInflection()}
+              value={data.getInflection() ?? ''}
               onChange={(e) => patch({ inflection: e.target.value })}
               sx={{ minWidth: 200, width: '100%' }}
               slotProps={{
