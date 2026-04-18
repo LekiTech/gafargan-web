@@ -3,18 +3,11 @@ import * as React from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import PublicIcon from '@mui/icons-material/Public';
 import { FoundDefinitionsList } from './FoundDefinitionsList';
 import { WebsiteLang } from '@api/types.model';
 import { PaginatedResponse } from '@repository/types.model';
-import { Word } from '@repository/entities/Word';
 import { WordEntryForm } from '@/dashboard/dictionary/components/WordEntryForm';
-import {
-  DictionaryProposalModel,
-  SourceModelType,
-  WordModelExistingNestedType,
-  WordModelNestedType,
-} from '@/dashboard/models/proposal.model';
+import { SourceModelType, WordModelExistingNestedType } from '@/dashboard/models/proposal.model';
 import DictionaryProposalsOverview from './DictionaryProposalsOverview';
 import { useTranslation } from 'react-i18next';
 import { Proposal } from '@repository/entities/Proposal';

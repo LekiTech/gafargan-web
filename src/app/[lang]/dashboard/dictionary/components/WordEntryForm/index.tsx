@@ -12,6 +12,7 @@ import {
   DictionaryProposalModel,
   SourceModel,
   SourceModelType,
+  STATE,
 } from '../../../models/proposal.model';
 import { LangDialects } from '@repository/constants';
 import { langDialectIdToString } from '../../../utils';
@@ -121,25 +122,44 @@ export const WordEntryForm: React.FC<{
 
   const deleteEntry = useCallback((rowId: string) => {
     setEntryItems((prev) => {
-      const item = prev.find((entry) => entry.id === rowId);
-      if (!item) return prev;
-
-      if (!item.value.isEmpty()) {
-        const answer = window.confirm('Are you sure you want to delete this entry?');
-        if (!answer) return prev;
+      const idx = prev.findIndex((entry) => entry.id === rowId);
+      if (idx === -1) {
+        return prev;
       }
 
-      if (prev.length <= 1) return prev;
+      const item = prev[idx];
+      const entry = item.value;
 
-      return prev.filter((entry) => entry.id !== rowId);
+      if (!entry.isEmpty()) {
+        const answer = window.confirm('Are you sure you want to delete this entry?');
+        if (!answer) {
+          return prev;
+        }
+      }
+
+      // New unsaved row -> remove fully
+      if (!entry.getId()) {
+        if (prev.length <= 1) {
+          return prev;
+        }
+        return prev.filter((entry) => entry.id !== rowId);
+      }
+
+      // Existing row -> keep it, just mark deleted
+      const next = [...prev];
+      entry.markDeleted();
+      next[idx] = { ...item, value: entry };
+      return next;
     });
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    const nonEmptyEntries = entries.filter((entry) => !entry.isEmpty());
+    const proposalEntries = entries.filter(
+      (entry) => !entry.isEmpty() || entry.getState() === STATE.DELETED,
+    );
 
     const proposalValue = new DictionaryProposalModel(
-      nonEmptyEntries,
+      proposalEntries,
       selectedSource,
       fromLangDialectId,
       toLangDialectId,

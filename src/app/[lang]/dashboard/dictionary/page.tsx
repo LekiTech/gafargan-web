@@ -1,24 +1,14 @@
 import { FC } from 'react';
 import { redirect } from 'next/navigation';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Box from '@mui/material/Box';
-import { getPaginatedWords, searchAdvanced } from '@repository/word.repository';
+import { searchAdvanced } from '@repository/word.repository';
 import { Routes } from '../../../routes';
 import { AdvancedSearchParams, Params, SearchParams } from '@/types';
-import { FoundDefinitionsList } from './components/FoundDefinitionsList';
 import { initTranslations } from '@i18n/index';
 import { LangToId } from '@api/languages';
 import { toNumber } from '../../../utils';
 import TabsContent from './components/TabsContent';
 import { getSources } from '@repository/source.repository';
-import {
-  DictionaryProposalModel,
-  SourceModelType,
-  STATE,
-  WordModelExistingNestedType,
-  WordModelNestedType,
-} from '../models/proposal.model';
+import { SourceModelType, STATE, WordModelExistingNestedType } from '../models/proposal.model';
 import { getPaginatedProposals } from '@repository/proposal.repository';
 import { ProposalType } from '@repository/entities/enums';
 import { mapWordToModelNestedType } from '../models/proposal.mapper';

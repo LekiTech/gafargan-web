@@ -227,7 +227,7 @@ const DictionaryProposalsOverview: React.FC<{
                   selectedProposal!.data!.fromLangId,
                   selectedProposal!.data!.toLangId,
                 )}
-                formEntryState={FORM_ENTRY_STATE.EDIT}
+                formEntryState={FORM_ENTRY_STATE.VIEW}
               />
             </CardContent>
             {!readonly && (

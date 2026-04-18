@@ -1,10 +1,5 @@
 'use client';
-import React, { FC, useMemo, useState } from 'react';
-import {
-  ExpressionDefinitionResponseDto,
-  ExpressionExampleResponseDto,
-  ExpressionSearchResponseDto,
-} from '@api/types.dto';
+import React, { FC } from 'react';
 import { WebsiteLang } from '@api/types.model';
 import {
   Box,
@@ -12,18 +7,14 @@ import {
   Grid,
   List,
   ListItem,
-  ListItemText,
-  ListSubheader,
-  Pagination,
   Paper,
-  Skeleton,
   Stack,
   Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { Sidebar } from './Sidebar';
-import { langDialectToString, toContents } from '../utils';
+import { toContents } from '../utils';
 import { ExpressionDetailsComp } from './ExpressionDetailsComp';
 import { FoundExamplesList, FoundExamplesListMobile } from './FoundExamplesList';
 import { SpellingListItem } from '../../../components/SpellingListItem';
@@ -31,11 +22,6 @@ import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinit
 import { useTranslation } from 'react-i18next';
 import { Word } from '@repository/entities/Word';
 import { FoundDefinition, FoundExample, FoundSpelling } from '@repository/types.model';
-import { toLowerCaseLezgi } from '../../../../utils';
-import { IdToLang } from '@api/languages';
-// import { useViewport } from '../../../use/useViewport';
-// import { EBreakpoints } from '../../../utils/BreakPoints';
-// import { IExpressionPageContentStyles } from '@/definition/types';
 
 type ExpressionViewProps = {
   lang: WebsiteLang;

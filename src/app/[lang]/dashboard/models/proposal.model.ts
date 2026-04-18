@@ -12,7 +12,7 @@ abstract class Model {
   protected id?: number;
   constructor(state: StateType, id?: number) {
     this.state = state;
-    if (state === STATE.UNCHANGED) {
+    if (state != STATE.ADDED) {
       this.id = id;
     }
   }
@@ -25,14 +25,23 @@ abstract class Model {
     return this.id;
   }
 
-  setModified(): void {
+  markModified(): void {
     if (this.state !== STATE.ADDED) {
       this.state = STATE.MODIFIED;
     }
   }
 
-  delete(): void {
+  markDeleted(): this {
     this.state = STATE.DELETED;
+    return this;
+  }
+
+  isDeleted(): boolean {
+    return this.state === STATE.DELETED;
+  }
+
+  isPersisted(): boolean {
+    return this.id !== undefined;
   }
 
   abstract isEmpty(): boolean;
@@ -64,7 +73,7 @@ export class TranslationModel extends Model {
   private phrasesPerLangDialect: Record<string, Phrase[]>;
   private tags?: string[];
   constructor(data: TranslationModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.phrasesPerLangDialect = data.phrasesPerLangDialect;
     this.tags = data.tags;
   }
@@ -82,15 +91,15 @@ export class TranslationModel extends Model {
   }
   setPhrasesByLangDialect(langDialectId: number, phrases: Phrase[]): void {
     this.phrasesPerLangDialect[langDialectId] = phrases;
-    this.setModified();
+    this.markModified();
   }
   deletePhrasesForLangDialect(langDialectId: number): void {
     delete this.phrasesPerLangDialect[langDialectId];
-    this.setModified();
+    this.markModified();
   }
   setTags(tags: string[] | undefined): void {
     this.tags = tags;
-    this.setModified();
+    this.markModified();
   }
 
   /**
@@ -104,7 +113,7 @@ export class TranslationModel extends Model {
    * @returns The updated TranslationModel instance.
    */
   merge(data: Partial<TranslationModelType>): TranslationModel {
-    this.setModified();
+    this.markModified();
     if (data.phrasesPerLangDialect !== undefined) {
       this.phrasesPerLangDialect = data.phrasesPerLangDialect;
     }
@@ -208,7 +217,7 @@ export class DefinitionModel extends Model {
   private examples?: TranslationModel[];
 
   constructor(data: DefinitionModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.values = data.values;
     this.tags = data.tags;
     this.examples = data.examples;
@@ -228,17 +237,17 @@ export class DefinitionModel extends Model {
 
   setValues(values: DefinitionValue[]): void {
     this.values = values;
-    this.setModified();
+    this.markModified();
   }
 
   setTags(tags: string[] | undefined): void {
     this.tags = tags;
-    this.setModified();
+    this.markModified();
   }
 
   setExamples(examples: TranslationModel[] | undefined): void {
     this.examples = examples;
-    this.setModified();
+    this.markModified();
   }
 
   /**
@@ -252,7 +261,7 @@ export class DefinitionModel extends Model {
    * @returns The updated DefinitionModel instance.
    */
   merge(data: Partial<DefinitionModelType>): DefinitionModel {
-    this.setModified();
+    this.markModified();
     if (data.values !== undefined) {
       this.values = data.values;
     }
@@ -377,7 +386,7 @@ export class WordDetailModel extends Model {
   private examples?: TranslationModel[];
 
   constructor(data: WordDetailModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.inflection = data.inflection;
     this.langDialectId = data.langDialectId;
     this.sourceId = data.sourceId;
@@ -405,27 +414,27 @@ export class WordDetailModel extends Model {
   }
   setInflection(inflection: string | undefined): void {
     this.inflection = inflection;
-    this.setModified();
+    this.markModified();
   }
   setLangDialectId(langDialectId: number): void {
     this.langDialectId = langDialectId;
-    this.setModified();
+    this.markModified();
   }
   setSourceId(sourceId: number): void {
     this.sourceId = sourceId;
-    this.setModified();
+    this.markModified();
   }
   setTags(tags: string[] | undefined): void {
     this.tags = tags;
-    this.setModified();
+    this.markModified();
   }
   setDefinitions(definitions: DefinitionModel[]): void {
     this.definitions = definitions;
-    this.setModified();
+    this.markModified();
   }
   setExamples(examples: TranslationModel[] | undefined): void {
     this.examples = examples;
-    this.setModified();
+    this.markModified();
   }
 
   /**
@@ -439,7 +448,7 @@ export class WordDetailModel extends Model {
    * @returns The updated WordDetailModel instance.
    */
   merge(data: Partial<WordDetailModelType>): WordDetailModel {
-    this.setModified();
+    this.markModified();
     if (data.inflection !== undefined) {
       this.inflection = data.inflection;
     }
@@ -584,7 +593,7 @@ export class WordModel extends Model {
   private spellingVariants: SpellingVariantModel[];
   private wordDetails: WordDetailModel[];
   constructor(data: WordModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.spelling = data.spelling;
     this.spellingVariants = data.spellingVariants;
     this.wordDetails = data.wordDetails;
@@ -609,23 +618,23 @@ export class WordModel extends Model {
   }
   setSpelling(spelling: string): void {
     this.spelling = spelling;
-    this.setModified();
+    this.markModified();
   }
   setDetails(wordDetails: WordDetailModel[]): void {
     this.wordDetails = wordDetails;
-    this.setModified();
+    this.markModified();
   }
   setSpellingVariants(spellingVariants: SpellingVariantModel[]): void {
     this.spellingVariants = spellingVariants;
-    this.setModified();
+    this.markModified();
   }
   setLangDialectId(langDialectId: number): void {
     this.langDialectId = langDialectId;
-    this.setModified();
+    this.markModified();
   }
   setSourceId(sourceId: number): void {
     this.sourceId = sourceId;
-    this.setModified();
+    this.markModified();
   }
 
   /**
@@ -639,7 +648,7 @@ export class WordModel extends Model {
    * @returns The updated WordModel instance.
    */
   merge(data: Partial<WordModelType>): WordModel {
-    this.setModified();
+    this.markModified();
     if (data.spelling !== undefined) {
       this.spelling = data.spelling;
     }
@@ -753,7 +762,7 @@ export class SpellingVariantModel extends Model {
   private sourceId: number;
   private langDialectId: number;
   constructor(data: SpellingVariantModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.spelling = data.spelling;
     this.sourceId = data.sourceId;
     this.langDialectId = data.langDialectId;
@@ -770,15 +779,15 @@ export class SpellingVariantModel extends Model {
   }
   setSpelling(spelling: string): void {
     this.spelling = spelling;
-    this.setModified();
+    this.markModified();
   }
   setSourceId(sourceId: number): void {
     this.sourceId = sourceId;
-    this.setModified();
+    this.markModified();
   }
   setLangDialectId(langDialectId: number): void {
     this.langDialectId = langDialectId;
-    this.setModified();
+    this.markModified();
   }
 
   isEmpty(): boolean {
@@ -825,7 +834,7 @@ export class SpellingVariantModel extends Model {
    * @returns The updated SpellingVariantModel instance.
    */
   merge(data: Partial<SpellingVariantModelType>): SpellingVariantModel {
-    this.setModified();
+    this.markModified();
     if (data.spelling !== undefined) {
       this.spelling = data.spelling;
     }
@@ -897,7 +906,7 @@ export class SourceModel extends Model {
   private description?: string;
 
   constructor(data: SourceModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.name = data.name;
     this.authors = data.authors;
     this.publicationYear = data.publicationYear;
@@ -938,39 +947,39 @@ export class SourceModel extends Model {
 
   setName(name: string): void {
     this.name = name;
-    this.setModified();
+    this.markModified();
   }
   setAuthors(authors: string | undefined): void {
     this.authors = authors;
-    this.setModified();
+    this.markModified();
   }
   setPublicationYear(publicationYear: string | undefined): void {
     this.publicationYear = publicationYear;
-    this.setModified();
+    this.markModified();
   }
   setProvidedBy(providedBy: string | undefined): void {
     this.providedBy = providedBy;
-    this.setModified();
+    this.markModified();
   }
   setProvidedByUrl(providedByUrl: string | undefined): void {
     this.providedByUrl = providedByUrl;
-    this.setModified();
+    this.markModified();
   }
   setProcessedBy(processedBy: string | undefined): void {
     this.processedBy = processedBy;
-    this.setModified();
+    this.markModified();
   }
   setCopyright(copyright: string | undefined): void {
     this.copyright = copyright;
-    this.setModified();
+    this.markModified();
   }
   setSeeSourceUrl(seeSourceUrl: string | undefined): void {
     this.seeSourceUrl = seeSourceUrl;
-    this.setModified();
+    this.markModified();
   }
   setDescription(description: string | undefined): void {
     this.description = description;
-    this.setModified();
+    this.markModified();
   }
 
   /**
@@ -985,7 +994,7 @@ export class SourceModel extends Model {
    * @returns The updated SourceModel instance.
    */
   merge(data: Partial<SourceModelType>): SourceModel {
-    this.setModified();
+    this.markModified();
     if (data.name !== undefined) {
       this.name = data.name;
     }

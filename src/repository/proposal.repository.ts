@@ -145,6 +145,9 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
     const dictionaryProposal: DictionaryProposalModelNestedType =
       proposal.data as DictionaryProposalModelNestedType;
     for (const word of dictionaryProposal.entries) {
+      if ((word.state === STATE.MODIFIED || word.state === STATE.DELETED) && !word.id) {
+        throw new Error(`Modified/deleted word "${word.spelling}" is missing id`);
+      }
       if (word.state === STATE.DELETED) {
         await wordRepo.delete(word.id);
         // no need to continue inside the word, as it should be deleted with all of it inside (except for translations)

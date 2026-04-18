@@ -5,6 +5,7 @@ import {
   SpellingVariantModel,
   WordDetailModel,
   DefinitionModel,
+  STATE,
 } from '@/dashboard/models/proposal.model';
 import { langDialectIdToString } from '@/dashboard/utils';
 import { expressionFont } from '@/fonts';
@@ -325,9 +326,34 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
 
   const deleteSV = useCallback(
     (i: number) => {
+      const currentVariants = wordEntry.getSpellingVariants();
+      if (currentVariants.length < 1) {
+        return;
+      }
+
+      const item = currentVariants[i];
+      if (!item) {
+        return;
+      }
+
+      // remove brand new item
+      if (!item.getId()) {
+        emit(
+          cloneWordShallow(wordEntry, {
+            spellingVariants: currentVariants.filter((_, idx) => idx !== i),
+          }),
+        );
+        return;
+      }
+
+      // mark persisted item as deleted
+      const next = [...currentVariants];
+      item.markDeleted();
+      next[i] = item;
+
       emit(
         cloneWordShallow(wordEntry, {
-          spellingVariants: wordEntry.getSpellingVariants().filter((_, idx) => idx !== i),
+          spellingVariants: next,
         }),
       );
     },
@@ -362,16 +388,33 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
 
   const deleteWD = useCallback(
     (i: number) => {
-      const current = wordEntry.getWordDetails();
-
-      if (current.length <= 1) {
+      const currentDetails = wordEntry.getWordDetails();
+      if (currentDetails.length <= 1) {
         setShowCannotDeleteMessage(true);
         return;
       }
+      const item = currentDetails[i];
+      if (!item) {
+        return;
+      }
+
+      // remove brand new item
+      if (!item.getId()) {
+        emit(
+          cloneWordShallow(wordEntry, {
+            wordDetails: currentDetails.filter((_, idx) => idx !== i),
+          }),
+        );
+      }
+
+      // mark persisted item as deleted
+      const next = [...currentDetails];
+      item.markDeleted();
+      next[i] = item;
 
       emit(
         cloneWordShallow(wordEntry, {
-          wordDetails: current.filter((_, idx) => idx !== i),
+          wordDetails: next,
         }),
       );
     },
@@ -563,18 +606,21 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
             readonly={readonly}
           />
 
-          {wordEntry.getWordDetails().map((wd, i) => (
-            <WordDetailBlock
-              key={i}
-              data={wd}
-              onChange={(d) => updateWD(i, d)}
-              onDelete={() => deleteWD(i)}
-              lang={lang}
-              allSources={allSources}
-              wordLangDialectId={wordEntry.getLangDialectId()}
-              readonly={readonly}
-            />
-          ))}
+          {wordEntry
+            .getWordDetails()
+            .filter((wd) => wd.getState() !== STATE.DELETED)
+            .map((wd, i) => (
+              <WordDetailBlock
+                key={i}
+                data={wd}
+                onChange={(d) => updateWD(i, d)}
+                onDelete={() => deleteWD(i)}
+                lang={lang}
+                allSources={allSources}
+                wordLangDialectId={wordEntry.getLangDialectId()}
+                readonly={readonly}
+              />
+            ))}
 
           {!readonly && (
             <Button

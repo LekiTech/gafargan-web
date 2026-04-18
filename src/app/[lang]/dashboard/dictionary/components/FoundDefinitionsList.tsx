@@ -89,47 +89,6 @@ export const FoundDefinitionsList: FC<{
             readonly={true}
           />
         ))}
-        {/* {words.flatMap((word, i) => {
-          return [
-            <Divider key={`${word.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,
-            <ListItem key={`${word.id}_item_${i}`} sx={{ pt: 0, minHeight: '125px' }}>
-              <Stack direction="column">
-                <SpellingListItem
-                  key={`${word.id}_spelling_${i}`}
-                  id={word.id}
-                  spelling={word.spelling}
-                  // fromLang={IdToLang[word.langDialect.id]}
-                  fromLang={IdToLang[word.langDialectId]}
-                  sx={{ ml: 0, pl: 0 }}
-                />
-                {word.wordDetails.map((wordDetail, idx) => (
-                  <Box key={`${word.id}_${wordDetail.id}`}>
-                <ListItemText
-                    primary={
-                      <Stack direction="row" spacing={2} sx={{ mt: '10px !important' }}>
-                        {wordDetail?.definitions[0]?.values[0]?.tags &&
-                          wordDetail?.definitions[0]?.values[0]?.tags.length > 0 &&
-                          wordDetail?.definitions[0]?.values[0]?.tags.map((tag, t_i) => (
-                            <TagComp
-                              key={`${word.id}_definition_${i}_tags_${tag}_${t_i}`}
-                              label={t(tag, { ns: 'tags' })}
-                            />
-                          ))}
-                        <ParsedTextComp
-                          text={wordDetail?.definitions[0]?.values[0].value ?? ''}
-                        />
-                      </Stack>
-                    }
-                  />
-                  <Typography variant="caption" color="text.secondary" sx={{ mt: '10px' }}>
-                    {wordDetail?.source?.name} - {wordDetail?.source?.authors}
-                  </Typography>
-                  </Box>
-                ))}
-              </Stack>
-            </ListItem>,
-          ];
-        })} */}
       </List>
       <Pagination
         count={paginatedWords.totalPages}
@@ -143,45 +102,3 @@ export const FoundDefinitionsList: FC<{
     </Stack>
   ) : null;
 };
-
-// export const FoundDefinitionsListMobile: FC<{
-//   lang: WebsiteLang;
-//   definitions?: FoundDefinition[];
-// }> = ({ lang, definitions }) => {
-//   const [open, setOpen] = React.useState(false);
-
-//   const handleClick = () => {
-//     setOpen(!open);
-//   };
-//   return (
-//     <Collapse
-//       in={open}
-//       timeout="auto"
-//       collapsedSize={'150px'}
-//       orientation="vertical"
-//       sx={{ position: 'relative' }}
-//     >
-//       <FoundDefinitionsList lang={lang} definitions={definitions} />
-//       {!open && (
-//         <Box
-//           sx={{
-//             position: 'absolute',
-//             top: 0,
-//             height: '150px',
-//             width: '100%',
-//             backgroundImage:
-//               'linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,1) 80% 100%)',
-//           }}
-//         />
-//       )}
-//       <IconButton
-//         aria-label="expand"
-//         onClick={handleClick}
-//         size="small"
-//         sx={{ position: 'absolute', bottom: '0px', left: '47%', display: 'block', margin: 'auto' }}
-//       >
-//         {open ? <ExpandLess /> : <ExpandMore />}
-//       </IconButton>
-//     </Collapse>
-//   );
-// };
