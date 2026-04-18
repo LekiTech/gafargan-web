@@ -4,6 +4,7 @@ import {
   SourceModel,
   SpellingVariantModel,
   WordDetailModel,
+  DefinitionModel,
 } from '@/dashboard/models/proposal.model';
 import { langDialectIdToString } from '@/dashboard/utils';
 import { expressionFont } from '@/fonts';
@@ -45,6 +46,105 @@ type WordEntryProps = {
   readonly: boolean;
 };
 
+const cloneDefinitionShallow = (
+  definition: DefinitionModel,
+  overrides: {
+    values?: ReturnType<DefinitionModel['getValues']>;
+    tags?: ReturnType<DefinitionModel['getTags']>;
+    examples?: ReturnType<DefinitionModel['getExamples']>;
+  } = {},
+): DefinitionModel => {
+  const state = definition.getState();
+
+  if (state === 'added') {
+    return new DefinitionModel({
+      state,
+      values: overrides.values ?? [...definition.getValues()],
+      tags: overrides.tags ?? definition.getTags(),
+      examples: overrides.examples ?? definition.getExamples(),
+    });
+  }
+
+  return new DefinitionModel({
+    state,
+    id: definition.getId()!,
+    values: overrides.values ?? [...definition.getValues()],
+    tags: overrides.tags ?? definition.getTags(),
+    examples: overrides.examples ?? definition.getExamples(),
+  });
+};
+
+const cloneWordDetailShallow = (
+  detail: WordDetailModel,
+  overrides: {
+    inflection?: ReturnType<WordDetailModel['getInflection']>;
+    langDialectId?: ReturnType<WordDetailModel['getLangDialectId']>;
+    sourceId?: ReturnType<WordDetailModel['getSourceId']>;
+    tags?: ReturnType<WordDetailModel['getTags']>;
+    definitions?: ReturnType<WordDetailModel['getDefinitions']>;
+    examples?: ReturnType<WordDetailModel['getExamples']>;
+  } = {},
+): WordDetailModel => {
+  const state = detail.getState();
+
+  if (state === 'added') {
+    return new WordDetailModel({
+      state,
+      inflection: overrides.inflection ?? detail.getInflection(),
+      langDialectId: overrides.langDialectId ?? detail.getLangDialectId(),
+      sourceId: overrides.sourceId ?? detail.getSourceId(),
+      tags: overrides.tags ?? detail.getTags(),
+      definitions: overrides.definitions ?? detail.getDefinitions(),
+      examples: overrides.examples ?? detail.getExamples(),
+    });
+  }
+
+  return new WordDetailModel({
+    state,
+    id: detail.getId()!,
+    inflection: overrides.inflection ?? detail.getInflection(),
+    langDialectId: overrides.langDialectId ?? detail.getLangDialectId(),
+    sourceId: overrides.sourceId ?? detail.getSourceId(),
+    tags: overrides.tags ?? detail.getTags(),
+    definitions: overrides.definitions ?? detail.getDefinitions(),
+    examples: overrides.examples ?? detail.getExamples(),
+  });
+};
+
+const cloneWordShallow = (
+  word: WordModel,
+  overrides: {
+    spelling?: ReturnType<WordModel['getSpelling']>;
+    langDialectId?: ReturnType<WordModel['getLangDialectId']>;
+    sourceId?: ReturnType<WordModel['getSourceId']>;
+    spellingVariants?: ReturnType<WordModel['getSpellingVariants']>;
+    wordDetails?: ReturnType<WordModel['getWordDetails']>;
+  } = {},
+): WordModel => {
+  const state = word.getState();
+
+  if (state === 'added') {
+    return new WordModel({
+      state,
+      spelling: overrides.spelling ?? word.getSpelling(),
+      langDialectId: overrides.langDialectId ?? word.getLangDialectId(),
+      sourceId: overrides.sourceId ?? word.getSourceId(),
+      spellingVariants: overrides.spellingVariants ?? word.getSpellingVariants(),
+      wordDetails: overrides.wordDetails ?? word.getWordDetails(),
+    });
+  }
+
+  return new WordModel({
+    state,
+    id: word.getId()!,
+    spelling: overrides.spelling ?? word.getSpelling(),
+    langDialectId: overrides.langDialectId ?? word.getLangDialectId(),
+    sourceId: overrides.sourceId ?? word.getSourceId(),
+    spellingVariants: overrides.spellingVariants ?? word.getSpellingVariants(),
+    wordDetails: overrides.wordDetails ?? word.getWordDetails(),
+  });
+};
+
 const WordEntryComponent: React.FC<WordEntryProps> = ({
   rowId,
   idx,
@@ -82,7 +182,7 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
   );
 
   const firstDefinitionValue = useMemo(() => {
-    return wordEntry.getWordDetails()[0].getDefinitions()[0]?.getValues()?.[0]?.value ?? '';
+    return wordEntry.getWordDetails()[0]?.getDefinitions()[0]?.getValues()?.[0]?.value ?? '';
   }, [wordEntry]);
 
   const stats = useMemo(() => {
@@ -129,126 +229,151 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
 
   const handleSpellingChange = useCallback(
     (value: string) => {
-      const copy = wordEntry.getCopy();
-      copy.merge({ spelling: value });
-      emit(copy);
+      emit(cloneWordShallow(wordEntry, { spelling: value }));
     },
     [wordEntry, emit],
   );
 
   const handleFirstDefinitionChange = useCallback(
     (value: string) => {
-      const copy = wordEntry.getCopy();
-      const wordDetails = copy.getWordDetails();
-      const firstDefinition = wordDetails[0]?.getDefinitions()[0];
-      const firstValues = firstDefinition?.getValues() ?? [{ value: '' }];
+      const wordDetails = wordEntry.getWordDetails();
+      const firstDetail = wordDetails[0];
+      if (!firstDetail) return;
 
-      firstValues[0] = {
-        ...firstValues[0],
+      const definitions = firstDetail.getDefinitions();
+      const firstDefinition = definitions[0];
+      if (!firstDefinition) return;
+
+      const currentValues = firstDefinition.getValues();
+      const nextValues = [...currentValues];
+      nextValues[0] = {
+        ...(nextValues[0] ?? { value: '' }),
         value,
       };
 
-      firstDefinition?.setValues(firstValues);
-      emit(copy);
+      const nextFirstDefinition = cloneDefinitionShallow(firstDefinition, {
+        values: nextValues,
+      });
+
+      const nextDefinitions = [...definitions];
+      nextDefinitions[0] = nextFirstDefinition;
+
+      const nextFirstDetail = cloneWordDetailShallow(firstDetail, {
+        definitions: nextDefinitions,
+      });
+
+      const nextWordDetails = [...wordDetails];
+      nextWordDetails[0] = nextFirstDetail;
+
+      emit(
+        cloneWordShallow(wordEntry, {
+          wordDetails: nextWordDetails,
+        }),
+      );
     },
     [wordEntry, emit],
   );
 
   const handleWordLangDialectChange = useCallback(
     (langDialectId: number) => {
-      const copy = wordEntry.getCopy();
-      copy.setLangDialectId(langDialectId);
-      emit(copy);
+      emit(cloneWordShallow(wordEntry, { langDialectId }));
     },
     [wordEntry, emit],
   );
 
   const handleWordSourceChange = useCallback(
     (sourceId: number) => {
-      const copy = wordEntry.getCopy();
-      copy.setSourceId(sourceId);
-      emit(copy);
+      emit(cloneWordShallow(wordEntry, { sourceId }));
     },
     [wordEntry, emit],
   );
 
   const addSV = useCallback(() => {
-    const copy = wordEntry.getCopy();
+    const spellingVariants = wordEntry.getSpellingVariants();
     const lastDialectId =
-      copy.getSpellingVariants().at(-1)?.getLangDialectId() ?? copy.getLangDialectId();
+      spellingVariants.at(-1)?.getLangDialectId() ?? wordEntry.getLangDialectId();
 
-    const wordLangIsoCode = IdToLang[copy.getLangDialectId()];
+    const wordLangIsoCode = IdToLang[wordEntry.getLangDialectId()];
     const allDialectIdsForLang = LangToId[wordLangIsoCode];
     const nextDialectId =
       lastDialectId === allDialectIdsForLang.at(-1) ? lastDialectId : lastDialectId + 1;
 
-    copy.merge({
-      spellingVariants: [
-        ...(copy.getSpellingVariants() ?? []),
-        SpellingVariantModel.createEmpty(nextDialectId, copy.getSourceId()),
-      ],
-    });
-
-    emit(copy);
+    emit(
+      cloneWordShallow(wordEntry, {
+        spellingVariants: [
+          ...spellingVariants,
+          SpellingVariantModel.createEmpty(nextDialectId, wordEntry.getSourceId()),
+        ],
+      }),
+    );
   }, [wordEntry, emit]);
 
   const updateSV = useCallback(
     (i: number, sv: SpellingVariantModel) => {
-      const copy = wordEntry.getCopy();
-      copy.merge({
-        spellingVariants: copy.getSpellingVariants().map((item, idx) => (idx === i ? sv : item)),
-      });
-      emit(copy);
+      const current = wordEntry.getSpellingVariants();
+      const next = [...current];
+      next[i] = sv;
+
+      emit(
+        cloneWordShallow(wordEntry, {
+          spellingVariants: next,
+        }),
+      );
     },
     [wordEntry, emit],
   );
 
   const deleteSV = useCallback(
     (i: number) => {
-      const copy = wordEntry.getCopy();
-      copy.merge({
-        spellingVariants: copy.getSpellingVariants().filter((_, idx) => idx !== i),
-      });
-      emit(copy);
+      emit(
+        cloneWordShallow(wordEntry, {
+          spellingVariants: wordEntry.getSpellingVariants().filter((_, idx) => idx !== i),
+        }),
+      );
     },
     [wordEntry, emit],
   );
 
   const addWD = useCallback(() => {
-    const copy = wordEntry.getCopy();
-    copy.merge({
-      wordDetails: [
-        ...copy.getWordDetails(),
-        WordDetailModel.createEmpty(defLangDialectId, defSourceId),
-      ],
-    });
-    emit(copy);
+    emit(
+      cloneWordShallow(wordEntry, {
+        wordDetails: [
+          ...wordEntry.getWordDetails(),
+          WordDetailModel.createEmpty(defLangDialectId, defSourceId),
+        ],
+      }),
+    );
   }, [wordEntry, defLangDialectId, defSourceId, emit]);
 
   const updateWD = useCallback(
     (i: number, wd: WordDetailModel) => {
-      const copy = wordEntry.getCopy();
-      copy.merge({
-        wordDetails: copy.getWordDetails().map((detail, idx) => (idx === i ? wd : detail)),
-      });
-      emit(copy);
+      const current = wordEntry.getWordDetails();
+      const next = [...current];
+      next[i] = wd;
+
+      emit(
+        cloneWordShallow(wordEntry, {
+          wordDetails: next,
+        }),
+      );
     },
     [wordEntry, emit],
   );
 
   const deleteWD = useCallback(
     (i: number) => {
-      const copy = wordEntry.getCopy();
+      const current = wordEntry.getWordDetails();
 
-      if (copy.getWordDetails().length <= 1) {
+      if (current.length <= 1) {
         setShowCannotDeleteMessage(true);
         return;
       }
 
-      copy.merge({
-        wordDetails: copy.getWordDetails().filter((_, idx) => idx !== i),
-      });
-      emit(copy);
+      emit(
+        cloneWordShallow(wordEntry, {
+          wordDetails: current.filter((_, idx) => idx !== i),
+        }),
+      );
     },
     [wordEntry, emit],
   );

@@ -82,7 +82,7 @@ const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async
   const proposals = await getPaginatedProposals({
     type: ProposalType.DICTIONARY,
     page: 0,
-    size: 10,
+    size: 30,
   });
   return (
     <TabsContent

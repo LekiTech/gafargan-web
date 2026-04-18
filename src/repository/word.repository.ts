@@ -238,7 +238,7 @@ export async function searchAdvanced({
     ends: params.ends ?? null,
   });
 
-  // console.log(query.getSql());
+  // console.log(query.getQueryAndParameters());
 
   const [dataRaw, totalItems] = await query.getManyAndCount();
 

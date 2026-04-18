@@ -255,8 +255,12 @@ const DictionaryProposalsOverview: React.FC<{
                   variant="contained"
                   startIcon={<ApproveIcon />}
                   onClick={async () => {
-                    await approveProposal(selectedProposal.id, 1);
-                    window.location.reload();
+                    try {
+                      await approveProposal(selectedProposal.id, 1);
+                      window.location.reload();
+                    } catch (e: any) {
+                      alert(`Cannot approve proposal. ${e.message}`);
+                    }
                   }}
                 >
                   Approve
