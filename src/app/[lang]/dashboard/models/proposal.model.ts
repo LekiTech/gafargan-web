@@ -247,7 +247,6 @@ export class DefinitionModel extends Model {
 
   setExamples(examples: TranslationModel[] | undefined): void {
     this.examples = examples;
-    this.markModified();
   }
 
   /**
@@ -289,6 +288,24 @@ export class DefinitionModel extends Model {
       values: this.values,
       tags: this.tags,
       examples: this.examples?.map((e) => e.getCopy()),
+    });
+  }
+
+  getShallowCopy(): DefinitionModel {
+    if (this.state === STATE.ADDED) {
+      return new DefinitionModel({
+        state: this.state,
+        values: this.values,
+        tags: this.tags,
+        examples: this.examples,
+      });
+    }
+    return new DefinitionModel({
+      state: this.state,
+      id: this.id!,
+      values: this.values,
+      tags: this.tags,
+      examples: this.examples,
     });
   }
 
@@ -430,11 +447,9 @@ export class WordDetailModel extends Model {
   }
   setDefinitions(definitions: DefinitionModel[]): void {
     this.definitions = definitions;
-    this.markModified();
   }
   setExamples(examples: TranslationModel[] | undefined): void {
     this.examples = examples;
-    this.markModified();
   }
 
   /**
@@ -485,6 +500,30 @@ export class WordDetailModel extends Model {
       tags: this.tags,
       definitions: this.definitions.map((d) => d.getCopy()),
       examples: this.examples?.map((e) => e.getCopy()),
+    });
+  }
+
+  getShallowCopy(): WordDetailModel {
+    if (this.state === STATE.ADDED) {
+      return new WordDetailModel({
+        state: this.state,
+        inflection: this.inflection,
+        langDialectId: this.langDialectId,
+        sourceId: this.sourceId,
+        tags: this.tags,
+        definitions: this.definitions,
+        examples: this.examples,
+      });
+    }
+    return new WordDetailModel({
+      state: this.state,
+      id: this.id!,
+      inflection: this.inflection,
+      langDialectId: this.langDialectId,
+      sourceId: this.sourceId,
+      tags: this.tags,
+      definitions: this.definitions,
+      examples: this.examples,
     });
   }
 
@@ -620,13 +659,11 @@ export class WordModel extends Model {
     this.spelling = spelling;
     this.markModified();
   }
-  setDetails(wordDetails: WordDetailModel[]): void {
+  setWordDetails(wordDetails: WordDetailModel[]): void {
     this.wordDetails = wordDetails;
-    this.markModified();
   }
   setSpellingVariants(spellingVariants: SpellingVariantModel[]): void {
     this.spellingVariants = spellingVariants;
-    this.markModified();
   }
   setLangDialectId(langDialectId: number): void {
     this.langDialectId = langDialectId;
@@ -679,6 +716,28 @@ export class WordModel extends Model {
       langDialectId: this.langDialectId,
       wordDetails: this.wordDetails.map((wd) => wd.getCopy()),
       spellingVariants: this.spellingVariants.map((sv) => sv.getCopy()),
+      sourceId: this.sourceId,
+    });
+  }
+
+  getShallowCopy(): WordModel {
+    if (this.state === STATE.ADDED) {
+      return new WordModel({
+        state: this.state,
+        spelling: this.spelling,
+        langDialectId: this.langDialectId,
+        wordDetails: this.wordDetails,
+        spellingVariants: this.spellingVariants,
+        sourceId: this.sourceId,
+      });
+    }
+    return new WordModel({
+      state: this.state,
+      id: this.id!,
+      spelling: this.spelling,
+      langDialectId: this.langDialectId,
+      wordDetails: this.wordDetails,
+      spellingVariants: this.spellingVariants,
       sourceId: this.sourceId,
     });
   }

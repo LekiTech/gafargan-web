@@ -21,7 +21,9 @@ export const SpellingVariants: React.FC<{
   readonly: boolean;
 }> = ({ word, onAdd, onUpdate, onDelete, allSources, lang, readonly = false }) => {
   const { t } = useTranslation(lang);
-  const visibleSpellingVariants = word.getSpellingVariants().filter((sv) => !sv.isDeleted());
+  const visibleSpellingVariants = readonly
+    ? word.getSpellingVariants()
+    : word.getSpellingVariants().filter((sv) => !sv.isDeleted());
   const wordLangIsoCode = IdToLang[word.getLangDialectId()];
   const allDialectIdsForLang = LangToId[wordLangIsoCode];
   const allDialectsForLang = Object.entries(LangDialects).filter(([id, name]) => {

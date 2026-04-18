@@ -5,6 +5,7 @@ import {
   SpellingVariantModel,
   WordDetailModel,
   DefinitionModel,
+  STATE,
 } from '@/dashboard/models/proposal.model';
 import { langDialectIdToString } from '@/dashboard/utils';
 import { expressionFont } from '@/fonts';
@@ -30,6 +31,7 @@ import { useTranslation } from 'react-i18next';
 import { INPUT_PASTEL_BEIGE, BUTTON_PASTEL_COLORS_BLUE } from './constants';
 import { SpellingVariants } from './SpellingVariants';
 import { WordDetailBlock } from './WordDetailBlock';
+import { StateChip } from './StateChip';
 
 type WordEntryProps = {
   rowId: string;
@@ -44,105 +46,6 @@ type WordEntryProps = {
   isFirst?: boolean;
   isLast?: boolean;
   readonly: boolean;
-};
-
-const cloneDefinitionShallow = (
-  definition: DefinitionModel,
-  overrides: {
-    values?: ReturnType<DefinitionModel['getValues']>;
-    tags?: ReturnType<DefinitionModel['getTags']>;
-    examples?: ReturnType<DefinitionModel['getExamples']>;
-  } = {},
-): DefinitionModel => {
-  const state = definition.getState();
-
-  if (state === 'added') {
-    return new DefinitionModel({
-      state,
-      values: overrides.values ?? [...definition.getValues()],
-      tags: overrides.tags ?? definition.getTags(),
-      examples: overrides.examples ?? definition.getExamples(),
-    });
-  }
-
-  return new DefinitionModel({
-    state,
-    id: definition.getId()!,
-    values: overrides.values ?? [...definition.getValues()],
-    tags: overrides.tags ?? definition.getTags(),
-    examples: overrides.examples ?? definition.getExamples(),
-  });
-};
-
-const cloneWordDetailShallow = (
-  detail: WordDetailModel,
-  overrides: {
-    inflection?: ReturnType<WordDetailModel['getInflection']>;
-    langDialectId?: ReturnType<WordDetailModel['getLangDialectId']>;
-    sourceId?: ReturnType<WordDetailModel['getSourceId']>;
-    tags?: ReturnType<WordDetailModel['getTags']>;
-    definitions?: ReturnType<WordDetailModel['getDefinitions']>;
-    examples?: ReturnType<WordDetailModel['getExamples']>;
-  } = {},
-): WordDetailModel => {
-  const state = detail.getState();
-
-  if (state === 'added') {
-    return new WordDetailModel({
-      state,
-      inflection: overrides.inflection ?? detail.getInflection(),
-      langDialectId: overrides.langDialectId ?? detail.getLangDialectId(),
-      sourceId: overrides.sourceId ?? detail.getSourceId(),
-      tags: overrides.tags ?? detail.getTags(),
-      definitions: overrides.definitions ?? detail.getDefinitions(),
-      examples: overrides.examples ?? detail.getExamples(),
-    });
-  }
-
-  return new WordDetailModel({
-    state,
-    id: detail.getId()!,
-    inflection: overrides.inflection ?? detail.getInflection(),
-    langDialectId: overrides.langDialectId ?? detail.getLangDialectId(),
-    sourceId: overrides.sourceId ?? detail.getSourceId(),
-    tags: overrides.tags ?? detail.getTags(),
-    definitions: overrides.definitions ?? detail.getDefinitions(),
-    examples: overrides.examples ?? detail.getExamples(),
-  });
-};
-
-const cloneWordShallow = (
-  word: WordModel,
-  overrides: {
-    spelling?: ReturnType<WordModel['getSpelling']>;
-    langDialectId?: ReturnType<WordModel['getLangDialectId']>;
-    sourceId?: ReturnType<WordModel['getSourceId']>;
-    spellingVariants?: ReturnType<WordModel['getSpellingVariants']>;
-    wordDetails?: ReturnType<WordModel['getWordDetails']>;
-  } = {},
-): WordModel => {
-  const state = word.getState();
-
-  if (state === 'added') {
-    return new WordModel({
-      state,
-      spelling: overrides.spelling ?? word.getSpelling(),
-      langDialectId: overrides.langDialectId ?? word.getLangDialectId(),
-      sourceId: overrides.sourceId ?? word.getSourceId(),
-      spellingVariants: overrides.spellingVariants ?? word.getSpellingVariants(),
-      wordDetails: overrides.wordDetails ?? word.getWordDetails(),
-    });
-  }
-
-  return new WordModel({
-    state,
-    id: word.getId()!,
-    spelling: overrides.spelling ?? word.getSpelling(),
-    langDialectId: overrides.langDialectId ?? word.getLangDialectId(),
-    sourceId: overrides.sourceId ?? word.getSourceId(),
-    spellingVariants: overrides.spellingVariants ?? word.getSpellingVariants(),
-    wordDetails: overrides.wordDetails ?? word.getWordDetails(),
-  });
 };
 
 const WordEntryComponent: React.FC<WordEntryProps> = ({
@@ -229,7 +132,9 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
 
   const handleSpellingChange = useCallback(
     (value: string) => {
-      emit(cloneWordShallow(wordEntry, { spelling: value }));
+      const clonedWord = wordEntry.getShallowCopy();
+      clonedWord.setSpelling(value);
+      emit(clonedWord);
     },
     [wordEntry, emit],
   );
@@ -251,39 +156,39 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
         value,
       };
 
-      const nextFirstDefinition = cloneDefinitionShallow(firstDefinition, {
-        values: nextValues,
-      });
+      const nextFirstDefinition = firstDefinition.getShallowCopy();
+      nextFirstDefinition.setValues(nextValues);
 
       const nextDefinitions = [...definitions];
       nextDefinitions[0] = nextFirstDefinition;
 
-      const nextFirstDetail = cloneWordDetailShallow(firstDetail, {
-        definitions: nextDefinitions,
-      });
+      const nextFirstDetail = firstDetail.getShallowCopy();
+      firstDetail.setDefinitions(nextDefinitions);
 
       const nextWordDetails = [...wordDetails];
       nextWordDetails[0] = nextFirstDetail;
 
-      emit(
-        cloneWordShallow(wordEntry, {
-          wordDetails: nextWordDetails,
-        }),
-      );
+      const clonedWord = wordEntry.getShallowCopy();
+      clonedWord.setWordDetails(nextWordDetails);
+      emit(clonedWord);
     },
     [wordEntry, emit],
   );
 
   const handleWordLangDialectChange = useCallback(
     (langDialectId: number) => {
-      emit(cloneWordShallow(wordEntry, { langDialectId }));
+      const clonedWord = wordEntry.getShallowCopy();
+      clonedWord.setLangDialectId(langDialectId);
+      emit(clonedWord);
     },
     [wordEntry, emit],
   );
 
   const handleWordSourceChange = useCallback(
     (sourceId: number) => {
-      emit(cloneWordShallow(wordEntry, { sourceId }));
+      const clonedWord = wordEntry.getShallowCopy();
+      clonedWord.setSourceId(sourceId);
+      emit(clonedWord);
     },
     [wordEntry, emit],
   );
@@ -298,14 +203,12 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
     const nextDialectId =
       lastDialectId === allDialectIdsForLang.at(-1) ? lastDialectId : lastDialectId + 1;
 
-    emit(
-      cloneWordShallow(wordEntry, {
-        spellingVariants: [
-          ...spellingVariants,
-          SpellingVariantModel.createEmpty(nextDialectId, wordEntry.getSourceId()),
-        ],
-      }),
-    );
+    const clonedWord = wordEntry.getShallowCopy();
+    clonedWord.setSpellingVariants([
+      ...spellingVariants,
+      SpellingVariantModel.createEmpty(nextDialectId, wordEntry.getSourceId()),
+    ]);
+    emit(clonedWord);
   }, [wordEntry, emit]);
 
   const updateSV = useCallback(
@@ -314,11 +217,9 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
       const next = [...current];
       next[i] = sv;
 
-      emit(
-        cloneWordShallow(wordEntry, {
-          spellingVariants: next,
-        }),
-      );
+      const clonedWord = wordEntry.getShallowCopy();
+      clonedWord.setSpellingVariants(next);
+      emit(clonedWord);
     },
     [wordEntry, emit],
   );
@@ -337,11 +238,9 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
 
       // remove brand new item
       if (!item.getId()) {
-        emit(
-          cloneWordShallow(wordEntry, {
-            spellingVariants: currentVariants.filter((_, idx) => idx !== i),
-          }),
-        );
+        const clonedWord = wordEntry.getShallowCopy();
+        clonedWord.setSpellingVariants(currentVariants.filter((_, idx) => idx !== i));
+        emit(clonedWord);
         return;
       }
 
@@ -350,24 +249,20 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
       item.markDeleted();
       next[i] = item;
 
-      emit(
-        cloneWordShallow(wordEntry, {
-          spellingVariants: next,
-        }),
-      );
+      const clonedWord = wordEntry.getShallowCopy();
+      clonedWord.setSpellingVariants(next);
+      emit(clonedWord);
     },
     [wordEntry, emit],
   );
 
   const addWD = useCallback(() => {
-    emit(
-      cloneWordShallow(wordEntry, {
-        wordDetails: [
-          ...wordEntry.getWordDetails(),
-          WordDetailModel.createEmpty(defLangDialectId, defSourceId),
-        ],
-      }),
-    );
+    const clonedWord = wordEntry.getShallowCopy();
+    clonedWord.setWordDetails([
+      ...wordEntry.getWordDetails(),
+      WordDetailModel.createEmpty(defLangDialectId, defSourceId),
+    ]);
+    emit(clonedWord);
   }, [wordEntry, defLangDialectId, defSourceId, emit]);
 
   const updateWD = useCallback(
@@ -376,11 +271,9 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
       const next = [...current];
       next[i] = wd;
 
-      emit(
-        cloneWordShallow(wordEntry, {
-          wordDetails: next,
-        }),
-      );
+      const clonedWord = wordEntry.getShallowCopy();
+      clonedWord.setWordDetails(next);
+      emit(clonedWord);
     },
     [wordEntry, emit],
   );
@@ -399,11 +292,9 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
 
       // remove brand new item
       if (!item.getId()) {
-        emit(
-          cloneWordShallow(wordEntry, {
-            wordDetails: currentDetails.filter((_, idx) => idx !== i),
-          }),
-        );
+        const clonedWord = wordEntry.getShallowCopy();
+        clonedWord.setWordDetails(currentDetails.filter((_, idx) => idx !== i));
+        emit(clonedWord);
         return;
       }
 
@@ -412,16 +303,16 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
       item.markDeleted();
       next[i] = item;
 
-      emit(
-        cloneWordShallow(wordEntry, {
-          wordDetails: next,
-        }),
-      );
+      const clonedWord = wordEntry.getShallowCopy();
+      clonedWord.setWordDetails(next);
+      emit(clonedWord);
     },
     [wordEntry, emit],
   );
 
-  const visibleWordDetails = wordEntry.getWordDetails().filter((wd) => !wd.isDeleted());
+  const visibleWordDetails = readonly
+    ? wordEntry.getWordDetails()
+    : wordEntry.getWordDetails().filter((wd) => !wd.isDeleted());
 
   return (
     <Box
@@ -461,6 +352,12 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
         <IconButton size="small" onClick={toggleOpen}>
           {isOpen ? <ExpandLessIcon /> : <ExpandMoreIcon />}
         </IconButton>
+
+        {readonly && wordEntry.getState() !== STATE.UNCHANGED && (
+          <Box sx={{ alignSelf: 'center' }}>
+            <StateChip state={wordEntry.getState()} />
+          </Box>
+        )}
 
         <TextField
           variant="standard"
