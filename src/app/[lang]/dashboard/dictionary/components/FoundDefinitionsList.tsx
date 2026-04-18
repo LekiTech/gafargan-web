@@ -75,16 +75,17 @@ export const FoundDefinitionsList: FC<{
         {words.flatMap((word, idx) => (
           <WordEntry
             key={`${word.id}`}
+            rowId={`${word.id}`}
             idx={idx + 1}
             wordEntry={WordModel.fromNestedTypes(word)}
             onChange={(e) => {}}
             onDelete={() => {}}
             lang={lang}
-            defLangDialectId={word.details[0].langDialectId}
-            defSourceId={word.details[0].sourceId}
+            defLangDialectId={word.wordDetails[0].langDialectId}
+            defSourceId={word.wordDetails[0].sourceId}
             allSources={sourceModels.map((s) => new SourceModel(s))}
             isFirst={idx === 0}
-            isLast={idx === word.details.length - 1}
+            isLast={idx === word.wordDetails.length - 1}
             readonly={true}
           />
         ))}

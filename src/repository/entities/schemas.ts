@@ -533,7 +533,7 @@ export const WordSchema = new EntitySchema<Word>({
       target: () => SpellingVariant,
       inverseSide: 'word',
     },
-    details: {
+    wordDetails: {
       type: 'one-to-many',
       target: () => WordDetail,
       inverseSide: 'word',
@@ -596,7 +596,7 @@ export const WordDetailSchema = new EntitySchema<WordDetail>({
       type: 'many-to-one',
       target: () => Word,
       joinColumn: { name: 'word_id' },
-      inverseSide: 'details',
+      inverseSide: 'wordDetails',
     },
     langDialect: {
       type: 'many-to-one',

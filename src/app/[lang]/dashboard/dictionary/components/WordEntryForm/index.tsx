@@ -1,5 +1,6 @@
 'use client';
-import React, { useReducer, useRef, useState } from 'react';
+
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Box, Typography, Select, MenuItem, Button, Grid, Snackbar, Alert } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import AddIcon from '@mui/icons-material/Add';
@@ -17,7 +18,18 @@ import { langDialectIdToString } from '../../../utils';
 import { BUTTON_PASTEL_COLORS_BLUE, FORM_ENTRY_STATE, FormEntryStateType } from './constants';
 import { WordEntry } from './WordEntry';
 
-/* ---------------- Root component ---------------- */
+type AlertSeverity = 'error' | 'info' | 'success' | 'warning';
+
+type EntryItem = {
+  id: string;
+  value: WordModel;
+};
+
+const createEntryId = (counterRef: React.MutableRefObject<number>) => {
+  counterRef.current += 1;
+  return `word-entry-${counterRef.current}`;
+};
+
 export const WordEntryForm: React.FC<{
   lang: WebsiteLang;
   sourceModels: SourceModelType[];
@@ -27,76 +39,167 @@ export const WordEntryForm: React.FC<{
   const { t } = useTranslation(lang);
 
   const [alertMessage, setAlertMessage] = useState<
-    { message: string; severity: 'error' | 'info' | 'success' | 'warning' } | undefined
+    { message: string; severity: AlertSeverity } | undefined
   >(undefined);
+
   const addEntryButtonRef = useRef<HTMLButtonElement>(null);
+  const entryIdCounterRef = useRef(0);
+
   const [fromLangDialectId, setFromLangDialectId] = useState<number>(1);
   const [toLangDialectId, setToLangDialectId] = useState<number>(25);
-  // Sources
-  const [sources, setSources] = useState<SourceModel[]>(
-    sourceModels.map((smt) => new SourceModel(smt)) || [],
-  );
+
+  const [sources] = useState<SourceModel[]>(sourceModels.map((smt) => new SourceModel(smt)));
+
   const [selectedSource, setSelectedSource] = useState<SourceModel>(
     dictionaryModel ? dictionaryModel.source : sources[0],
   );
-  // Entries
-  const wordMeta = { langDialectId: fromLangDialectId, sourceId: selectedSource.getId()! };
-  const defMeta = { langDialectId: toLangDialectId, sourceId: selectedSource.getId()! };
 
-  // keep the up-to-date entries in a ref
-  console.log(
-    'dictionaryModel?.entries[0].getWordDetails()',
-    dictionaryModel?.entries[0].getWordDetails(),
+  const selectedSourceId = selectedSource.getId()!;
+
+  const wordMeta = useMemo(
+    () => ({
+      langDialectId: fromLangDialectId,
+      sourceId: selectedSourceId,
+    }),
+    [fromLangDialectId, selectedSourceId],
   );
-  const entriesRef = useRef<WordModel[]>(
-    dictionaryModel ? dictionaryModel.entries : [WordModel.createEmpty(wordMeta, defMeta)],
+
+  const defMeta = useMemo(
+    () => ({
+      langDialectId: toLangDialectId,
+      sourceId: selectedSourceId,
+    }),
+    [toLangDialectId, selectedSourceId],
   );
-  // expose a stable snapshot for render (won’t update unless we forceRender)
-  const entries = entriesRef.current;
 
-  // tiny state just to force a render when list length/shape changes
-  const [, forceRender] = useReducer((x) => x + 1, 0);
+  const [entryItems, setEntryItems] = useState<EntryItem[]>(() => {
+    const initialEntries = dictionaryModel?.entries ?? [WordModel.createEmpty(wordMeta, defMeta)];
 
-  const addEntry = () => {
-    entriesRef.current.push(WordModel.createEmpty(wordMeta, defMeta));
-    forceRender(); // show the newly added entry
-    // let the DOM update before scrolling
+    return initialEntries.map((entry) => ({
+      id: createEntryId(entryIdCounterRef),
+      value: entry,
+    }));
+  });
+
+  const dialectOptions = useMemo(
+    () =>
+      Object.entries(LangDialects).map(([id]) => ({
+        id: Number(id),
+        label: langDialectIdToString(Number(id), t),
+      })),
+    [t],
+  );
+
+  const entries = useMemo(() => entryItems.map((item) => item.value), [entryItems]);
+
+  const addEntry = useCallback(() => {
+    setEntryItems((prev) => [
+      ...prev,
+      {
+        id: createEntryId(entryIdCounterRef),
+        value: WordModel.createEmpty(wordMeta, defMeta),
+      },
+    ]);
+
     queueMicrotask(() => {
       addEntryButtonRef.current?.scrollIntoView({ block: 'start' });
     });
-  };
+  }, [wordMeta, defMeta]);
 
-  const updateEntry = (i: number, e: WordModel) => {
-    // mutate in place so no re-render is triggered
-    entriesRef.current[i] = e;
-    // intentionally no forceRender(): component won’t re-render here
-  };
+  const updateEntry = useCallback((rowId: string, nextValue: WordModel) => {
+    setEntryItems((prev) => {
+      const idx = prev.findIndex((item) => item.id === rowId);
+      if (idx === -1 || prev[idx].value === nextValue) {
+        return prev;
+      }
 
-  const deleteEntry = (i: number) => {
-    const list = entriesRef.current;
+      const next = [...prev];
+      next[idx] = { ...next[idx], value: nextValue };
+      return next;
+    });
+  }, []);
 
-    if (!list[i].isEmpty()) {
-      const answer = confirm('Are you sure you want to delete this entry?');
-      if (!answer) return;
+  const deleteEntry = useCallback((rowId: string) => {
+    setEntryItems((prev) => {
+      const item = prev.find((entry) => entry.id === rowId);
+      if (!item) return prev;
+
+      if (!item.value.isEmpty()) {
+        const answer = window.confirm('Are you sure you want to delete this entry?');
+        if (!answer) return prev;
+      }
+
+      if (prev.length <= 1) return prev;
+
+      return prev.filter((entry) => entry.id !== rowId);
+    });
+  }, []);
+
+  const handleSubmit = useCallback(async () => {
+    const nonEmptyEntries = entries.filter((entry) => !entry.isEmpty());
+
+    const proposalValue = new DictionaryProposalModel(
+      nonEmptyEntries,
+      selectedSource,
+      fromLangDialectId,
+      toLangDialectId,
+    );
+
+    if (proposalValue.entries.length === 0) {
+      setAlertMessage({
+        message: t('addNewWord.messages.nothingToSave', { ns: 'dashboard' }),
+        severity: 'info',
+      });
+      return;
     }
 
-    if (list.length > 1) {
-      list.splice(i, 1); // mutate in place
-      forceRender(); // reflect the removal in the UI
+    if (entries.some((entry) => entry.isIncomplete())) {
+      setAlertMessage({
+        message: t('addNewWord.messages.missingRequiredValues', { ns: 'dashboard' }),
+        severity: 'error',
+      });
+      return;
     }
-  };
-  // const handleCreate = (created: SourceModel) => {
-  //   // Persist locally (or via API)
-  //   setSources((prev) => [...prev, created]);
-  // };
+
+    try {
+      const result = await fetch('dictionary/api', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(proposalValue),
+      });
+
+      if (result.status >= 300) {
+        console.error('Error saving proposal. Something went wrong');
+        setAlertMessage({
+          message: t('addNewWord.messages.failedToSave', { ns: 'dashboard' }),
+          severity: 'error',
+        });
+        return;
+      }
+
+      setAlertMessage({
+        message: t('addNewWord.messages.savedSuccessfully', { ns: 'dashboard' }),
+        severity: 'success',
+      });
+      window.location.reload();
+    } catch (error) {
+      console.error('Error saving proposal:', error);
+      setAlertMessage({
+        message: t('addNewWord.messages.failedToSave', { ns: 'dashboard' }),
+        severity: 'error',
+      });
+    }
+  }, [entries, selectedSource, fromLangDialectId, toLangDialectId, t]);
+
   return (
     <Box
       component="form"
-      // Prevent reloading page on submit
       onSubmit={(e) => e.preventDefault()}
-      sx={(theme) => ({ maxWidth: 1200, [theme.breakpoints.down('md')]: { ml: 1.5 } })}
+      sx={(theme) => ({
+        maxWidth: 1200,
+        [theme.breakpoints.down('md')]: { ml: 1.5 },
+      })}
     >
-      {/* header + selectors */}
       <Grid container columns={{ xs: 6 }} gap={1} mb={5}>
         <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
           <SourcesCreatableSelect
@@ -106,12 +209,10 @@ export const WordEntryForm: React.FC<{
             lang={lang}
             onChange={setSelectedSource}
             readonly={formEntryState !== FORM_ENTRY_STATE.NEW}
-            // Creating new source here adds complexity for proposal reviews
-            // Better to create in different place, review, approve and then use here only DB values
-            // onCreate={handleCreate}
             placeholder="Choose or add"
           />
         </Grid>
+
         <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
           <Select
             size="small"
@@ -120,13 +221,15 @@ export const WordEntryForm: React.FC<{
             inputProps={{ readOnly: formEntryState !== FORM_ENTRY_STATE.NEW }}
             onChange={(e) => setFromLangDialectId(Number(e.target.value))}
           >
-            {Object.entries(LangDialects).map(([id, name]) => (
-              <MenuItem key={id} value={id}>
-                {langDialectIdToString(parseInt(id), t)}
+            {dialectOptions.map((option) => (
+              <MenuItem key={option.id} value={option.id}>
+                {option.label}
               </MenuItem>
             ))}
           </Select>
+
           <Typography>→</Typography>
+
           <Select
             size="small"
             value={toLangDialectId}
@@ -134,31 +237,33 @@ export const WordEntryForm: React.FC<{
             inputProps={{ readOnly: formEntryState !== FORM_ENTRY_STATE.NEW }}
             onChange={(e) => setToLangDialectId(Number(e.target.value))}
           >
-            {Object.entries(LangDialects).map(([id, name]) => (
-              <MenuItem key={id} value={id}>
-                {langDialectIdToString(parseInt(id), t)}
+            {dialectOptions.map((option) => (
+              <MenuItem key={option.id} value={option.id}>
+                {option.label}
               </MenuItem>
             ))}
           </Select>
         </Grid>
       </Grid>
 
-      {entries.map((en, idx) => (
+      {entryItems.map((item, idx) => (
         <WordEntry
-          key={idx}
+          key={item.id}
+          rowId={item.id}
           idx={idx + 1}
-          wordEntry={en}
-          onChange={(e) => updateEntry(idx, e)}
-          onDelete={() => deleteEntry(idx)}
+          wordEntry={item.value}
+          onChange={updateEntry}
+          onDelete={deleteEntry}
           lang={lang}
           defLangDialectId={toLangDialectId}
-          defSourceId={selectedSource.getId()!}
+          defSourceId={selectedSourceId}
           allSources={sources}
           isFirst={idx === 0}
-          isLast={idx === entries.length - 1}
+          isLast={idx === entryItems.length - 1}
           readonly={formEntryState === FORM_ENTRY_STATE.VIEW}
         />
       ))}
+
       {formEntryState === FORM_ENTRY_STATE.NEW && (
         <Button
           ref={addEntryButtonRef}
@@ -171,7 +276,7 @@ export const WordEntryForm: React.FC<{
           {t('addNewWord.word', { ns: 'dashboard' })}
         </Button>
       )}
-      {/* live json */}
+
       <Box mt={2} mb={2}>
         {formEntryState !== FORM_ENTRY_STATE.VIEW && (
           <Button
@@ -179,93 +284,25 @@ export const WordEntryForm: React.FC<{
             variant="contained"
             size="small"
             startIcon={<SaveIcon />}
-            onClick={async () => {
-              const proposalValue = new DictionaryProposalModel(
-                entries.filter((e) => !e.isEmpty()),
-                selectedSource,
-                fromLangDialectId,
-                toLangDialectId,
-              );
-              if (proposalValue.entries.length === 0) {
-                setAlertMessage({
-                  message: t('addNewWord.messages.nothingToSave', { ns: 'dashboard' }),
-                  severity: 'info',
-                });
-                return;
-              }
-              if (entries.filter((e) => e.isIncomplete()).length > 0) {
-                setAlertMessage({
-                  message: t('addNewWord.messages.missingRequiredValues', { ns: 'dashboard' }),
-                  severity: 'error',
-                });
-                return;
-              }
-              try {
-                const result = await fetch('dictionary/api', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(proposalValue),
-                });
-                if (result.status >= 300) {
-                  console.error('Error saving proposal. Something went wrong');
-                  setAlertMessage({
-                    message: t('addNewWord.messages.failedToSave', { ns: 'dashboard' }),
-                    severity: 'error',
-                  });
-                } else {
-                  setAlertMessage({
-                    message: t('addNewWord.messages.savedSuccessfully', { ns: 'dashboard' }),
-                    severity: 'success',
-                  });
-                  window.location.reload();
-                }
-              } catch (error) {
-                console.error('Error saving proposal:', error);
-                setAlertMessage({
-                  message: t('addNewWord.messages.failedToSave', { ns: 'dashboard' }),
-                  severity: 'error',
-                });
-              }
-            }}
+            onClick={handleSubmit}
             sx={{ mt: '4px', mb: 3 }}
           >
             {t('addNewWord.sendToReview', { ns: 'dashboard' })}
           </Button>
         )}
-        {/* <Typography fontWeight={600} variant="subtitle1">
-          Live JSON
-        </Typography>
-        <pre
-          style={{
-            background: '#fafaf8',
-            border: '1px solid #ecece6',
-            padding: '0.8rem',
-            overflowX: 'scroll',
-          }}
-        >
-          {JSON.stringify(
-            new DictionaryProposalModel(
-              entries,
-              selectedSource,
-              fromLangDialectId,
-              toLangDialectId,
-            ),
-            null,
-            2,
-          )}
-        </pre> */}
       </Box>
+
       <Snackbar
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         open={alertMessage !== undefined}
         autoHideDuration={6000}
         onClose={() => setAlertMessage(undefined)}
       >
-        {alertMessage && (
-          <Alert severity={alertMessage?.severity} variant="filled" sx={{ width: '100%' }}>
-            {alertMessage?.message}
+        {alertMessage ? (
+          <Alert severity={alertMessage.severity} variant="filled" sx={{ width: '100%' }}>
+            {alertMessage.message}
           </Alert>
-        )}
+        ) : undefined}
       </Snackbar>
     </Box>
   );

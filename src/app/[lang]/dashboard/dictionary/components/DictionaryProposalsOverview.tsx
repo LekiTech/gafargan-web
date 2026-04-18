@@ -17,6 +17,8 @@ import {
   IconButton,
   Modal,
   Stack,
+  TableFooter,
+  TablePagination,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
@@ -103,6 +105,8 @@ const DictionaryProposalsOverview: React.FC<{
 }> = ({ lang, sourceModels, proposals, readonly }) => {
   const { t } = useTranslation(lang);
   const [selectedProposal, setSelectedProposal] = React.useState<Proposal | undefined>();
+  const [page, setPage] = React.useState(0);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
   return (
     <>
       <TableContainer component={Paper}>
@@ -159,6 +163,28 @@ const DictionaryProposalsOverview: React.FC<{
               );
             })}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                colSpan={3}
+                count={rows.length + 10}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                slotProps={{
+                  select: {
+                    inputProps: {
+                      'aria-label': 'rows per page',
+                    },
+                    native: true,
+                  },
+                }}
+                onPageChange={() => {}}
+                // onRowsPerPageChange={handleChangeRowsPerPage}
+                // ActionsComponent={TablePaginationActions}
+              />
+            </TableRow>
+          </TableFooter>
         </Table>
       </TableContainer>
       {selectedProposal !== undefined && (

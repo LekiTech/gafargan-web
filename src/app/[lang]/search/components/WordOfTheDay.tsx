@@ -33,7 +33,7 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
   if (word == null) {
     return undefined;
   }
-  const firstDefinition = word.details[0]?.definitions[0];
+  const firstDefinition = word.wordDetails[0]?.definitions[0];
   return (
     <Card sx={{ minWidth: 275, flexGrow: 1, padding: '20px' }}>
       <CardContent
@@ -50,14 +50,14 @@ export const WordOfTheDay: FC<WordOfTheDayProps> = ({ word, labels }) => {
           {wordOfTheDay}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          {`${word.details[0]?.source?.name} - ${word.details?.[0]?.source?.authors}`}
+          {`${word.wordDetails[0]?.source?.name} - ${word.wordDetails?.[0]?.source?.authors}`}
         </Typography>
         <Typography variant="h3" component="div" className={expressionFont.className}>
           {capitalizeFirstLetter(toLowerCaseLezgi(word.spelling))}
         </Typography>
-        {word.details[0]?.inflection && (
+        {word.wordDetails[0]?.inflection && (
           <Typography variant="body2" color="text.secondary" sx={{ mb: '10px' }}>
-            {word.details[0]?.inflection}
+            {word.wordDetails[0]?.inflection}
           </Typography>
         )}
         {(firstDefinition?.tags || firstDefinition?.values) && (

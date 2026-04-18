@@ -89,7 +89,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         {words && words.length > 0 && (
           <Sidebar
             contents={words
-              .map((word) => word.details?.map((d, i) => toContents(i, word.spelling, d)))
+              .map((word) => word.wordDetails?.map((d, i) => toContents(i, word.spelling, d)))
               .flat()}
             otherExamplesLabel={labels.otherExamples}
           />
@@ -121,7 +121,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
           })}
         >
           {words?.map((word, wi) =>
-            word.details?.map((detail, i) => (
+            word.wordDetails?.map((detail, i) => (
               <ExpressionDetailsComp
                 key={`exp_det_${i}`}
                 idx={i}
@@ -130,7 +130,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                 spellingVariants={word.spellingVariants}
                 wordLangDialect={word.langDialect}
                 data={detail}
-                isLast={i === word?.details?.length - 1 && wi === words.length - 1}
+                isLast={i === word?.wordDetails?.length - 1 && wi === words.length - 1}
               />
             )),
           )}

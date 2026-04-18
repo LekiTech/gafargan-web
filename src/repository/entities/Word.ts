@@ -27,5 +27,5 @@ export class Word {
 
   spellingVariants!: SpellingVariant[];
 
-  details!: WordDetail[];
+  wordDetails!: WordDetail[];
 }

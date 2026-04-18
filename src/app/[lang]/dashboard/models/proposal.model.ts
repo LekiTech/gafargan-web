@@ -544,7 +544,7 @@ export type WordModelExistingType = {
   langDialectId: number;
   sourceId: number;
   spellingVariants: SpellingVariantModel[];
-  details: WordDetailModel[];
+  wordDetails: WordDetailModel[];
 };
 export type WordModelType =
   | {
@@ -553,7 +553,7 @@ export type WordModelType =
       langDialectId: number;
       sourceId: number;
       spellingVariants: SpellingVariantModel[];
-      details: WordDetailModel[];
+      wordDetails: WordDetailModel[];
     }
   | WordModelExistingType;
 
@@ -564,7 +564,7 @@ export type WordModelExistingNestedType = {
   langDialectId: number;
   sourceId: number;
   spellingVariants: SpellingVariantModelExistingType[];
-  details: WordDetailModelExistingNestedType[];
+  wordDetails: WordDetailModelExistingNestedType[];
 };
 export type WordModelNestedType =
   | {
@@ -573,7 +573,7 @@ export type WordModelNestedType =
       langDialectId: number;
       sourceId: number;
       spellingVariants: SpellingVariantModelType[];
-      details: WordDetailModelNestedType[];
+      wordDetails: WordDetailModelNestedType[];
     }
   | WordModelExistingNestedType;
 
@@ -582,12 +582,12 @@ export class WordModel extends Model {
   private langDialectId: number;
   private sourceId: number;
   private spellingVariants: SpellingVariantModel[];
-  private details: WordDetailModel[];
+  private wordDetails: WordDetailModel[];
   constructor(data: WordModelType) {
     super(data.state, data.state === 'unchanged' ? data.id : undefined);
     this.spelling = data.spelling;
     this.spellingVariants = data.spellingVariants;
-    this.details = data.details;
+    this.wordDetails = data.wordDetails;
     this.langDialectId = data.langDialectId;
     this.sourceId = data.sourceId;
   }
@@ -596,7 +596,7 @@ export class WordModel extends Model {
     return this.spelling;
   }
   getWordDetails(): WordDetailModel[] {
-    return this.details;
+    return this.wordDetails;
   }
   getSpellingVariants(): SpellingVariantModel[] {
     return this.spellingVariants;
@@ -611,8 +611,8 @@ export class WordModel extends Model {
     this.spelling = spelling;
     this.setModified();
   }
-  setDetails(details: WordDetailModel[]): void {
-    this.details = details;
+  setDetails(wordDetails: WordDetailModel[]): void {
+    this.wordDetails = wordDetails;
     this.setModified();
   }
   setSpellingVariants(spellingVariants: SpellingVariantModel[]): void {
@@ -630,9 +630,9 @@ export class WordModel extends Model {
 
   /**
    * Merges partial data into the WordModel instance in-place. It does not create a new instance.
-   * This method updates the spelling and word details properties based on the provided data.
-   * If the model is in 'added' state, it will update the spelling and word details properties.
-   * If the model is in 'unchanged' state, it will update the spelling and word details properties
+   * This method updates the spelling and word wordDetails properties based on the provided data.
+   * If the model is in 'added' state, it will update the spelling and word wordDetails properties.
+   * If the model is in 'unchanged' state, it will update the spelling and word wordDetails properties
    * and set the state to 'modified'.
    *
    * @param data Partial data to merge into the model.
@@ -643,8 +643,8 @@ export class WordModel extends Model {
     if (data.spelling !== undefined) {
       this.spelling = data.spelling;
     }
-    if (data.details !== undefined) {
-      this.details = data.details;
+    if (data.wordDetails !== undefined) {
+      this.wordDetails = data.wordDetails;
     }
     if (data.spellingVariants !== undefined) {
       this.spellingVariants = data.spellingVariants;
@@ -658,7 +658,7 @@ export class WordModel extends Model {
         state: this.state,
         spelling: this.spelling,
         langDialectId: this.langDialectId,
-        details: this.details.map((wd) => wd.getCopy()),
+        wordDetails: this.wordDetails.map((wd) => wd.getCopy()),
         spellingVariants: this.spellingVariants.map((sv) => sv.getCopy()),
         sourceId: this.sourceId,
       });
@@ -668,7 +668,7 @@ export class WordModel extends Model {
       id: this.id!,
       spelling: this.spelling,
       langDialectId: this.langDialectId,
-      details: this.details.map((wd) => wd.getCopy()),
+      wordDetails: this.wordDetails.map((wd) => wd.getCopy()),
       spellingVariants: this.spellingVariants.map((sv) => sv.getCopy()),
       sourceId: this.sourceId,
     });
@@ -677,16 +677,18 @@ export class WordModel extends Model {
   isEmpty(): boolean {
     return (
       this.spelling.trim() === '' &&
-      (!this.details || this.details.length === 0 || this.details.every((wd) => wd.isEmpty()))
+      (!this.wordDetails ||
+        this.wordDetails.length === 0 ||
+        this.wordDetails.every((wd) => wd.isEmpty()))
     );
   }
 
   isIncomplete(): boolean {
     return (
       this.spelling.trim() === '' ||
-      !this.details ||
-      this.details.length === 0 ||
-      this.details.some((wd) => wd.isIncomplete())
+      !this.wordDetails ||
+      this.wordDetails.length === 0 ||
+      this.wordDetails.some((wd) => wd.isIncomplete())
     );
   }
 
@@ -700,8 +702,8 @@ export class WordModel extends Model {
       m1.spellingVariants.every((sv1, i) =>
         SpellingVariantModel.areEqual(sv1, m2.spellingVariants[i]),
       ) &&
-      m1.details.length === m2.details.length &&
-      m1.details.every((wd1, i) => WordDetailModel.areEqual(wd1, m2.details[i]))
+      m1.wordDetails.length === m2.wordDetails.length &&
+      m1.wordDetails.every((wd1, i) => WordDetailModel.areEqual(wd1, m2.wordDetails[i]))
     );
   }
 
@@ -714,16 +716,17 @@ export class WordModel extends Model {
       spelling: '',
       langDialectId: wordMeta.langDialectId,
       sourceId: wordMeta.sourceId,
-      details: [WordDetailModel.createEmpty(defMeta.langDialectId, defMeta.sourceId)],
+      wordDetails: [WordDetailModel.createEmpty(defMeta.langDialectId, defMeta.sourceId)],
       spellingVariants: [],
     });
   }
 
   static fromNestedTypes(data: WordModelNestedType): WordModel {
+    console.log(JSON.stringify(data, null, 2));
     return new WordModel({
       ...data,
       spellingVariants: data.spellingVariants?.map((sv) => new SpellingVariantModel(sv)),
-      details: data.details.map((wd) => WordDetailModel.fromNestedTypes(wd)),
+      wordDetails: data.wordDetails.map((wd) => WordDetailModel.fromNestedTypes(wd)),
     });
   }
 }

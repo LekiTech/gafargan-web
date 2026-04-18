@@ -110,7 +110,7 @@ export async function searchAdvanced({
     .leftJoinAndSelect('variant.source', 'variantSource')
 
     // details and their nested relations
-    .leftJoinAndSelect('word.details', 'detail')
+    .leftJoinAndSelect('word.wordDetails', 'detail')
     .leftJoinAndSelect('detail.langDialect', 'detailLangDialect')
     .leftJoinAndSelect('detail.source', 'detailSource')
     .leftJoinAndSelect('detail.createdBy', 'detailCreatedBy')
@@ -270,7 +270,7 @@ export async function search({
       {
         spelling: spelling.toUpperCase(),
         langDialect: { id: In(wordLangDialectIds) },
-        details: { langDialect: { id: In(definitionsLangDialectIds) } },
+        wordDetails: { langDialect: { id: In(definitionsLangDialectIds) } },
       },
       {
         spellingVariants: {
@@ -278,7 +278,7 @@ export async function search({
           langDialect: { id: In(wordLangDialectIds) },
         },
         langDialect: { id: In(wordLangDialectIds) },
-        details: { langDialect: { id: In(definitionsLangDialectIds) } },
+        wordDetails: { langDialect: { id: In(definitionsLangDialectIds) } },
       },
     ],
     relations: {
@@ -293,7 +293,7 @@ export async function search({
       },
 
       // nest “details” and everything under it
-      details: {
+      wordDetails: {
         langDialect: true,
         source: true,
         createdBy: true,
@@ -441,7 +441,7 @@ export async function getPaginatedWords({
   const words = await wordRepo.find({
     where: {
       langDialect: { id: wordLangDialectId },
-      details: { langDialect: { id: definitionsLangDialectId } },
+      wordDetails: { langDialect: { id: definitionsLangDialectId } },
     },
     take: size,
     skip: page * size,
@@ -453,7 +453,7 @@ export async function getPaginatedWords({
       spellingVariants: true,
 
       // nest “details” and everything under it
-      details: {
+      wordDetails: {
         langDialect: true,
         source: true,
         createdBy: true,

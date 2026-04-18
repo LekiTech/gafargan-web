@@ -58,6 +58,9 @@ export async function getPaginatedProposals({
       proposedBy: true,
       reviewedBy: true,
     },
+    order: {
+      proposedAt: 'asc',
+    },
   });
   // console.log('search', JSON.stringify(word, null, 2));
   return JSON.parse(JSON.stringify(proposals));
@@ -86,6 +89,7 @@ export async function createProposal(dto: CreateProposalDto): Promise<Proposal> 
   });
   // Save the proposal
   const saved = await proposalRepo.save(proposalEntity);
+  console.log(`Saved Proposal: ${saved}`);
   return saved;
 }
 
@@ -183,8 +187,8 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
               console.log(`Nothing to do with spellingVariant with ID = ${spellingVariant.id}`);
           }
         }
-        for (let i = 0; i < word.details.length; i++) {
-          const wordDetail = word.details[i];
+        for (let i = 0; i < word.wordDetails.length; i++) {
+          const wordDetail = word.wordDetails[i];
           // TODO: need to see if we need to handle the case when translation is deleted
           const wordDetailExamples = wordDetail.examples?.map((example) => ({
             ...example,
