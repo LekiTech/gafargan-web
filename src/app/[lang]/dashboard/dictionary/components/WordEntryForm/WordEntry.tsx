@@ -5,7 +5,6 @@ import {
   SpellingVariantModel,
   WordDetailModel,
   DefinitionModel,
-  STATE,
 } from '@/dashboard/models/proposal.model';
 import { langDialectIdToString } from '@/dashboard/utils';
 import { expressionFont } from '@/fonts';
@@ -405,6 +404,7 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
             wordDetails: currentDetails.filter((_, idx) => idx !== i),
           }),
         );
+        return;
       }
 
       // mark persisted item as deleted
@@ -420,6 +420,8 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
     },
     [wordEntry, emit],
   );
+
+  const visibleWordDetails = wordEntry.getWordDetails().filter((wd) => !wd.isDeleted());
 
   return (
     <Box
@@ -606,21 +608,18 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
             readonly={readonly}
           />
 
-          {wordEntry
-            .getWordDetails()
-            .filter((wd) => wd.getState() !== STATE.DELETED)
-            .map((wd, i) => (
-              <WordDetailBlock
-                key={i}
-                data={wd}
-                onChange={(d) => updateWD(i, d)}
-                onDelete={() => deleteWD(i)}
-                lang={lang}
-                allSources={allSources}
-                wordLangDialectId={wordEntry.getLangDialectId()}
-                readonly={readonly}
-              />
-            ))}
+          {visibleWordDetails.map((wd, i) => (
+            <WordDetailBlock
+              key={i}
+              data={wd}
+              onChange={(d) => updateWD(i, d)}
+              onDelete={() => deleteWD(i)}
+              lang={lang}
+              allSources={allSources}
+              wordLangDialectId={wordEntry.getLangDialectId()}
+              readonly={readonly}
+            />
+          ))}
 
           {!readonly && (
             <Button

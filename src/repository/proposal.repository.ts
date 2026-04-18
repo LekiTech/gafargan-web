@@ -164,7 +164,9 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
           createdWord = await wordRepo.save(wordEntity);
         } else if (word.state === STATE.MODIFIED) {
           await wordRepo.update(word.id, {
-            ...word,
+            spelling: word.spelling.toUpperCase(),
+            langDialectId: word.langDialectId,
+            sourceId: word.sourceId,
             updatedById: DUMMY_USER_ID,
           });
         }
@@ -184,7 +186,12 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
               await spellingVariantRepo.delete(spellingVariant.id);
               break;
             case STATE.MODIFIED:
-              await spellingVariantRepo.update(spellingVariant.id, spellingVariant);
+              await spellingVariantRepo.update(spellingVariant.id, {
+                spelling: spellingVariant.spelling.toUpperCase(),
+                langDialectId: spellingVariant.langDialectId,
+                sourceId: spellingVariant.sourceId,
+                updatedById: DUMMY_USER_ID,
+              });
               break;
             default:
               console.log(`Nothing to do with spellingVariant with ID = ${spellingVariant.id}`);
@@ -218,7 +225,11 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
               createdWordDetail = await wordDetailRepo.save(wordEntity);
             } else if (wordDetail.state === STATE.MODIFIED) {
               await wordDetailRepo.update(wordDetail.id, {
-                ...wordDetail,
+                inflection: wordDetail.inflection,
+                langDialectId: wordDetail.langDialectId,
+                sourceId: wordDetail.sourceId,
+                // TODO: add to the db model
+                // tags: wordDetail.tags,
                 updatedById: DUMMY_USER_ID,
                 examples: wordDetailExamples,
               });
@@ -251,7 +262,8 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                   break;
                 case STATE.MODIFIED:
                   await definitionRepo.update(definition.id, {
-                    ...definition,
+                    values: definition.values,
+                    tags: definition.tags,
                     updatedById: DUMMY_USER_ID,
                     examples: definitionExamples,
                   });
@@ -289,7 +301,8 @@ async function handleTranslationsProposalDbChanges(
         break;
       case STATE.MODIFIED:
         await translationRepo.update(translation.id, {
-          ...translation,
+          phrasesPerLangDialect: translation.phrasesPerLangDialect,
+          tags: translation.tags,
           updatedById: DUMMY_USER_ID,
         });
         break;

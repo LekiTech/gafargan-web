@@ -1,9 +1,4 @@
-import {
-  WordModel,
-  SpellingVariantModel,
-  SourceModel,
-  STATE,
-} from '@/dashboard/models/proposal.model';
+import { WordModel, SpellingVariantModel, SourceModel } from '@/dashboard/models/proposal.model';
 import { langDialectIdToString } from '@/dashboard/utils';
 import { expressionFont } from '@/fonts';
 import { IdToLang, LangToId } from '@api/languages';
@@ -26,14 +21,13 @@ export const SpellingVariants: React.FC<{
   readonly: boolean;
 }> = ({ word, onAdd, onUpdate, onDelete, allSources, lang, readonly = false }) => {
   const { t } = useTranslation(lang);
-  const spellingVariants: SpellingVariantModel[] = word
-    .getSpellingVariants()
-    .filter((sv) => sv.getState() != STATE.DELETED);
+  const visibleSpellingVariants = word.getSpellingVariants().filter((sv) => !sv.isDeleted());
   const wordLangIsoCode = IdToLang[word.getLangDialectId()];
   const allDialectIdsForLang = LangToId[wordLangIsoCode];
   const allDialectsForLang = Object.entries(LangDialects).filter(([id, name]) => {
     return allDialectIdsForLang.indexOf(parseInt(id)) != -1;
   });
+
   return (
     <Box
       gap={1}
@@ -73,7 +67,7 @@ export const SpellingVariants: React.FC<{
         </Box>
       )}
 
-      {spellingVariants.map((spellingVariant, i) => (
+      {visibleSpellingVariants.map((spellingVariant, i) => (
         <Box
           key={`ld_${spellingVariant.getId()}_i_${i}`}
           sx={{

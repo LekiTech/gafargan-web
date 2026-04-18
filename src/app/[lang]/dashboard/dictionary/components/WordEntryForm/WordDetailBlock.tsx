@@ -55,19 +55,62 @@ export const WordDetailBlock: React.FC<{
   const patch = (p: Partial<WordDetailModelType>) => onChange(data.merge(p));
   const updateDef = (i: number, def: DefinitionModel) =>
     patch({ definitions: data.getDefinitions().map((d, idx) => (idx === i ? def : d)) });
+
   const deleteDef = (i: number) => {
-    if (data.getDefinitions().length > 1) {
-      patch({ definitions: data.getDefinitions().filter((_, idx) => idx !== i) });
-    } else {
+    const currentDefinitions = data.getDefinitions();
+    if (currentDefinitions.length <= 1) {
       setShowCannotDeleteMessage(true);
+      return;
     }
+    const item = currentDefinitions[i];
+    if (!item) {
+      return;
+    }
+    // brand new definition -> remove from array
+    if (!item.getId()) {
+      patch({
+        definitions: currentDefinitions.filter((_, idx) => idx !== i),
+      });
+      return;
+    }
+    // persisted definition -> keep it, mark deleted
+    const next = [...currentDefinitions];
+    item.markDeleted();
+    next[i] = item;
+    patch({
+      definitions: next,
+    });
   };
+
   const deleteExtraEx = (i: number) => {
-    const defExamples = data.getExamples();
-    if (defExamples && defExamples.length > 0) {
-      patch({ examples: defExamples.filter((_, idx) => idx !== i) });
+    const currentExamples = data.getExamples();
+    if (!currentExamples || currentExamples.length === 0) {
+      return;
     }
+    const item = currentExamples[i];
+    if (!item) {
+      return;
+    }
+    // brand new example -> remove from array
+    if (!item.getId()) {
+      patch({
+        examples: currentExamples.filter((_, idx) => idx !== i),
+      });
+      return;
+    }
+    // persisted example -> keep it, mark deleted
+    const next = [...currentExamples];
+    item.markDeleted();
+    next[i] = item;
+    patch({
+      examples: next,
+    });
   };
+
+  const visibleDefinitions = data.getDefinitions().filter((definition) => !definition.isDeleted());
+
+  const visibleExamples = (data.getExamples() ?? []).filter((example) => !example.isDeleted());
+
   return (
     <Box
       ml={1.5}
@@ -230,7 +273,7 @@ export const WordDetailBlock: React.FC<{
         <Box sx={{ width: '100%' }} />
       </Stack>
       {/* definitions */}
-      {data.getDefinitions().map((d, i) => (
+      {visibleDefinitions.map((d, i) => (
         <Box key={i}>
           <Divider sx={{ mt: 1.5 }} />
           <DefinitionBlock
@@ -257,7 +300,7 @@ export const WordDetailBlock: React.FC<{
           </Typography>
         </Box>
       )}
-      {data.getExamples()?.map((ex, i) => (
+      {visibleExamples?.map((ex, i) => (
         <ExampleLine
           key={i}
           example={ex}
