@@ -212,7 +212,8 @@ export const WordDetailBlock: React.FC<{
             },
           })}
         >
-          {/* tags */}
+          {/* tags 
+          // TODO: before adding this back to UI, need to facilitate DB model and user side UI with this option [Tags on level of WordDetail]
           <Box mt={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
             {data
               .getTags()
@@ -252,6 +253,7 @@ export const WordDetailBlock: React.FC<{
               </>
             )}
           </Box>
+          */}
           {/* inflection */}
           {!(
             readonly &&

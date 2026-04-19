@@ -175,6 +175,7 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
             case STATE.ADDED:
               const spellingVariantEntity = spellingVariantRepo.create({
                 ...spellingVariant,
+                word: createdWord ?? word,
                 spelling: spellingVariant.spelling.toUpperCase(),
                 sourceId: spellingVariant.sourceId,
                 createdById: DUMMY_USER_ID,
@@ -204,6 +205,12 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
             await wordDetailRepo.delete(wordDetail.id);
             // no need to continue inside the word, as it should be deleted with all of it inside (except for translations)
           } else {
+            const wordDetailExamples =
+              wordDetail.examples?.map((example) => ({
+                createdById: DUMMY_USER_ID,
+                ...example,
+                updatedById: DUMMY_USER_ID,
+              })) ?? [];
             if (wordDetail.state === STATE.ADDED) {
               const wordEntity = wordDetailRepo.create({
                 ...wordDetail,
@@ -214,6 +221,7 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                 sourceId: wordDetail.sourceId,
                 createdById: DUMMY_USER_ID,
                 updatedById: DUMMY_USER_ID,
+                examples: wordDetailExamples,
               });
               createdWordDetail = await wordDetailRepo.save(wordEntity);
             } else if (wordDetail.state === STATE.MODIFIED) {
@@ -234,12 +242,6 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
               // existing.tags = wordDetail.tags;
               existingWordDetail.updatedById = DUMMY_USER_ID;
 
-              const wordDetailExamples =
-                wordDetail.examples?.map((example) => ({
-                  ...example,
-                  createdById: DUMMY_USER_ID,
-                  updatedById: DUMMY_USER_ID,
-                })) ?? [];
               existingWordDetail.examples = wordDetailExamples as any;
               await wordDetailRepo.save(existingWordDetail);
               // if (wordDetailExamples.length > 0) {
@@ -252,6 +254,12 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                 await definitionRepo.delete(definition.id);
                 // no need to continue inside the word, as it should be deleted with all of it inside (except for translations)
               } else {
+                const definitionExamples =
+                  definition.examples?.map((example) => ({
+                    createdById: DUMMY_USER_ID,
+                    ...example,
+                    updatedById: DUMMY_USER_ID,
+                  })) ?? [];
                 switch (definition.state) {
                   case STATE.ADDED:
                     const definitionEntity = definitionRepo.create({
@@ -261,6 +269,7 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                       values: definition.values,
                       createdById: DUMMY_USER_ID,
                       updatedById: DUMMY_USER_ID,
+                      examples: definitionExamples,
                     });
                     await definitionRepo.save(definitionEntity);
                     break;
@@ -277,27 +286,11 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                     existingDefinition.tags = definition.tags ?? [];
                     existingDefinition.updatedById = DUMMY_USER_ID;
 
-                    const definitionExamples =
-                      definition.examples?.map((example) => ({
-                        ...example,
-                        createdById: DUMMY_USER_ID,
-                        updatedById: DUMMY_USER_ID,
-                      })) ?? [];
                     existingDefinition.examples = definitionExamples as any;
                     await definitionRepo.save(existingDefinition);
                     break;
                   default:
                     console.log(`Nothing to do with definition with ID = ${definition.id}`);
-                }
-
-                const definitionExamples =
-                  definition.examples?.map((example) => ({
-                    ...example,
-                    createdById: DUMMY_USER_ID,
-                    updatedById: DUMMY_USER_ID,
-                  })) ?? [];
-                if (definitionExamples.length > 0) {
-                  await handleTranslationsProposalDbChanges(translationRepo, definitionExamples);
                 }
               }
             }
