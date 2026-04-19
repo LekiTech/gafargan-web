@@ -163,7 +163,7 @@ const WordEntryComponent: React.FC<WordEntryProps> = ({
       nextDefinitions[0] = nextFirstDefinition;
 
       const nextFirstDetail = firstDetail.getShallowCopy();
-      firstDetail.setDefinitions(nextDefinitions);
+      nextFirstDetail.setDefinitions(nextDefinitions);
 
       const nextWordDetails = [...wordDetails];
       nextWordDetails[0] = nextFirstDetail;

@@ -151,7 +151,7 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
       if (word.state === STATE.DELETED) {
         await wordRepo.delete(word.id);
         // no need to continue inside the word, as it should be deleted with all of it inside (except for translations)
-      } else if (word.state !== STATE.UNCHANGED) {
+      } else {
         let createdWord: Word | undefined = undefined;
         if (word.state === STATE.ADDED) {
           const wordEntity = wordRepo.create({
@@ -209,7 +209,7 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
           if (wordDetail.state === STATE.DELETED) {
             await wordDetailRepo.delete(wordDetail.id);
             // no need to continue inside the word, as it should be deleted with all of it inside (except for translations)
-          } else if (wordDetail.state !== STATE.UNCHANGED) {
+          } else {
             if (wordDetail.state === STATE.ADDED) {
               const wordEntity = wordDetailRepo.create({
                 ...wordDetail,
