@@ -199,12 +199,6 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
         }
         for (let i = 0; i < word.wordDetails.length; i++) {
           const wordDetail = word.wordDetails[i];
-          // TODO: need to see if we need to handle the case when translation is deleted
-          const wordDetailExamples = wordDetail.examples?.map((example) => ({
-            ...example,
-            createdById: DUMMY_USER_ID,
-            updatedById: DUMMY_USER_ID,
-          }));
           let createdWordDetail: WordDetail | undefined = undefined;
           if (wordDetail.state === STATE.DELETED) {
             await wordDetailRepo.delete(wordDetail.id);
@@ -220,60 +214,92 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
                 sourceId: wordDetail.sourceId,
                 createdById: DUMMY_USER_ID,
                 updatedById: DUMMY_USER_ID,
-                examples: wordDetailExamples,
               });
               createdWordDetail = await wordDetailRepo.save(wordEntity);
             } else if (wordDetail.state === STATE.MODIFIED) {
-              await wordDetailRepo.update(wordDetail.id, {
-                inflection: wordDetail.inflection,
-                langDialectId: wordDetail.langDialectId,
-                sourceId: wordDetail.sourceId,
-                // TODO: add to the db model
-                // tags: wordDetail.tags,
-                updatedById: DUMMY_USER_ID,
-                examples: wordDetailExamples,
+              const existingWordDetail = await wordDetailRepo.findOne({
+                where: { id: wordDetail.id },
+                relations: { examples: true },
               });
+
+              if (!existingWordDetail) {
+                throw new Error(`WordDetail ${wordDetail.id} not found`);
+              }
+              const providedInflection = wordDetail.inflection?.trim() ?? null;
+              existingWordDetail.inflection =
+                providedInflection?.length === 0 ? null : providedInflection;
+              existingWordDetail.langDialectId = wordDetail.langDialectId;
+              existingWordDetail.sourceId = wordDetail.sourceId;
+              //   // TODO: add to the db model
+              // existing.tags = wordDetail.tags;
+              existingWordDetail.updatedById = DUMMY_USER_ID;
+
+              const wordDetailExamples =
+                wordDetail.examples?.map((example) => ({
+                  ...example,
+                  createdById: DUMMY_USER_ID,
+                  updatedById: DUMMY_USER_ID,
+                })) ?? [];
+              existingWordDetail.examples = wordDetailExamples as any;
+              await wordDetailRepo.save(existingWordDetail);
+              // if (wordDetailExamples.length > 0) {
+              //   await handleTranslationsProposalDbChanges(translationRepo, wordDetailExamples);
+              // }
             }
-            // if (wordDetail.examples != undefined) {
-            //   await handleTranslationsProposalDbChanges(translationRepo, wordDetail.examples);
-            // }
+
             for (const definition of wordDetail.definitions) {
-              // TODO: need to see if we need to handle the case when translation is deleted
-              const definitionExamples = definition.examples?.map((example) => ({
-                ...example,
-                createdById: DUMMY_USER_ID,
-                updatedById: DUMMY_USER_ID,
-              }));
-              switch (definition.state) {
-                case STATE.ADDED:
-                  const definitionEntity = definitionRepo.create({
-                    ...definition,
-                    wordDetailsId:
-                      wordDetail.state === STATE.ADDED ? createdWordDetail!.id : wordDetail.id,
-                    values: definition.values,
+              if (definition.state === STATE.DELETED) {
+                await definitionRepo.delete(definition.id);
+                // no need to continue inside the word, as it should be deleted with all of it inside (except for translations)
+              } else {
+                switch (definition.state) {
+                  case STATE.ADDED:
+                    const definitionEntity = definitionRepo.create({
+                      ...definition,
+                      wordDetailsId:
+                        wordDetail.state === STATE.ADDED ? createdWordDetail!.id : wordDetail.id,
+                      values: definition.values,
+                      createdById: DUMMY_USER_ID,
+                      updatedById: DUMMY_USER_ID,
+                    });
+                    await definitionRepo.save(definitionEntity);
+                    break;
+                  case STATE.MODIFIED:
+                    const existingDefinition = await definitionRepo.findOne({
+                      where: { id: definition.id },
+                      relations: { examples: true },
+                    });
+
+                    if (!existingDefinition) {
+                      throw new Error(`Definition ${definition.id} not found`);
+                    }
+                    existingDefinition.values = definition.values;
+                    existingDefinition.tags = definition.tags ?? [];
+                    existingDefinition.updatedById = DUMMY_USER_ID;
+
+                    const definitionExamples =
+                      definition.examples?.map((example) => ({
+                        ...example,
+                        createdById: DUMMY_USER_ID,
+                        updatedById: DUMMY_USER_ID,
+                      })) ?? [];
+                    existingDefinition.examples = definitionExamples as any;
+                    await definitionRepo.save(existingDefinition);
+                    break;
+                  default:
+                    console.log(`Nothing to do with definition with ID = ${definition.id}`);
+                }
+
+                const definitionExamples =
+                  definition.examples?.map((example) => ({
+                    ...example,
                     createdById: DUMMY_USER_ID,
                     updatedById: DUMMY_USER_ID,
-                    examples: definitionExamples,
-                  });
-                  await definitionRepo.save(definitionEntity);
-                  break;
-                case STATE.DELETED:
-                  await definitionRepo.delete(definition.id);
-                  break;
-                case STATE.MODIFIED:
-                  await definitionRepo.update(definition.id, {
-                    values: definition.values,
-                    tags: definition.tags,
-                    updatedById: DUMMY_USER_ID,
-                    examples: definitionExamples,
-                  });
-                  break;
-                default:
-                  console.log(`Nothing to do with definition with ID = ${definition.id}`);
+                  })) ?? [];
+                if (definitionExamples.length > 0) {
+                  await handleTranslationsProposalDbChanges(translationRepo, definitionExamples);
+                }
               }
-              // if (definition.examples != undefined && definition.state !== STATE.DELETED) {
-              //   await handleTranslationsProposalDbChanges(translationRepo, definition.examples);
-              // }
             }
           }
         }
@@ -290,15 +316,16 @@ async function handleTranslationsProposalDbChanges(
     switch (translation.state) {
       case STATE.ADDED:
         const translationEntity = translationRepo.create(translation);
-        const createdEntity = await translationRepo.save({
+        await translationRepo.save({
           ...translationEntity,
           createdById: DUMMY_USER_ID,
           updatedById: DUMMY_USER_ID,
         });
         break;
-      case STATE.DELETED:
-        await translationRepo.delete(translation.id);
-        break;
+      // On deletion should only remove the link to translation record, but not delete the translation itself
+      // case STATE.DELETED:
+      //   await translationRepo.delete(translation.id);
+      //   break;
       case STATE.MODIFIED:
         await translationRepo.update(translation.id, {
           phrasesPerLangDialect: translation.phrasesPerLangDialect,
