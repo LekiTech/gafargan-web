@@ -47,7 +47,8 @@ const TabsContent: React.FC<{
   paginatedWords: PaginatedResponse<WordModelExistingNestedType>;
   sourceModels: SourceModelType[];
   proposals: Proposal[];
-}> = ({ lang, paginatedWords, sourceModels, proposals }) => {
+  proposalBaselineWords: Record<number, Record<number, WordModelExistingNestedType>>;
+}> = ({ lang, paginatedWords, sourceModels, proposals, proposalBaselineWords }) => {
   const { t } = useTranslation();
   // TODO: create page per tab, for optimized performance and workflow
   const [value, setValue] = React.useState(0);
@@ -89,7 +90,8 @@ const TabsContent: React.FC<{
           proposals={proposals}
           lang={lang}
           sourceModels={sourceModels}
-          readonly={false}
+          readonly={true}
+          baselineWords={proposalBaselineWords}
         />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={3}>
@@ -98,7 +100,8 @@ const TabsContent: React.FC<{
           proposals={proposals}
           lang={lang}
           sourceModels={sourceModels}
-          readonly={true}
+          readonly={false}
+          baselineWords={proposalBaselineWords}
         />
       </CustomTabPanel>
     </Box>

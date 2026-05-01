@@ -18,6 +18,7 @@ import {
   SourceModelType,
   STATE,
   StateType,
+  TranslationsProposalModel,
   TranslationModelType,
 } from '@/dashboard/models/proposal.model';
 import { Word } from './entities/Word';
@@ -68,7 +69,7 @@ export async function getPaginatedProposals({
 
 export interface CreateProposalDto {
   type: ProposalType;
-  data: DictionaryProposalModel | SourceModelType | TranslationModelType;
+  data: DictionaryProposalModel | SourceModelType | TranslationModelType | TranslationsProposalModel;
   proposedById: number;
 }
 
@@ -112,9 +113,38 @@ export async function approveProposal(proposalId: number, adminId: number) {
   proposalEntity.status = ProposalStatus.APPROVED;
   proposalEntity.reviewedById = adminId;
   proposalEntity.reviewedAt = new Date();
-  // Save the proposal
-  // TODO: add/modify/delete all values to the correct tables
-  await dictionaryV3ProposalToDbChanges(proposalEntity);
+
+  switch (proposalEntity.type) {
+    case ProposalType.DICTIONARY:
+      await dictionaryV3ProposalToDbChanges(proposalEntity);
+      break;
+    case ProposalType.TRANSLATIONS:
+      await translationsV3ProposalToDbChanges(proposalEntity);
+      break;
+    default:
+      await proposalRepo.save(proposalEntity);
+  }
+}
+
+async function translationsV3ProposalToDbChanges(proposal: Proposal) {
+  if (
+    proposal.data == undefined ||
+    !('version' in proposal.data && proposal.data.version === 'V3') ||
+    !('entries' in proposal.data)
+  ) {
+    throw new Error(`Proposal ${proposal.id} contains data incompatible with V3 translations`);
+  }
+
+  const AppDataSource = await getDataSource();
+  await AppDataSource.transaction(async (manager) => {
+    const proposalRepo = manager.getRepository<Proposal>(ProposalSchema.options.tableName!);
+    await proposalRepo.save(proposal);
+
+    const translationRepo = manager.getRepository<Translation>(
+      TranslationSchema.options.tableName!,
+    );
+    await handleTranslationsProposalDbChanges(translationRepo, proposal.data!.entries);
+  });
 }
 
 async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
