@@ -49,7 +49,6 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   const theme = useTheme();
   const isSmallerThanMd = useMediaQuery(theme.breakpoints.down('md'));
 
-  console.debug('ExpressionView > word', words);
   return (
     <Box
       sx={(theme) => ({
