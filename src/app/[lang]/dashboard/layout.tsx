@@ -45,39 +45,19 @@ const NAVIGATION = (lang: WebsiteLang, t: TFunction): Navigation => {
       icon: <DashboardIcon />,
     },
     {
-      segment: `${lang}/dashboard/sources`,
-      title: t('menu.sources', { ns: 'dashboard' }),
-      icon: <LocalLibraryIcon />,
-    },
-    {
       segment: `${lang}/${Routes.Dictionary}`,
       title: t('menu.dictionary', { ns: 'dashboard' }),
       icon: <MenuBookIcon />,
-      // title: 'Review',
-      // icon: <SpellcheckIcon />,
-      // children: [
-      //   {
-      //     segment: 'lord-of-the-rings',
-      //     title: 'Lord of the Rings',
-      //     icon: <SpellcheckIcon />,
-      //   },
-      //   {
-      //     segment: 'harry-potter',
-      //     title: 'Harry Potter',
-      //     icon: <SpellcheckIcon />,
-      //   },
-      // ],
     },
-    // {
-    //   segment: `${lang}/dashboard/add-word`,
-    //   title: 'Add Words',
-    //   icon: <TextIncreaseIcon />,
-    //   // pattern: 'employees{/:employeeId}*',
-    // },
     {
       segment: `${lang}/dashboard/translations`,
       title: t('menu.translations', { ns: 'dashboard' }),
       icon: <TranslateIcon />,
+    },
+    {
+      segment: `${lang}/dashboard/sources`,
+      title: t('menu.sources', { ns: 'dashboard' }),
+      icon: <LocalLibraryIcon />,
     },
   ];
 };

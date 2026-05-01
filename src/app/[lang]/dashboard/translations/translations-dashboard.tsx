@@ -186,7 +186,7 @@ const TranslationsDashboard: React.FC<{
           <Grid container columns={{ xs: 6 }} spacing={1.5} sx={{ mb: 2 }}>
             <Grid size={{ xs: 6 }}>
               <SourcesCreatableSelect
-                label="Source"
+                label={t('addNewWord.source', { ns: 'dashboard' })}
                 options={sources}
                 value={selectedSource}
                 lang={lang}

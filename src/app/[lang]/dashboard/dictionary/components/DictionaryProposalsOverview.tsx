@@ -55,6 +55,7 @@ import { expressionFont } from '@/fonts';
 import { toLowerCaseLezgi } from '../../../../utils';
 import { PaginatedResponse } from '@repository/types.model';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { TFunction } from 'i18next';
 
 const ProposalsTypeChip: React.FC<{ type: string }> = ({ type }) => {
   switch (type) {
@@ -124,9 +125,12 @@ const normalizeComparable = (value: unknown) => JSON.stringify(value ?? null);
 const findById = <T,>(items: T[] | undefined, id?: number): T | undefined =>
   id === undefined ? undefined : items?.find((item: any) => item.id === id);
 
-const getSourceName = (sourceModels: SourceModelType[], sourceId?: number) => {
+const getSourceName = (sourceModels: SourceModelType[], t: TFunction, sourceId?: number) => {
   if (!sourceId) {
     return undefined;
+  }
+  if (sourceId === -1) {
+    return t('fieldworkData');
   }
   return sourceModels.find((source) => 'id' in source && source.id === sourceId)?.name;
 };
@@ -312,7 +316,7 @@ const WordSidePreview: React.FC<{
   }
 
   const spellingChanged = oppositeWord && word.spelling !== oppositeWord.spelling;
-  const sourceName = getSourceName(sourceModels, word.sourceId);
+  const sourceName = getSourceName(sourceModels, t, word.sourceId);
 
   return (
     <Box
@@ -389,7 +393,7 @@ const WordSidePreview: React.FC<{
             previousDetail &&
             normalizeComparable(previousDetail) !==
               normalizeComparable({ ...detail, state: previousDetail.state });
-          const detailSourceName = getSourceName(sourceModels, detail.sourceId);
+          const detailSourceName = getSourceName(sourceModels, t, detail.sourceId);
 
           return (
             <Box key={`${detail.inflection}_${detailIdx}`}>
@@ -569,42 +573,41 @@ const DictionaryProposalsOverview: React.FC<{
             </TableRow>
           </TableHead>
           <TableBody>
-            {proposals.items
-              .map((proposal) => {
-                const dictionaryData: DictionaryProposalModelNestedType =
-                  proposal.data! as DictionaryProposalModelNestedType;
-                return (
-                  <TableRow
-                    key={proposal.id}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                    {/* <TableCell component="th" scope="row">
+            {proposals.items.map((proposal) => {
+              const dictionaryData: DictionaryProposalModelNestedType =
+                proposal.data! as DictionaryProposalModelNestedType;
+              return (
+                <TableRow
+                  key={proposal.id}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  {/* <TableCell component="th" scope="row">
                   <ProposalsTypeChip type={row.type} />
                 </TableCell> */}
-                    <TableCell align="left">{proposal.id}</TableCell>
-                    <TableCell align="left">
-                      {new Date(proposal.proposedAt).toLocaleString()}
-                    </TableCell>
-                    <TableCell align="left">{proposal.proposedBy.name}</TableCell>
-                    {/* <TableCell align="left">{proposal.reviewedBy?.name}</TableCell> */}
-                    <TableCell align="left">{dictionaryData.entries.length}</TableCell>
-                    <TableCell align="left">
-                      {langDialectIdToString(dictionaryData.fromLangDialectId, t) +
-                        ' → ' +
-                        langDialectIdToString(dictionaryData.toLangDialectId, t)}
-                    </TableCell>
-                    <TableCell align="left">
-                      <ProposalsStatusChip status={proposal.status} />
-                    </TableCell>
-                    <TableCell align="left">{proposal.comment}</TableCell>
-                    <TableCell align="right">
-                      <IconButton onClick={() => setSelectedProposal(proposal)}>
-                        <VisibilityIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                  <TableCell align="left">{proposal.id}</TableCell>
+                  <TableCell align="left">
+                    {new Date(proposal.proposedAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell align="left">{proposal.proposedBy.name}</TableCell>
+                  {/* <TableCell align="left">{proposal.reviewedBy?.name}</TableCell> */}
+                  <TableCell align="left">{dictionaryData.entries.length}</TableCell>
+                  <TableCell align="left">
+                    {langDialectIdToString(dictionaryData.fromLangDialectId, t) +
+                      ' → ' +
+                      langDialectIdToString(dictionaryData.toLangDialectId, t)}
+                  </TableCell>
+                  <TableCell align="left">
+                    <ProposalsStatusChip status={proposal.status} />
+                  </TableCell>
+                  <TableCell align="left">{proposal.comment}</TableCell>
+                  <TableCell align="right">
+                    <IconButton onClick={() => setSelectedProposal(proposal)}>
+                      <VisibilityIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
           <TableFooter>
             <TableRow>

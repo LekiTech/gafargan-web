@@ -223,7 +223,7 @@ export const WordEntryForm: React.FC<{
       <Grid container columns={{ xs: 6 }} gap={1} mb={5}>
         <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
           <SourcesCreatableSelect
-            label={`📚 ${t('addNewWord.source', { ns: 'dashboard' })}`}
+            label={t('addNewWord.source', { ns: 'dashboard' })}
             options={sources}
             value={selectedSource}
             lang={lang}

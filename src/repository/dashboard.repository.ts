@@ -9,6 +9,7 @@ import {
   WordSchema,
 } from './entities/schemas';
 import { ProposalStatus } from './entities/enums';
+import { MoreThan } from 'typeorm';
 
 export type DashboardStats = {
   words: number;
@@ -36,7 +37,9 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     AppDataSource.getRepository(WordSchema.options.tableName!).count(),
     AppDataSource.getRepository(DefinitionSchema.options.tableName!).count(),
     AppDataSource.getRepository(TranslationSchema.options.tableName!).count(),
-    AppDataSource.getRepository(SourceSchema.options.tableName!).count(),
+    AppDataSource.getRepository(SourceSchema.options.tableName!).count({
+      where: { id: MoreThan(0) },
+    }),
     proposalRepo.count({ where: { status: ProposalStatus.PENDING } }),
     proposalRepo.count({ where: { status: ProposalStatus.APPROVED } }),
     proposalRepo.count({ where: { status: ProposalStatus.REJECTED } }),

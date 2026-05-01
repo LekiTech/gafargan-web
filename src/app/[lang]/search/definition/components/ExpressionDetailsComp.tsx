@@ -112,9 +112,13 @@ export const ExpressionDetailsComp: FC<ExpressionDetailsCompProps> = ({
           isOtherExamples={true}
           examples={data.examples}
         />
-        <Typography variant="caption" color="text.secondary" sx={{ m: '15px 0' }}>
-          {`${data.source?.name} - ${data.source?.authors}`}
-        </Typography>
+        {data.sourceId === -1 ? (
+          <Typography>🗣️ {t('fieldworkData')}</Typography>
+        ) : (
+          <Typography variant="caption" color="text.secondary" sx={{ m: '15px 0' }}>
+            {`${data.source?.name} - ${data.source?.authors}`}
+          </Typography>
+        )}
         {!isLast && <Divider sx={{ mt: '30px' }} />}
       </Stack>
     </Stack>
