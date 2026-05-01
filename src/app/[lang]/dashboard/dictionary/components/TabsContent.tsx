@@ -12,6 +12,7 @@ import DictionaryProposalsOverview from './DictionaryProposalsOverview';
 import { useTranslation } from 'react-i18next';
 import { Proposal } from '@repository/entities/Proposal';
 import { FORM_ENTRY_STATE } from './WordEntryForm/constants';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -42,19 +43,38 @@ function a11yProps(index: number) {
   };
 }
 
+const dictionaryTabs = ['published', 'add', 'my-proposals', 'review-proposals'] as const;
+type DictionaryTab = (typeof dictionaryTabs)[number];
+
+const tabParamToIndex = (tab: string | null) => {
+  const index = dictionaryTabs.indexOf(tab as DictionaryTab);
+  return index === -1 ? 0 : index;
+};
+
 const TabsContent: React.FC<{
   lang: WebsiteLang;
   paginatedWords: PaginatedResponse<WordModelExistingNestedType>;
   sourceModels: SourceModelType[];
-  proposals: Proposal[];
+  myProposals: PaginatedResponse<Proposal>;
+  reviewProposals: PaginatedResponse<Proposal>;
   proposalBaselineWords: Record<number, Record<number, WordModelExistingNestedType>>;
-}> = ({ lang, paginatedWords, sourceModels, proposals, proposalBaselineWords }) => {
+}> = ({ lang, paginatedWords, sourceModels, myProposals, reviewProposals, proposalBaselineWords }) => {
   const { t } = useTranslation();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   // TODO: create page per tab, for optimized performance and workflow
-  const [value, setValue] = React.useState(0);
+  const value = tabParamToIndex(searchParams.get('tab'));
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
+    const params = new URLSearchParams(searchParams.toString());
+    const tab = dictionaryTabs[newValue];
+    if (tab === dictionaryTabs[0]) {
+      params.delete('tab');
+    } else {
+      params.set('tab', tab);
+    }
+    router.replace(`${pathname}?${params.toString()}`);
   };
 
   return (
@@ -87,21 +107,23 @@ const TabsContent: React.FC<{
       <CustomTabPanel value={value} index={2}>
         {/* Need to see here only proposals made by the user */}
         <DictionaryProposalsOverview
-          proposals={proposals}
+          proposals={myProposals}
           lang={lang}
           sourceModels={sourceModels}
           readonly={true}
           baselineWords={proposalBaselineWords}
+          queryParamPrefix="myProposals"
         />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={3}>
         Review Proposals {[<br key={1} />, <br key={2} />]}Only admins can access this page
         <DictionaryProposalsOverview
-          proposals={proposals}
+          proposals={reviewProposals}
           lang={lang}
           sourceModels={sourceModels}
           readonly={false}
           baselineWords={proposalBaselineWords}
+          queryParamPrefix="reviewProposals"
         />
       </CustomTabPanel>
     </Box>

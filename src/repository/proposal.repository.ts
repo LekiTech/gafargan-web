@@ -26,6 +26,7 @@ import { SpellingVariant } from './entities/SpellingVariant';
 import { WordDetail } from './entities/WordDetail';
 import { Definition } from './entities/Definition';
 import { DUMMY_USER_ID } from './constants';
+import { PaginatedResponse } from './types.model';
 
 export type PaginationQuery = {
   type: ProposalType;
@@ -42,19 +43,22 @@ export async function getPaginatedProposals({
   size,
   // wordLangDialectId,
   // definitionsLangDialectId,
-}: PaginationQuery): Promise<Proposal[]> {
+}: PaginationQuery): Promise<PaginatedResponse<Proposal>> {
   // status = status ?? ProposalStatus.PENDING;
   const AppDataSource = await getDataSource();
   const proposalRepo = AppDataSource.getRepository<Proposal>(ProposalSchema.options.tableName!);
-  const proposals = await proposalRepo.find({
+  const currentPage = Math.max(1, page || 1);
+  const isAll = size === -1;
+  const pageSize = isAll ? -1 : Math.max(1, size || 10);
+  const [proposals, totalItems] = await proposalRepo.findAndCount({
     where: {
       type,
       status,
       // langDialect: { id: wordLangDialectId },
       // details: { langDialect: { id: definitionsLangDialectId } },
     },
-    take: size,
-    skip: page * size,
+    take: isAll ? undefined : pageSize,
+    skip: isAll ? undefined : (currentPage - 1) * pageSize,
     relations: {
       proposedBy: true,
       reviewedBy: true,
@@ -64,7 +68,13 @@ export async function getPaginatedProposals({
     },
   });
   // console.log('search', JSON.stringify(word, null, 2));
-  return JSON.parse(JSON.stringify(proposals));
+  return {
+    items: JSON.parse(JSON.stringify(proposals)),
+    totalItems,
+    currentPage,
+    pageSize,
+    totalPages: isAll ? 1 : Math.ceil(totalItems / pageSize),
+  };
 }
 
 export interface CreateProposalDto {

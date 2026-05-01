@@ -31,7 +31,8 @@ const changeDictLang = (args: {
   params.set('toLang', isFrom ? otherLang : lang);
 
   const href = `${pathname}?${params.toString()}`;
-  const needsServerRefresh = pathname.includes('/definition');
+  const needsServerRefresh =
+    pathname.includes('/definition') || pathname.includes('/dashboard/dictionary');
 
   if (needsServerRefresh) {
     setIsLoading(true);

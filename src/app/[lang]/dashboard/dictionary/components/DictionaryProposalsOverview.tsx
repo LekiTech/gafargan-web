@@ -53,6 +53,8 @@ import { ParsedTextComp } from '../../../components/ParsedTextComp';
 import { TagComp } from '../../../components/TagComp';
 import { expressionFont } from '@/fonts';
 import { toLowerCaseLezgi } from '../../../../utils';
+import { PaginatedResponse } from '@repository/types.model';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
 const ProposalsTypeChip: React.FC<{ type: string }> = ({ type }) => {
   switch (type) {
@@ -524,14 +526,29 @@ const ProposalDiff: React.FC<{
 const DictionaryProposalsOverview: React.FC<{
   lang: WebsiteLang;
   sourceModels: SourceModelType[];
-  proposals: Proposal[];
+  proposals: PaginatedResponse<Proposal>;
   readonly: boolean;
   baselineWords: Record<number, Record<number, WordModelExistingNestedType>>;
-}> = ({ lang, sourceModels, proposals, readonly, baselineWords }) => {
+  queryParamPrefix: string;
+}> = ({ lang, sourceModels, proposals, readonly, baselineWords, queryParamPrefix }) => {
   const { t } = useTranslation(lang);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [selectedProposal, setSelectedProposal] = React.useState<Proposal | undefined>();
-  const [page, setPage] = React.useState(0);
-  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const page = Math.max(0, proposals.currentPage - 1);
+  const rowsPerPage = proposals.pageSize;
+  const pageParam = `${queryParamPrefix}Page`;
+  const pageSizeParam = `${queryParamPrefix}PageSize`;
+
+  const replacePaginationParams = (newPage: number, newRowsPerPage = rowsPerPage) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', queryParamPrefix === 'reviewProposals' ? 'review-proposals' : 'my-proposals');
+    params.set(pageParam, Math.max(1, newPage + 1).toString());
+    params.set(pageSizeParam, newRowsPerPage.toString());
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
   return (
     <>
       <TableContainer component={Paper}>
@@ -552,11 +569,7 @@ const DictionaryProposalsOverview: React.FC<{
             </TableRow>
           </TableHead>
           <TableBody>
-            {proposals
-              .slice(
-                rowsPerPage > 0 ? page * rowsPerPage : 0,
-                rowsPerPage > 0 ? page * rowsPerPage + rowsPerPage : proposals.length,
-              )
+            {proposals.items
               .map((proposal) => {
                 const dictionaryData: DictionaryProposalModelNestedType =
                   proposal.data! as DictionaryProposalModelNestedType;
@@ -598,7 +611,7 @@ const DictionaryProposalsOverview: React.FC<{
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
                 colSpan={3}
-                count={proposals.length}
+                count={proposals.totalItems}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 slotProps={{
@@ -609,10 +622,9 @@ const DictionaryProposalsOverview: React.FC<{
                     native: true,
                   },
                 }}
-                onPageChange={(_, newPage) => setPage(newPage)}
+                onPageChange={(_, newPage) => replacePaginationParams(newPage)}
                 onRowsPerPageChange={(event) => {
-                  setRowsPerPage(parseInt(event.target.value, 10));
-                  setPage(0);
+                  replacePaginationParams(0, parseInt(event.target.value, 10));
                 }}
                 // ActionsComponent={TablePaginationActions}
               />

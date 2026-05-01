@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { redirect } from 'next/navigation';
 import { Params, SearchParams } from '@/types';
 import { getSources } from '@repository/source.repository';
 import { getPaginatedTranslations } from '@repository/translation.repository';
@@ -7,6 +8,7 @@ import { ProposalType } from '@repository/entities/enums';
 import { SourceModelType, STATE } from '../models/proposal.model';
 import TranslationsDashboard from './translations-dashboard';
 import { toNumber } from '../../../utils';
+import { Routes } from '../../../routes';
 
 const TranslationsPage: FC<{ params: Params; searchParams: SearchParams }> = async ({
   params,
@@ -20,8 +22,17 @@ const TranslationsPage: FC<{ params: Params; searchParams: SearchParams }> = asy
   const [sources, translations, proposals] = await Promise.all([
     getSources(),
     getPaginatedTranslations({ page, size: pageSize }),
-    getPaginatedProposals({ type: ProposalType.TRANSLATIONS, page: 0, size: 30 }),
+    getPaginatedProposals({ type: ProposalType.TRANSLATIONS, page: 1, size: 30 }),
   ]);
+
+  if (translations.totalPages > 0 && translations.currentPage > translations.totalPages) {
+    redirect(
+      `/${lang}/${Routes.Translations}?` +
+        Object.entries({ ...searchParamValues, page: translations.totalPages })
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value ?? '')}`)
+          .join('&'),
+    );
+  }
 
   const sourceModels: SourceModelType[] = sources.map((source) => ({
     state: STATE.UNCHANGED,
@@ -35,7 +46,7 @@ const TranslationsPage: FC<{ params: Params; searchParams: SearchParams }> = asy
       lang={lang}
       translations={translations}
       sourceModels={sourceModels}
-      proposals={proposals}
+      proposals={proposals.items}
     />
   );
 };

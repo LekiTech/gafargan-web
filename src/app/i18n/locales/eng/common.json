@@ -22,6 +22,7 @@
   "language": "Language",
   "dialect": "Dialect",
   "source": "Source",
+  "fieldworkData": "Fieldwork data",
   "foundInDefinitions": "Found in definitions",
   "foundInExamples": "Found in examples",
   "probablyYouMeant": "Probably you meant",

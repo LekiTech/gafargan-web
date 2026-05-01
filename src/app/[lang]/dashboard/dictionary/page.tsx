@@ -33,6 +33,10 @@ const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async
   const searchParamValues = await searchParams;
   const { fromLang, toLang, page, pageSize, s, c, e, tag, minl, maxl } =
     searchParamValues as AdvancedSearchParams;
+  const myProposalsPage = toNumber(searchParamValues.myProposalsPage || 1);
+  const myProposalsPageSize = toNumber(searchParamValues.myProposalsPageSize || 5);
+  const reviewProposalsPage = toNumber(searchParamValues.reviewProposalsPage || 1);
+  const reviewProposalsPageSize = toNumber(searchParamValues.reviewProposalsPageSize || 5);
 
   const paginatedWords = await searchAdvanced({
     page: toNumber(page || 0),
@@ -74,12 +78,41 @@ const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async
       // description: source.description ?? undefined,
     };
   });
-  const proposals = await getPaginatedProposals({
-    type: ProposalType.DICTIONARY,
-    page: 0,
-    size: 30,
-  });
-  const currentBaselineWordIds = proposals.flatMap((proposal) => {
+  const [myProposals, reviewProposals] = await Promise.all([
+    getPaginatedProposals({
+      type: ProposalType.DICTIONARY,
+      page: myProposalsPage,
+      size: myProposalsPageSize,
+    }),
+    getPaginatedProposals({
+      type: ProposalType.DICTIONARY,
+      page: reviewProposalsPage,
+      size: reviewProposalsPageSize,
+    }),
+  ]);
+  const proposalRedirectEntries = [
+    ['myProposalsPage', myProposals],
+    ['reviewProposalsPage', reviewProposals],
+  ] as const;
+  for (const [paramName, paginatedProposals] of proposalRedirectEntries) {
+    if (
+      paginatedProposals.totalPages > 0 &&
+      paginatedProposals.currentPage > paginatedProposals.totalPages
+    ) {
+      redirect(
+        `/${lang}/${Routes.Dictionary}?` +
+          Object.entries({ ...searchParamValues, [paramName]: paginatedProposals.totalPages })
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value ?? '')}`)
+            .join('&'),
+      );
+    }
+  }
+  const proposalsForBaseline = Array.from(
+    new Map(
+      [...myProposals.items, ...reviewProposals.items].map((proposal) => [proposal.id, proposal]),
+    ).values(),
+  );
+  const currentBaselineWordIds = proposalsForBaseline.flatMap((proposal) => {
     if (proposal.status !== ProposalStatus.PENDING) {
       return [];
     }
@@ -92,7 +125,7 @@ const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async
   });
 
   const proposalHistoryBaselineEntries = await Promise.all(
-    proposals
+    proposalsForBaseline
       .filter((proposal) => proposal.status !== ProposalStatus.PENDING && proposal.reviewedAt)
       .map(async (proposal) => {
         const data = proposal.data as { entries?: { id?: number; state?: string }[] } | null;
@@ -115,7 +148,7 @@ const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async
     proposalBaselineWords.map((word) => [word.id, mapWordToModelNestedType(word)]),
   );
   const proposalBaselineWordModels = Object.fromEntries(
-    proposals.map((proposal) => {
+    proposalsForBaseline.map((proposal) => {
       const historyBaseline = proposalHistoryBaselineEntries.find(([id]) => id === proposal.id);
       return [proposal.id, historyBaseline ? historyBaseline[1] : currentBaselineWordModels];
     }),
@@ -126,7 +159,8 @@ const DictionaryPage: FC<{ params: Params; searchParams: SearchParams }> = async
       lang={lang}
       paginatedWords={paginatedWordsModel}
       sourceModels={sourceModels}
-      proposals={proposals}
+      myProposals={myProposals}
+      reviewProposals={reviewProposals}
       proposalBaselineWords={proposalBaselineWordModels}
     />
   );

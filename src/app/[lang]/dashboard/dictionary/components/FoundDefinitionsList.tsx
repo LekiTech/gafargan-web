@@ -51,6 +51,13 @@ export const FoundDefinitionsList: FC<{
   const [prevSearch, setPrevSearch] = useState('');
   const [selectedWord, setSelectedWord] = useState<WordModelExistingNestedType | undefined>();
 
+  React.useEffect(() => {
+    setSearchLang({
+      from: (searchParams.get('fromLang') ?? 'lez') as DictionaryLang,
+      to: (searchParams.get('toLang') ?? 'rus') as DictionaryLang,
+    });
+  }, [searchParams]);
+
   const areSearchParamsAllowingNewSearch =
     !searchParams.toString() || searchParams.toString() !== prevSearch;
 

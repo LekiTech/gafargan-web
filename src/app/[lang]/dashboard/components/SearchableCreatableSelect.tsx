@@ -133,24 +133,34 @@ export const SourcesCreatableSelect: React.FC<SourcesCreatableSelectProps> = ({
           return filtered;
         }}
         options={options}
-        getOptionLabel={(option) => `${option.getName()} — ${option.getAuthors()}`}
+        getOptionLabel={(option) => {
+          return option.getId() === -1
+            ? t('fieldworkData')
+            : `${option.getName()} ${option.getAuthors() ? `— ${option.getAuthors()}` : ''}`;
+        }}
         renderOption={(props, option) => (
           <li
             {...props}
-            key={option.getName() ?? `${option.getName()}_${option.getAuthors()}`}
+            key={`${option.getId()}_${option.getName()}_${option.getAuthors()}`}
             style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
           >
             {isUserEnteringNewSource(option)
-              ? `${capitalizeFirstLetter(t('addNewWord.add', { ns: 'dashboard' }))} "${option.getName()}"`
-              : option.getName()}
-            <Typography
-              key={option.getAuthors()}
-              variant="caption"
-              ml={1}
-              sx={{ minWidth: 'fit-content', alignSelf: 'flex-end' }}
-            >
-              {option.getAuthors()}
-            </Typography>
+              ? `${capitalizeFirstLetter(t('addNewWord.add', { ns: 'dashboard' }))} "${
+                  option.getId() === -1 ? t('fieldworkData') : option.getName()
+                }"`
+              : option.getId() === -1
+                ? t('fieldworkData')
+                : option.getName()}
+            {option.getAuthors() ? (
+              <Typography
+                key={option.getId()}
+                variant="caption"
+                ml={1}
+                sx={{ minWidth: 'fit-content', alignSelf: 'flex-end' }}
+              >
+                {option.getAuthors()}
+              </Typography>
+            ) : null}
           </li>
         )}
         renderInput={(params) => (

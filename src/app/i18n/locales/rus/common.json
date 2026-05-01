@@ -22,6 +22,7 @@
   "language": "Язык",
   "dialect": "Диалект",
   "source": "Источник",
+  "fieldworkData": "Полевые данные",
   "foundInDefinitions": "Найдено в значениях",
   "foundInExamples": "Найдено в примерах",
   "probablyYouMeant": "Возможно вы имели ввиду",

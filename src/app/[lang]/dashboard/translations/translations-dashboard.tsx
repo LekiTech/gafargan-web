@@ -13,6 +13,7 @@ import {
   Divider,
   Grid,
   MenuItem,
+  Pagination,
   Paper,
   Select,
   Stack,
@@ -22,7 +23,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -36,26 +36,22 @@ import { Proposal } from '@repository/entities/Proposal';
 import { ProposalStatus } from '@repository/entities/enums';
 import { Translation } from '@repository/entities/Translation';
 import { PaginatedResponse } from '@repository/types.model';
-import {
-  SourceModel,
-  SourceModelType,
-  STATE,
-  TranslationModel,
-} from '../models/proposal.model';
+import { SourceModel, SourceModelType, TranslationModel } from '../models/proposal.model';
 import { SourcesCreatableSelect } from '../components/SearchableCreatableSelect';
 import { langDialectIdToString } from '../utils';
 import { useTranslation } from 'react-i18next';
+import { ExampleLine } from '../dictionary/components/WordEntryForm/ExampleLine';
+import { flipAndMergeTags } from '@/search/definition/utils';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-type PhraseDraft = {
+type ExampleDraft = {
   id: string;
-  from: string;
-  to: string;
+  value: TranslationModel;
 };
 
-const createDraft = (): PhraseDraft => ({
+const createDraft = (fromLangDialectId = 1, toLangDialectId = 25): ExampleDraft => ({
   id: crypto.randomUUID(),
-  from: '',
-  to: '',
+  value: TranslationModel.createEmpty([fromLangDialectId, toLangDialectId]),
 });
 
 const phrasePreview = (translation: Translation) =>
@@ -83,13 +79,29 @@ const TranslationsDashboard: React.FC<{
   sourceModels: SourceModelType[];
   proposals: Proposal[];
 }> = ({ lang, translations, sourceModels, proposals }) => {
-  const { t } = useTranslation(lang);
-  const [sources] = React.useState<SourceModel[]>(sourceModels.map((source) => new SourceModel(source)));
+  const { t, i18n } = useTranslation(lang);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [sources] = React.useState<SourceModel[]>(
+    sourceModels.map((source) => new SourceModel(source)),
+  );
   const [selectedSource, setSelectedSource] = React.useState<SourceModel>(sources[0]);
   const [fromLangDialectId, setFromLangDialectId] = React.useState(1);
   const [toLangDialectId, setToLangDialectId] = React.useState(25);
-  const [drafts, setDrafts] = React.useState<PhraseDraft[]>([createDraft()]);
-  const [alert, setAlert] = React.useState<{ severity: 'success' | 'error' | 'info'; text: string }>();
+  const [drafts, setDrafts] = React.useState<ExampleDraft[]>([createDraft()]);
+  const [alert, setAlert] = React.useState<{
+    severity: 'success' | 'error' | 'info';
+    text: string;
+  }>();
+  const tagEntries = i18n.getResourceBundle(lang, 'tags');
+  const allTags = React.useMemo(
+    () =>
+      Object.entries(flipAndMergeTags(tagEntries)).filter(
+        (kv) => kv != null && kv[0] != null && kv[1] != null,
+      ) as [string, string][],
+    [tagEntries],
+  );
 
   const dialectOptions = React.useMemo(
     () =>
@@ -100,43 +112,45 @@ const TranslationsDashboard: React.FC<{
     [t],
   );
 
-  const updateDraft = (id: string, patch: Partial<PhraseDraft>) => {
+  const updateDraft = (id: string, value: TranslationModel) => {
+    setDrafts((current) => current.map((draft) => (draft.id === id ? { ...draft, value } : draft)));
+  };
+
+  const deleteDraft = (id: string) => {
     setDrafts((current) =>
-      current.map((draft) => (draft.id === id ? { ...draft, ...patch } : draft)),
+      current.length === 1
+        ? [createDraft(fromLangDialectId, toLangDialectId)]
+        : current.filter((draft) => draft.id !== id),
     );
   };
 
+  const hasCompletePhrase = (draft: TranslationModel) =>
+    draft
+      .getAllLangDialectIds()
+      .map((langDialectId) => draft.getPhrasesByLangDialect(langDialectId) ?? [])
+      .flat()
+      .some((phrase) => phrase.phrase.trim().length > 0);
+
+  const handleTranslationsPageChange = (_: React.ChangeEvent<unknown>, newPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', newPage.toString());
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
   const submit = async () => {
-    const entries = drafts
-      .map((draft) => ({
-        from: draft.from.trim(),
-        to: draft.to.trim(),
-      }))
-      .filter((draft) => draft.from && draft.to);
+    const entries = drafts.map((draft) => draft.value).filter(hasCompletePhrase);
 
     if (entries.length === 0) {
       setAlert({ severity: 'info', text: 'Add at least one complete sentence pair.' });
       return;
     }
 
-    const translationModels = entries.map(
-      (entry) =>
-        new TranslationModel({
-          state: STATE.ADDED,
-          phrasesPerLangDialect: {
-            [fromLangDialectId]: [{ phrase: entry.from }],
-            [toLangDialectId]: [{ phrase: entry.to }],
-          },
-          tags: [],
-        }),
-    );
-
     const result = await fetch('translations/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        entries: translationModels,
-        defaultSource: selectedSource,
+        entries,
+        sourceId: selectedSource.getId(),
       }),
     });
 
@@ -146,7 +160,7 @@ const TranslationsDashboard: React.FC<{
     }
 
     setAlert({ severity: 'success', text: 'Translations were sent for review.' });
-    setDrafts([createDraft()]);
+    setDrafts([createDraft(fromLangDialectId, toLangDialectId)]);
   };
 
   return (
@@ -166,133 +180,80 @@ const TranslationsDashboard: React.FC<{
 
       {alert && <Alert severity={alert.severity}>{alert.text}</Alert>}
 
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 7 }}>
-          <Card variant="outlined" sx={{ borderRadius: 2 }}>
-            <CardHeader title="Propose translations" />
-            <CardContent>
-              <Grid container columns={{ xs: 6 }} spacing={1.5} sx={{ mb: 2 }}>
-                <Grid size={{ xs: 6 }}>
-                  <SourcesCreatableSelect
-                    label="Source"
-                    options={sources}
-                    value={selectedSource}
-                    lang={lang}
-                    onChange={setSelectedSource}
-                    readonly={false}
-                    placeholder="Choose or add"
-                  />
-                </Grid>
-                <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
-                  <Select
-                    size="small"
-                    value={fromLangDialectId}
-                    sx={{ flex: 1 }}
-                    onChange={(event) => setFromLangDialectId(Number(event.target.value))}
-                  >
-                    {dialectOptions.map((option) => (
-                      <MenuItem key={option.id} value={option.id}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  <Typography>→</Typography>
-                  <Select
-                    size="small"
-                    value={toLangDialectId}
-                    sx={{ flex: 1 }}
-                    onChange={(event) => setToLangDialectId(Number(event.target.value))}
-                  >
-                    {dialectOptions.map((option) => (
-                      <MenuItem key={option.id} value={option.id}>
-                        {option.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </Grid>
-              </Grid>
-
-              <Stack gap={1.5}>
-                {drafts.map((draft, idx) => (
-                  <Grid key={draft.id} container spacing={1.5}>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        minRows={2}
-                        label={`Source sentence ${idx + 1}`}
-                        value={draft.from}
-                        onChange={(event) => updateDraft(draft.id, { from: event.target.value })}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, md: 6 }}>
-                      <TextField
-                        fullWidth
-                        multiline
-                        minRows={2}
-                        label={`Translation ${idx + 1}`}
-                        value={draft.to}
-                        onChange={(event) => updateDraft(draft.id, { to: event.target.value })}
-                      />
-                    </Grid>
-                  </Grid>
-                ))}
-              </Stack>
-            </CardContent>
-            <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-              <Button
-                startIcon={<AddIcon />}
-                onClick={() => setDrafts((current) => [...current, createDraft()])}
+      <Card variant="outlined" sx={{ borderRadius: 2 }}>
+        <CardHeader title="Propose translations" />
+        <CardContent>
+          <Grid container columns={{ xs: 6 }} spacing={1.5} sx={{ mb: 2 }}>
+            <Grid size={{ xs: 6 }}>
+              <SourcesCreatableSelect
+                label="Source"
+                options={sources}
+                value={selectedSource}
+                lang={lang}
+                onChange={setSelectedSource}
+                readonly={false}
+                placeholder="Choose a source"
+              />
+            </Grid>
+            <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
+              <Select
+                size="small"
+                value={fromLangDialectId}
+                sx={{ flex: 1 }}
+                onChange={(event) => setFromLangDialectId(Number(event.target.value))}
               >
-                Add pair
-              </Button>
-              <Button variant="contained" startIcon={<SendIcon />} onClick={submit}>
-                Send to review
-              </Button>
-            </CardActions>
-          </Card>
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 5 }}>
-          <Card variant="outlined" sx={{ borderRadius: 2 }}>
-            <CardHeader
-              avatar={<RateReviewIcon color="warning" />}
-              title="Translation proposal queue"
-              subheader={`${proposals.filter((proposal) => proposal.status === ProposalStatus.PENDING).length} pending`}
-            />
-            <CardContent>
-              <Stack divider={<Divider flexItem />} gap={1}>
-                {proposals.slice(0, 6).map((proposal) => (
-                  <Stack
-                    key={proposal.id}
-                    direction="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                    gap={1}
-                  >
-                    <Box>
-                      <Typography variant="body2" fontWeight={700}>
-                        Proposal #{proposal.id}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {new Date(proposal.proposedAt).toLocaleString()}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      size="small"
-                      color={statusColor(proposal.status) as any}
-                      label={proposal.status}
-                    />
-                  </Stack>
+                {dialectOptions.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.label}
+                  </MenuItem>
                 ))}
-                {proposals.length === 0 && (
-                  <Typography color="text.secondary">No translation proposals yet.</Typography>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+              </Select>
+              <Typography>→</Typography>
+              <Select
+                size="small"
+                value={toLangDialectId}
+                sx={{ flex: 1 }}
+                onChange={(event) => setToLangDialectId(Number(event.target.value))}
+              >
+                {dialectOptions.map((option) => (
+                  <MenuItem key={option.id} value={option.id}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Grid>
+          </Grid>
+
+          <Stack gap={1.5}>
+            {drafts.map((draft) => (
+              <ExampleLine
+                key={draft.id}
+                example={draft.value}
+                onChange={(value) => updateDraft(draft.id, value)}
+                onDelete={() => deleteDraft(draft.id)}
+                isInnerBlockExample={false}
+                tagEntries={tagEntries}
+                allTags={allTags}
+                lang={lang}
+                readonly={false}
+              />
+            ))}
+          </Stack>
+        </CardContent>
+        <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+          <Button
+            startIcon={<AddIcon />}
+            onClick={() =>
+              setDrafts((current) => [...current, createDraft(fromLangDialectId, toLangDialectId)])
+            }
+          >
+            Add example
+          </Button>
+          <Button variant="contained" startIcon={<SendIcon />} onClick={submit}>
+            Send to review
+          </Button>
+        </CardActions>
+      </Card>
 
       <Card variant="outlined" sx={{ borderRadius: 2 }}>
         <CardHeader
@@ -301,6 +262,37 @@ const TranslationsDashboard: React.FC<{
           subheader={`${translations.totalItems} total`}
         />
         <CardContent>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ mb: 1.5 }}
+          >
+            <Pagination
+              count={translations.totalPages}
+              page={translations.currentPage}
+              siblingCount={1}
+              showFirstButton
+              showLastButton
+              onChange={handleTranslationsPageChange}
+            />
+            <Select
+              size="small"
+              value={translations.pageSize}
+              onChange={(event) => {
+                const params = new URLSearchParams(searchParams.toString());
+                params.set('page', '1');
+                params.set('pageSize', event.target.value.toString());
+                router.replace(`${pathname}?${params.toString()}`);
+              }}
+            >
+              {[10, 20, 50, 100].map((size) => (
+                <MenuItem key={size} value={size}>
+                  {size}
+                </MenuItem>
+              ))}
+            </Select>
+          </Stack>
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
               <TableHead>
@@ -334,6 +326,18 @@ const TranslationsDashboard: React.FC<{
               </TableBody>
             </Table>
           </TableContainer>
+          {translations.totalPages > 1 && (
+            <Stack alignItems="center" sx={{ mt: 1.5 }}>
+              <Pagination
+                count={translations.totalPages}
+                page={translations.currentPage}
+                siblingCount={1}
+                showFirstButton
+                showLastButton
+                onChange={handleTranslationsPageChange}
+              />
+            </Stack>
+          )}
         </CardContent>
       </Card>
     </Box>

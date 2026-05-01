@@ -39,3 +39,7 @@ VALUES ('Lezgi', 'Literary'),
 
        ('Arabic', 'Modern Standard Arabic'),
        ('Arabic', 'Classical Arabic (Quranic)');
+
+INSERT INTO source (id, "name", created_by, updated_by) 
+OVERRIDING SYSTEM VALUE 
+VALUES(-1,'Fieldwork Data', 1, 1);
