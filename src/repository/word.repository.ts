@@ -16,11 +16,93 @@ import { SourceSchema, WordSchema } from './entities/schemas';
 import { WordSearchType } from './enums';
 import { FindOperator, ILike, In } from 'typeorm';
 import { sources } from 'next/dist/compiled/webpack/webpack';
+import type { TranslationLinkTarget } from './translation.repository';
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
 // client.connect();
 
+export type SimpleWordSearchResult = {
+  id: number;
+  spelling: string;
+  langDialectId: number;
+};
+
+export async function simpleSearch({
+  spelling,
+  fromLangDialectId,
+  limit = 20,
+}: {
+  spelling: string;
+  fromLangDialectId: number;
+  limit?: number;
+}): Promise<SimpleWordSearchResult[]> {
+  const AppDataSource = await getDataSource();
+  const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
+  const normalizedSpelling = spelling.trim();
+  if (!normalizedSpelling) {
+    return [];
+  }
+  const words = await wordRepo.find({
+    where: { spelling: ILike(`${normalizedSpelling}%`), langDialectId: fromLangDialectId },
+    select: ['id', 'spelling', 'langDialectId'],
+    order: { spelling: 'ASC' },
+    take: limit,
+  });
+  console.log('simpleSearch', JSON.stringify(words, null, 2));
+  return JSON.parse(JSON.stringify(words));
+}
+
+export async function getTranslationLinkTargetsForWords(
+  wordIds: number[],
+): Promise<TranslationLinkTarget[]> {
+  const safeWordIds = Array.from(new Set(wordIds.filter((id) => Number.isFinite(id))));
+  if (safeWordIds.length === 0) {
+    return [];
+  }
+
+  const AppDataSource = await getDataSource();
+  const rows = await AppDataSource.query(
+    `
+      SELECT
+        'wordDetail' AS "linkType",
+        w.id AS "wordId",
+        w.spelling AS "wordSpelling",
+        w.lang_dialect_id AS "wordLangDialectId",
+        wd.lang_dialect_id AS "definitionsLangDialectId",
+        wd.id AS "wordDetailId",
+        NULL::int AS "definitionId",
+        w.spelling AS "label",
+        'Details #' || wd.id ||
+          COALESCE(' · ' || NULLIF(wd.inflection, ''), '') AS "targetLabel"
+      FROM word_details wd
+      JOIN word w ON w.id = wd.word_id
+      WHERE w.id = ANY($1)
+
+      UNION ALL
+
+      SELECT
+        'definition' AS "linkType",
+        w.id AS "wordId",
+        w.spelling AS "wordSpelling",
+        w.lang_dialect_id AS "wordLangDialectId",
+        wd.lang_dialect_id AS "definitionsLangDialectId",
+        wd.id AS "wordDetailId",
+        d.id AS "definitionId",
+        w.spelling AS "label",
+        'Definition #' || d.id ||
+          COALESCE(' · ' || NULLIF(left(d.values->0->>'value', 80), ''), '') AS "targetLabel"
+      FROM definition d
+      JOIN word_details wd ON wd.id = d.word_details_id
+      JOIN word w ON w.id = wd.word_id
+      WHERE w.id = ANY($1)
+      ORDER BY "wordSpelling", "wordDetailId", "definitionId" NULLS FIRST;
+    `,
+    [safeWordIds],
+  );
+
+  return JSON.parse(JSON.stringify(rows));
+}
 interface SearchSpellingQuery {
   spelling: string;
   wordLangDialectIds: number[];

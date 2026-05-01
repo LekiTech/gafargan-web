@@ -11,7 +11,7 @@ import {
 import { Proposal } from './entities/Proposal';
 import { ProposalStatus, ProposalType } from './entities/enums';
 import { Translation } from './entities/Translation';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import {
   DictionaryProposalModel,
   DictionaryProposalModelNestedType,
@@ -32,7 +32,7 @@ export type PaginationQuery = {
   type: ProposalType;
   page: number;
   size: number;
-  status?: ProposalStatus;
+  status?: ProposalStatus | ProposalStatus[];
   // wordLangDialectId: number;
   // definitionsLangDialectId: number;
 };
@@ -53,7 +53,7 @@ export async function getPaginatedProposals({
   const [proposals, totalItems] = await proposalRepo.findAndCount({
     where: {
       type,
-      status,
+      status: Array.isArray(status) ? In(status) : status,
       // langDialect: { id: wordLangDialectId },
       // details: { langDialect: { id: definitionsLangDialectId } },
     },
@@ -343,17 +343,20 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
 
 async function handleTranslationsProposalDbChanges(
   translationRepo: Repository<Translation>,
-  translations: TranslationModelType[],
+  translations: (TranslationModelType & { links?: { linkType: string; wordDetailId: number; definitionId?: number }[] })[],
 ) {
+  const manager = translationRepo.manager;
   for (const translation of translations) {
+    let translationId = translation.state === STATE.ADDED ? undefined : translation.id;
     switch (translation.state) {
       case STATE.ADDED:
         const translationEntity = translationRepo.create(translation);
-        await translationRepo.save({
+        const savedTranslation = await translationRepo.save({
           ...translationEntity,
           createdById: DUMMY_USER_ID,
           updatedById: DUMMY_USER_ID,
         });
+        translationId = savedTranslation.id;
         break;
       // On deletion should only remove the link to translation record, but not delete the translation itself
       // case STATE.DELETED:
@@ -368,6 +371,33 @@ async function handleTranslationsProposalDbChanges(
         break;
       default:
         console.log(`Nothing to do with translation with ID = ${translation.id}`);
+    }
+
+    if (translationId !== undefined && translation.links !== undefined) {
+      await manager.query('DELETE FROM word_details_example WHERE translation_id = $1', [
+        translationId,
+      ]);
+      await manager.query('DELETE FROM definition_example WHERE translation_id = $1', [
+        translationId,
+      ]);
+
+      for (const link of translation.links) {
+        if (link.linkType === 'definition' && link.definitionId) {
+          await manager.query(
+            `INSERT INTO definition_example (definition_id, translation_id)
+             VALUES ($1, $2)
+             ON CONFLICT DO NOTHING`,
+            [link.definitionId, translationId],
+          );
+        } else if (link.linkType === 'wordDetail') {
+          await manager.query(
+            `INSERT INTO word_details_example (word_details_id, translation_id)
+             VALUES ($1, $2)
+             ON CONFLICT DO NOTHING`,
+            [link.wordDetailId, translationId],
+          );
+        }
+      }
     }
   }
 }

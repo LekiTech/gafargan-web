@@ -56,9 +56,20 @@ const TabsContent: React.FC<{
   paginatedWords: PaginatedResponse<WordModelExistingNestedType>;
   sourceModels: SourceModelType[];
   myProposals: PaginatedResponse<Proposal>;
+  myProposalsHistory: PaginatedResponse<Proposal>;
   reviewProposals: PaginatedResponse<Proposal>;
+  reviewProposalsHistory: PaginatedResponse<Proposal>;
   proposalBaselineWords: Record<number, Record<number, WordModelExistingNestedType>>;
-}> = ({ lang, paginatedWords, sourceModels, myProposals, reviewProposals, proposalBaselineWords }) => {
+}> = ({
+  lang,
+  paginatedWords,
+  sourceModels,
+  myProposals,
+  myProposalsHistory,
+  reviewProposals,
+  reviewProposalsHistory,
+  proposalBaselineWords,
+}) => {
   const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
@@ -108,6 +119,7 @@ const TabsContent: React.FC<{
         {/* Need to see here only proposals made by the user */}
         <DictionaryProposalsOverview
           proposals={myProposals}
+          historyProposals={myProposalsHistory}
           lang={lang}
           sourceModels={sourceModels}
           readonly={true}
@@ -119,6 +131,7 @@ const TabsContent: React.FC<{
         Review Proposals {[<br key={1} />, <br key={2} />]}Only admins can access this page
         <DictionaryProposalsOverview
           proposals={reviewProposals}
+          historyProposals={reviewProposalsHistory}
           lang={lang}
           sourceModels={sourceModels}
           readonly={false}

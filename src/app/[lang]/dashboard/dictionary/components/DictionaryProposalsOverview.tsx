@@ -6,7 +6,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { ProposalStatus, ProposalType } from '@repository/entities/enums';
+import { ProposalStatus } from '@repository/entities/enums';
 import {
   Button,
   Card,
@@ -22,20 +22,20 @@ import {
   TableFooter,
   TablePagination,
   Typography,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
-import TranslateIcon from '@mui/icons-material/Translate';
 import PendingIcon from '@mui/icons-material/AccessTime';
 import ApprovedIcon from '@mui/icons-material/CheckCircle';
 import RejectedIcon from '@mui/icons-material/Cancel';
 import CloseIcon from '@mui/icons-material/Close';
 import ApproveIcon from '@mui/icons-material/CheckCircleOutline';
 import RejectIcon from '@mui/icons-material/CancelOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import {
-  DictionaryProposalModel,
   DictionaryProposalModelNestedType,
   SourceModelType,
   STATE,
@@ -43,12 +43,10 @@ import {
   WordModelNestedType,
 } from '@/dashboard/models/proposal.model';
 import { Proposal } from '@repository/entities/Proposal';
-import { WordEntryForm } from './WordEntryForm';
 import { WebsiteLang } from '@api/types.model';
 import { approveProposal, rejectProposal } from '@repository/proposal.repository';
 import { langDialectIdToString } from '@/dashboard/utils';
 import { useTranslation } from 'react-i18next';
-import { FORM_ENTRY_STATE } from './WordEntryForm/constants';
 import { ParsedTextComp } from '../../../components/ParsedTextComp';
 import { TagComp } from '../../../components/TagComp';
 import { expressionFont } from '@/fonts';
@@ -56,19 +54,6 @@ import { toLowerCaseLezgi } from '../../../../utils';
 import { PaginatedResponse } from '@repository/types.model';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { TFunction } from 'i18next';
-
-const ProposalsTypeChip: React.FC<{ type: string }> = ({ type }) => {
-  switch (type) {
-    case ProposalType.DICTIONARY:
-      return <Chip variant="outlined" label={type} icon={<MenuBookIcon />} />;
-    case ProposalType.SOURCE:
-      return <Chip variant="outlined" label={type} icon={<LocalLibraryIcon />} />;
-    case ProposalType.TRANSLATIONS:
-      return <Chip variant="outlined" label={type} icon={<TranslateIcon />} />;
-    default:
-      return <Chip label={type} />;
-  }
-};
 
 const ProposalsStatusChip: React.FC<{ status: string }> = ({ status }) => {
   switch (status) {
@@ -531,30 +516,47 @@ const DictionaryProposalsOverview: React.FC<{
   lang: WebsiteLang;
   sourceModels: SourceModelType[];
   proposals: PaginatedResponse<Proposal>;
+  historyProposals: PaginatedResponse<Proposal>;
   readonly: boolean;
   baselineWords: Record<number, Record<number, WordModelExistingNestedType>>;
   queryParamPrefix: string;
-}> = ({ lang, sourceModels, proposals, readonly, baselineWords, queryParamPrefix }) => {
+}> = ({
+  lang,
+  sourceModels,
+  proposals,
+  historyProposals,
+  readonly,
+  baselineWords,
+  queryParamPrefix,
+}) => {
   const { t } = useTranslation(lang);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [selectedProposal, setSelectedProposal] = React.useState<Proposal | undefined>();
-  const page = Math.max(0, proposals.currentPage - 1);
-  const rowsPerPage = proposals.pageSize;
-  const pageParam = `${queryParamPrefix}Page`;
-  const pageSizeParam = `${queryParamPrefix}PageSize`;
 
-  const replacePaginationParams = (newPage: number, newRowsPerPage = rowsPerPage) => {
+  const replacePaginationParams = (
+    newPage: number,
+    newRowsPerPage: number,
+    options?: { history?: boolean },
+  ) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('tab', queryParamPrefix === 'reviewProposals' ? 'review-proposals' : 'my-proposals');
+    const pageParam = `${queryParamPrefix}${options?.history ? 'History' : ''}Page`;
+    const pageSizeParam = `${queryParamPrefix}${options?.history ? 'History' : ''}PageSize`;
     params.set(pageParam, Math.max(1, newPage + 1).toString());
     params.set(pageSizeParam, newRowsPerPage.toString());
     router.replace(`${pathname}?${params.toString()}`);
   };
 
-  return (
-    <>
+  const renderTable = (
+    paginatedProposals: PaginatedResponse<Proposal>,
+    options?: { history?: boolean },
+  ) => {
+    const page = Math.max(0, paginatedProposals.currentPage - 1);
+    const rowsPerPage = paginatedProposals.pageSize;
+
+    return (
       <TableContainer component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
@@ -573,7 +575,7 @@ const DictionaryProposalsOverview: React.FC<{
             </TableRow>
           </TableHead>
           <TableBody>
-            {proposals.items.map((proposal) => {
+            {paginatedProposals.items.map((proposal) => {
               const dictionaryData: DictionaryProposalModelNestedType =
                 proposal.data! as DictionaryProposalModelNestedType;
               return (
@@ -614,7 +616,7 @@ const DictionaryProposalsOverview: React.FC<{
               <TablePagination
                 rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
                 colSpan={3}
-                count={proposals.totalItems}
+                count={paginatedProposals.totalItems}
                 rowsPerPage={rowsPerPage}
                 page={page}
                 slotProps={{
@@ -625,9 +627,11 @@ const DictionaryProposalsOverview: React.FC<{
                     native: true,
                   },
                 }}
-                onPageChange={(_, newPage) => replacePaginationParams(newPage)}
+                onPageChange={(_, newPage) =>
+                  replacePaginationParams(newPage, rowsPerPage, options)
+                }
                 onRowsPerPageChange={(event) => {
-                  replacePaginationParams(0, parseInt(event.target.value, 10));
+                  replacePaginationParams(0, parseInt(event.target.value, 10), options);
                 }}
                 // ActionsComponent={TablePaginationActions}
               />
@@ -635,6 +639,25 @@ const DictionaryProposalsOverview: React.FC<{
           </TableFooter>
         </Table>
       </TableContainer>
+    );
+  };
+
+  return (
+    <>
+      <Stack gap={2}>
+        <Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Needs review
+          </Typography>
+          {renderTable(proposals)}
+        </Box>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">History</Typography>
+          </AccordionSummary>
+          <AccordionDetails>{renderTable(historyProposals, { history: true })}</AccordionDetails>
+        </Accordion>
+      </Stack>
       {selectedProposal !== undefined && (
         <Modal
           open={selectedProposal !== undefined}
@@ -675,7 +698,7 @@ const DictionaryProposalsOverview: React.FC<{
                 />
               </Stack>
             </CardContent>
-            {!readonly && (
+            {!readonly && selectedProposal.status === ProposalStatus.PENDING && (
               <CardActions sx={{ justifyContent: 'center' }}>
                 {/* // TODO: fix real user ID */}
                 <Button

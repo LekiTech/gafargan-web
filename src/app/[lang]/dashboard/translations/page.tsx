@@ -2,9 +2,11 @@ import { FC } from 'react';
 import { redirect } from 'next/navigation';
 import { Params, SearchParams } from '@/types';
 import { getSources } from '@repository/source.repository';
-import { getPaginatedTranslations } from '@repository/translation.repository';
+import {
+  getPaginatedTranslations,
+} from '@repository/translation.repository';
 import { getPaginatedProposals } from '@repository/proposal.repository';
-import { ProposalType } from '@repository/entities/enums';
+import { ProposalStatus, ProposalType } from '@repository/entities/enums';
 import { SourceModelType, STATE } from '../models/proposal.model';
 import TranslationsDashboard from './translations-dashboard';
 import { toNumber } from '../../../utils';
@@ -18,11 +20,27 @@ const TranslationsPage: FC<{ params: Params; searchParams: SearchParams }> = asy
   const searchParamValues = await searchParams;
   const page = toNumber(searchParamValues.page || 1);
   const pageSize = toNumber(searchParamValues.pageSize || 20);
+  const proposalsPage = toNumber(searchParamValues.proposalsPage || 1);
+  const proposalsPageSize = toNumber(searchParamValues.proposalsPageSize || 5);
+  const proposalsHistoryPage = toNumber(searchParamValues.proposalsHistoryPage || 1);
+  const proposalsHistoryPageSize = toNumber(searchParamValues.proposalsHistoryPageSize || 5);
 
-  const [sources, translations, proposals] = await Promise.all([
+  const historyStatuses = [ProposalStatus.APPROVED, ProposalStatus.REJECTED];
+  const [sources, translations, proposals, proposalsHistory] = await Promise.all([
     getSources(),
     getPaginatedTranslations({ page, size: pageSize }),
-    getPaginatedProposals({ type: ProposalType.TRANSLATIONS, page: 1, size: 30 }),
+    getPaginatedProposals({
+      type: ProposalType.TRANSLATIONS,
+      status: ProposalStatus.PENDING,
+      page: proposalsPage,
+      size: proposalsPageSize,
+    }),
+    getPaginatedProposals({
+      type: ProposalType.TRANSLATIONS,
+      status: historyStatuses,
+      page: proposalsHistoryPage,
+      size: proposalsHistoryPageSize,
+    }),
   ]);
 
   if (translations.totalPages > 0 && translations.currentPage > translations.totalPages) {
@@ -32,6 +50,23 @@ const TranslationsPage: FC<{ params: Params; searchParams: SearchParams }> = asy
           .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value ?? '')}`)
           .join('&'),
     );
+  }
+  const proposalRedirectEntries = [
+    ['proposalsPage', proposals],
+    ['proposalsHistoryPage', proposalsHistory],
+  ] as const;
+  for (const [paramName, paginatedProposals] of proposalRedirectEntries) {
+    if (
+      paginatedProposals.totalPages > 0 &&
+      paginatedProposals.currentPage > paginatedProposals.totalPages
+    ) {
+      redirect(
+        `/${lang}/${Routes.Translations}?` +
+          Object.entries({ ...searchParamValues, [paramName]: paginatedProposals.totalPages })
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value ?? '')}`)
+            .join('&'),
+      );
+    }
   }
 
   const sourceModels: SourceModelType[] = sources.map((source) => ({
@@ -46,7 +81,8 @@ const TranslationsPage: FC<{ params: Params; searchParams: SearchParams }> = asy
       lang={lang}
       translations={translations}
       sourceModels={sourceModels}
-      proposals={proposals.items}
+      proposals={proposals}
+      proposalsHistory={proposalsHistory}
     />
   );
 };
