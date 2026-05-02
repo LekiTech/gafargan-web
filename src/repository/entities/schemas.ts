@@ -380,6 +380,12 @@ export const UserSchema = new EntitySchema<User>({
       type: 'text',
       select: false,
     },
+    passwordChangedAt: {
+      name: 'password_changed_at',
+      type: 'timestamp',
+      default: () => 'CURRENT_TIMESTAMP',
+      select: false,
+    },
     language: {
       type: 'enum',
       enum: Language,

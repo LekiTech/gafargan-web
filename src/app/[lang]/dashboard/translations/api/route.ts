@@ -1,11 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SourceModel, TranslationsProposalModel } from '@/dashboard/models/proposal.model';
+import { TranslationsProposalModel } from '@/dashboard/models/proposal.model';
 import { createProposal } from '@repository/proposal.repository';
 import { ProposalType } from '@repository/entities/enums';
-import { DUMMY_USER_ID } from '@repository/constants';
 import { getTranslationLinkTargetsForWords, simpleSearch } from '@repository/word.repository';
+import { requireDashboardApiUser } from '@/dashboard/auth';
 
 export async function GET(request: NextRequest) {
+  const { response } = await requireDashboardApiUser();
+  if (response) {
+    return response;
+  }
+
   const searchParams = request.nextUrl.searchParams;
   const search = searchParams.get('search') ?? undefined;
   const fromLangDialectId = searchParams.get('fromLangDialectId');
@@ -24,6 +29,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const { user, response } = await requireDashboardApiUser();
+  if (response) {
+    return response;
+  }
+
   const body = await request.json();
 
   if (!body?.entries || !Array.isArray(body.entries) || body.entries.length === 0) {
@@ -40,7 +50,7 @@ export async function POST(request: NextRequest) {
   await createProposal({
     type: ProposalType.TRANSLATIONS,
     data: proposal,
-    proposedById: DUMMY_USER_ID,
+    proposedById: user.id,
   });
 
   return NextResponse.json({ success: true }, { status: 201 });

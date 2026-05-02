@@ -707,7 +707,7 @@ export async function getWordsHistoryByIds(
     FROM snapshot_words hw
     ORDER BY hw.spelling ASC;
     `,
-    [uniqueIds, validTo.toUTCString()],
+    [uniqueIds, validTo],
   );
 
   return JSON.parse(JSON.stringify(rows));

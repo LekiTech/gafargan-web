@@ -24,6 +24,7 @@
     "@toolpad/core": "^0.16.0",
     "accept-language": "^3.0.18",
     "axios": "^1.15.0",
+    "bcryptjs": "^3.0.3",
     "file-loader": "^6.2.0",
     "i18next": "^23.5.1",
     "i18next-resources-to-backend": "^1.1.4",

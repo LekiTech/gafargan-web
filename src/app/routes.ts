@@ -4,4 +4,5 @@ export const Routes = Object.freeze({
   Dictionary: 'dashboard/dictionary',
   Translations: 'dashboard/translations',
   Sources: 'dashboard/sources',
+  Users: 'dashboard/users',
 });

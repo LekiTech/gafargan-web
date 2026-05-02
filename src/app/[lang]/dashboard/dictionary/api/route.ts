@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { DictionaryProposalModel } from '@/dashboard/models/proposal.model';
 import { createProposal } from '@repository/proposal.repository';
 import { ProposalType } from '@repository/entities/enums';
-import { DUMMY_USER_ID } from '@repository/constants';
+import { requireDashboardApiUser } from '@/dashboard/auth';
 
 export async function POST(request: NextRequest) {
+  const { user, response } = await requireDashboardApiUser();
+  if (response) {
+    return response;
+  }
+
   // const requestHeaders = await headers();
   // console.log('Received request headers:', requestHeaders.entries().toArray());
   const body = await request.json();
@@ -20,8 +24,7 @@ export async function POST(request: NextRequest) {
     const result = await createProposal({
       type: ProposalType.DICTIONARY,
       data: dictionary,
-      // TODO: replace after auth implementation
-      proposedById: DUMMY_USER_ID,
+      proposedById: user.id,
     });
     console.debug('Proposal for dictionary created:', JSON.stringify(result, null, 2));
   }

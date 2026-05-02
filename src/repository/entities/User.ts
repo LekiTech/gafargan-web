@@ -15,6 +15,8 @@ export class User {
 
   password!: string;
 
+  passwordChangedAt!: Date;
+
   language!: Language | null;
 
   verified!: boolean;
