@@ -4,8 +4,10 @@ import { Params, SearchParams } from '@/types';
 import { getSources } from '@repository/source.repository';
 import {
   getPaginatedTranslations,
+  getTranslationsByIdsWithLinks,
 } from '@repository/translation.repository';
 import { getPaginatedProposals } from '@repository/proposal.repository';
+import { getTranslationLinkTargetsForWords } from '@repository/word.repository';
 import { ProposalStatus, ProposalType } from '@repository/entities/enums';
 import { SourceModelType, STATE } from '../models/proposal.model';
 import TranslationsDashboard from './translations-dashboard';
@@ -42,6 +44,32 @@ const TranslationsPage: FC<{ params: Params; searchParams: SearchParams }> = asy
       size: proposalsHistoryPageSize,
     }),
   ]);
+
+  const baselineTranslationIds = Array.from(
+    new Set(
+      [...proposals.items, ...proposalsHistory.items].flatMap((proposal) =>
+        ((proposal.data as { entries?: any[] } | undefined)?.entries ?? [])
+          .filter((entry) => entry.state !== STATE.ADDED && Number.isFinite(entry.id))
+          .map((entry) => entry.id),
+      ),
+    ),
+  );
+  const baselineTranslations = await getTranslationsByIdsWithLinks(baselineTranslationIds);
+  const reviewLinkWordIds = Array.from(
+    new Set(
+      [
+        ...[...proposals.items, ...proposalsHistory.items].flatMap((proposal) =>
+          ((proposal.data as { entries?: any[] } | undefined)?.entries ?? []).flatMap(
+            (entry) => entry.links ?? [],
+          ),
+        ),
+        ...Object.values(baselineTranslations).flatMap((translation) => translation.links ?? []),
+      ]
+        .map((link) => link.wordId)
+        .filter((id) => Number.isFinite(id)),
+    ),
+  );
+  const reviewLinkTargets = await getTranslationLinkTargetsForWords(reviewLinkWordIds);
 
   if (translations.totalPages > 0 && translations.currentPage > translations.totalPages) {
     redirect(
@@ -83,6 +111,8 @@ const TranslationsPage: FC<{ params: Params; searchParams: SearchParams }> = asy
       sourceModels={sourceModels}
       proposals={proposals}
       proposalsHistory={proposalsHistory}
+      baselineTranslations={baselineTranslations}
+      reviewLinkTargets={reviewLinkTargets}
     />
   );
 };

@@ -40,11 +40,64 @@ ALTER TABLE history_definition
 -- =========================================================
 
 -- remove unused columns
-ALTER TABLE public.definition_example DROP CONSTRAINT definition_example_created_by_fkey;
-ALTER TABLE public.definition_example DROP COLUMN created_by;
+ALTER TABLE public.definition_example DROP CONSTRAINT IF EXISTS definition_example_created_by_fkey;
+ALTER TABLE public.definition_example DROP COLUMN IF EXISTS created_by;
 
-ALTER TABLE public.word_details_example DROP CONSTRAINT word_details_example_created_by_fkey;
-ALTER TABLE public.word_details_example DROP COLUMN created_by;
+ALTER TABLE public.word_details_example DROP CONSTRAINT IF EXISTS word_details_example_created_by_fkey;
+ALTER TABLE public.word_details_example DROP COLUMN IF EXISTS created_by;
+
+ALTER TABLE public.history_definition_example DROP COLUMN IF EXISTS created_by CASCADE;
+ALTER TABLE public.history_word_details_example DROP COLUMN IF EXISTS created_by CASCADE;
+
+CREATE OR REPLACE FUNCTION history_word_details_example_trigger()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_word_details_example;
+BEGIN
+  SELECT
+    OLD.word_details_id, OLD.translation_id,
+    OLD.created_at,
+    OLD.created_at, CURRENT_TIMESTAMP -- valid_from, valid_to
+  INTO full_row;
+
+  BEGIN
+    INSERT INTO history_word_details_example OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION history_definition_example_trigger()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE
+  full_row history_definition_example;
+BEGIN
+  SELECT
+    OLD.definition_id, OLD.translation_id,
+    OLD.created_at,
+    OLD.created_at, CURRENT_TIMESTAMP -- valid_from, valid_to
+  INTO full_row;
+
+  BEGIN
+    INSERT INTO history_definition_example OVERRIDING SYSTEM VALUE VALUES (full_row.*);
+  EXCEPTION WHEN unique_violation THEN
+    -- Ignore duplicate history row
+  END;
+
+  IF TG_OP = 'DELETE' THEN
+    RETURN OLD;
+  ELSE
+    RETURN NEW;
+  END IF;
+END;
+$$;
 
 
 -- Add created_by and updated_by to the spelling_variant table

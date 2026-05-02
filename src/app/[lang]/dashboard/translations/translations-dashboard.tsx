@@ -14,9 +14,7 @@ import {
   CardHeader,
   Checkbox,
   Chip,
-  Divider,
   Grid,
-  FormControlLabel,
   IconButton,
   MenuItem,
   Modal,
@@ -59,7 +57,7 @@ import {
   TranslationLinkTarget,
   TranslationWithLinks,
 } from '@repository/translation.repository';
-import { SourceModel, SourceModelType, TranslationModel } from '../models/proposal.model';
+import { SourceModel, SourceModelType, STATE, TranslationModel } from '../models/proposal.model';
 import { SourcesCreatableSelect } from '../components/SearchableCreatableSelect';
 import { langDialectIdToString } from '../utils';
 import { useTranslation } from 'react-i18next';
@@ -70,11 +68,22 @@ import { approveProposal, rejectProposal } from '@repository/proposal.repository
 import { TFunction } from 'i18next';
 import Link from 'next/link';
 import { ParsedTextComp } from '@/components/ParsedTextComp';
+import { TagComp } from '../../components/TagComp';
 
 type ExampleDraft = {
   id: string;
   value: TranslationModel;
   links: TranslationLink[];
+  originalLinks?: TranslationLink[];
+};
+
+type TranslationProposalEntry = {
+  state: string;
+  id?: number;
+  phrasesPerLangDialect?: Record<string, { phrase: string; tags?: string[] }[]>;
+  tags?: string[];
+  links?: TranslationLink[];
+  linksState?: string;
 };
 
 type WordSearchResult = {
@@ -92,20 +101,34 @@ const createDraft = (fromLangDialectId = 1, toLangDialectId = 25): ExampleDraft 
 const linkKey = (link: Pick<TranslationLink, 'linkType' | 'wordDetailId' | 'definitionId'>) =>
   `${link.linkType}_${link.wordDetailId}_${link.definitionId ?? ''}`;
 
-const translationModelToPayload = (value: TranslationModel, links: TranslationLink[]) => ({
-  ...JSON.parse(JSON.stringify(value)),
-  links,
+const sortedLinkKeys = (links: TranslationLink[]) => links.map(linkKey).sort();
+
+const linksAreEqual = (left: TranslationLink[], right: TranslationLink[]) =>
+  JSON.stringify(sortedLinkKeys(left)) === JSON.stringify(sortedLinkKeys(right));
+
+const linksStateForDraft = (draft: ExampleDraft) => {
+  if (draft.value.getState() === STATE.ADDED) {
+    return draft.links.length > 0 ? STATE.ADDED : STATE.UNCHANGED;
+  }
+  return linksAreEqual(draft.originalLinks ?? [], draft.links) ? STATE.UNCHANGED : STATE.MODIFIED;
+};
+
+const translationModelToPayload = (draft: ExampleDraft) => ({
+  ...JSON.parse(JSON.stringify(draft.value)),
+  links: draft.links,
+  linksState: linksStateForDraft(draft),
 });
 
 const translationToEditDraft = (translation: TranslationWithLinks): ExampleDraft => ({
   id: `translation-${translation.id}`,
   value: new TranslationModel({
-    state: 'modified',
+    state: STATE.UNCHANGED,
     id: translation.id,
     phrasesPerLangDialect: translation.phrasesPerLangDialect,
     tags: translation.tags,
   }),
   links: translation.links,
+  originalLinks: translation.links,
 });
 
 const statusColor = (status: ProposalStatus) => {
@@ -116,6 +139,19 @@ const statusColor = (status: ProposalStatus) => {
       return 'error';
     default:
       return 'warning';
+  }
+};
+
+const translationStateColor = (state?: string) => {
+  switch (state) {
+    case STATE.ADDED:
+      return 'success';
+    case STATE.MODIFIED:
+      return 'warning';
+    case STATE.DELETED:
+      return 'error';
+    default:
+      return 'default';
   }
 };
 
@@ -173,6 +209,140 @@ const TranslationPhrasesView: React.FC<{
   </Stack>
 );
 
+const TranslationReviewSidePreview: React.FC<{
+  title: string;
+  translation?: Partial<TranslationWithLinks> & {
+    id?: number;
+    state?: string;
+    phrasesPerLangDialect?: Record<string, { phrase: string; tags?: string[] }[]>;
+    tags?: string[];
+    links?: TranslationLink[];
+    linksState?: string;
+  };
+  lang: WebsiteLang;
+  linkTargets: TranslationLinkTarget[];
+}> = ({ title, translation, lang, linkTargets }) => {
+  const { t } = useTranslation(lang);
+
+  if (!translation) {
+    return (
+      <Box
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          p: 2,
+          minHeight: 220,
+          bgcolor: 'action.hover',
+        }}
+      >
+        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+          {title}
+        </Typography>
+        <Typography color="text.secondary">No existing published translation.</Typography>
+      </Box>
+    );
+  }
+
+  const phrasesByLang = translation.phrasesPerLangDialect ?? {};
+  const langDialectIds = Object.keys(phrasesByLang).map(Number);
+
+  return (
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 1,
+        p: 2,
+        minHeight: 220,
+      }}
+    >
+      <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap" sx={{ mb: 1 }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          {title}
+        </Typography>
+        {translation.id && <Chip size="small" variant="outlined" label={`#${translation.id}`} />}
+        {translation.state && translation.state !== STATE.UNCHANGED && (
+          <Chip
+            size="small"
+            color={translationStateColor(translation.state) as any}
+            variant="outlined"
+            label={translation.state}
+          />
+        )}
+      </Stack>
+
+      <Stack gap={1.25}>
+        {langDialectIds.length > 0 ? (
+          langDialectIds.map((langDialectId) => {
+            const phrases = phrasesByLang[langDialectId] ?? [];
+            if (phrases.length === 0) {
+              return null;
+            }
+
+            return (
+              <Box key={langDialectId}>
+                <Typography variant="caption" color="text.secondary">
+                  {langDialectIdToString(langDialectId, t)}
+                </Typography>
+                <Stack gap={0.75}>
+                  {phrases.map((phrase, idx) => (
+                    <Box key={`${langDialectId}_${idx}`}>
+                      <LinkTargetTags tags={phrase.tags} />
+                      <Typography component="div" variant="body1">
+                        <ParsedTextComp text={phrase.phrase} />
+                      </Typography>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            );
+          })
+        ) : (
+          <Typography color="text.secondary">No sentence text.</Typography>
+        )}
+
+        <Box>
+          <Typography variant="caption" color="text.secondary">
+            Translation tags
+          </Typography>
+          <Box sx={{ mt: 0.5 }}>
+            <LinkTargetTags tags={translation.tags} />
+            {(!translation.tags || translation.tags.length === 0) && (
+              <Typography variant="body2" color="text.secondary">
+                -
+              </Typography>
+            )}
+          </Box>
+        </Box>
+
+        <Box>
+          <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
+            <Typography variant="caption" color="text.secondary">
+              Linked entries
+            </Typography>
+            {translation.linksState && translation.linksState !== STATE.UNCHANGED && (
+              <Chip
+                size="small"
+                color={translationStateColor(translation.linksState) as any}
+                variant="outlined"
+                label={`links ${translation.linksState}`}
+              />
+            )}
+          </Stack>
+          <Box sx={{ mt: 0.5 }}>
+            <TranslationLinkTargetsReview
+              links={translation.links ?? []}
+              linkTargets={linkTargets}
+              lang={lang}
+            />
+          </Box>
+        </Box>
+      </Stack>
+    </Box>
+  );
+};
+
 const TranslationLinks: React.FC<{
   links: TranslationLink[];
   lang: WebsiteLang;
@@ -218,6 +388,357 @@ const TranslationLinks: React.FC<{
                 : `${link.wordSpelling} · details #${link.wordDetailId}`
             }
           />
+        );
+      })}
+    </Stack>
+  );
+};
+
+const LinkTargetTags: React.FC<{ tags?: string[] }> = ({ tags }) => {
+  const { t } = useTranslation();
+  if (!tags || tags.length === 0) {
+    return null;
+  }
+
+  return (
+    <Stack direction="row" gap={0.5} flexWrap="wrap">
+      {tags.map((tag, idx) => (
+        <TagComp key={`${tag}_${idx}`} label={t(tag, { ns: 'tags' })} />
+      ))}
+    </Stack>
+  );
+};
+
+const DefinitionLinkTarget: React.FC<{
+  target: TranslationLinkTarget;
+  checked: boolean;
+  onToggle: () => void;
+}> = ({ target, checked, onToggle }) => {
+  const { t } = useTranslation();
+  const values = target.definitionValues ?? [];
+
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: 'auto 1fr',
+        gap: 1,
+        alignItems: 'flex-start',
+        py: 1,
+        pl: 0.5,
+        borderLeft: '4px solid',
+        borderColor: checked ? 'primary.light' : 'divider',
+      }}
+    >
+      <Checkbox
+        size="small"
+        checked={checked}
+        onChange={onToggle}
+        inputProps={{ 'aria-label': target.targetLabel }}
+      />
+      <Stack gap={0.75}>
+        <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
+          <Typography variant="subtitle2" color="text.secondary">
+            Meaning
+          </Typography>
+          <Chip size="small" variant="outlined" label={`#${target.definitionId}`} />
+        </Stack>
+        <LinkTargetTags tags={target.definitionTags} />
+        <Stack gap={0.75}>
+          {values.length > 0 ? (
+            values.map((value, idx) => (
+              <Stack
+                key={`${target.definitionId}_${idx}`}
+                direction="row"
+                gap={1}
+                alignItems="flex-start"
+              >
+                <Typography
+                  variant="body2"
+                  sx={{ minWidth: 22, fontWeight: 700, color: 'text.secondary' }}
+                >
+                  {t(`alphabet.${idx}`)}:
+                </Typography>
+                <Box>
+                  <LinkTargetTags tags={value.tags} />
+                  <Typography component="div" variant="body1" sx={{ fontSize: 18 }}>
+                    <ParsedTextComp text={value.value} />
+                  </Typography>
+                </Box>
+              </Stack>
+            ))
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No definition text.
+            </Typography>
+          )}
+        </Stack>
+      </Stack>
+    </Box>
+  );
+};
+
+const WordDetailLinkTarget: React.FC<{
+  detailTarget?: TranslationLinkTarget;
+  definitionTargets: TranslationLinkTarget[];
+  checked: boolean;
+  onToggleDetail?: () => void;
+  isDefinitionChecked: (target: TranslationLinkTarget) => boolean;
+  onToggleDefinition: (target: TranslationLinkTarget) => void;
+}> = ({
+  detailTarget,
+  definitionTargets,
+  checked,
+  onToggleDetail,
+  isDefinitionChecked,
+  onToggleDefinition,
+}) => {
+  const { t } = useTranslation();
+  const referenceTarget = detailTarget ?? definitionTargets[0];
+
+  return (
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: checked ? 'primary.light' : 'divider',
+        borderRadius: 1,
+        p: 1.25,
+        bgcolor: checked ? 'action.selected' : 'background.paper',
+      }}
+    >
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'auto 1fr',
+          gap: 1,
+          alignItems: 'flex-start',
+        }}
+      >
+        <Checkbox
+          size="small"
+          checked={checked}
+          onChange={onToggleDetail}
+          disabled={!detailTarget}
+          inputProps={{ 'aria-label': detailTarget?.targetLabel ?? 'Word detail' }}
+        />
+        <Stack gap={0.5}>
+          <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+            <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+              Detail #{referenceTarget.wordDetailId}
+            </Typography>
+            {referenceTarget.detailInflection && (
+              <Typography variant="h6" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+                {referenceTarget.detailInflection}
+              </Typography>
+            )}
+          </Stack>
+          <Typography variant="caption" color="text.secondary">
+            {langDialectIdToString(referenceTarget.definitionsLangDialectId, t)}
+          </Typography>
+        </Stack>
+      </Box>
+      {definitionTargets.length > 0 && (
+        <Stack gap={1} sx={{ mt: 1 }}>
+          {definitionTargets.map((target) => (
+            <DefinitionLinkTarget
+              key={linkKey(target)}
+              target={target}
+              checked={isDefinitionChecked(target)}
+              onToggle={() => onToggleDefinition(target)}
+            />
+          ))}
+        </Stack>
+      )}
+    </Box>
+  );
+};
+
+const DefinitionLinkTargetReview: React.FC<{ target: TranslationLinkTarget }> = ({ target }) => {
+  const { t } = useTranslation();
+  const values = target.definitionValues ?? [];
+
+  return (
+    <Box
+      sx={{
+        py: 1,
+        pl: 1.5,
+        borderLeft: '4px solid',
+        borderColor: 'divider',
+      }}
+    >
+      <Stack gap={0.75}>
+        <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
+          <Typography variant="subtitle2" color="text.secondary">
+            Meaning
+          </Typography>
+          <Chip size="small" variant="outlined" label={`#${target.definitionId}`} />
+        </Stack>
+        <LinkTargetTags tags={target.definitionTags} />
+        <Stack gap={0.75}>
+          {values.length > 0 ? (
+            values.map((value, idx) => (
+              <Stack
+                key={`${target.definitionId}_${idx}`}
+                direction="row"
+                gap={1}
+                alignItems="flex-start"
+              >
+                <Typography
+                  variant="body2"
+                  sx={{ minWidth: 22, fontWeight: 700, color: 'text.secondary' }}
+                >
+                  {t(`alphabet.${idx}`)}:
+                </Typography>
+                <Box>
+                  <LinkTargetTags tags={value.tags} />
+                  <Typography component="div" variant="body1" sx={{ fontSize: 18 }}>
+                    <ParsedTextComp text={value.value} />
+                  </Typography>
+                </Box>
+              </Stack>
+            ))
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No definition text.
+            </Typography>
+          )}
+        </Stack>
+      </Stack>
+    </Box>
+  );
+};
+
+const TranslationLinkTargetsReview: React.FC<{
+  links: TranslationLink[];
+  linkTargets: TranslationLinkTarget[];
+  lang: WebsiteLang;
+}> = ({ links, linkTargets, lang }) => {
+  const { t } = useTranslation();
+  const targetByKey = React.useMemo(
+    () => new Map(linkTargets.map((target) => [linkKey(target), target])),
+    [linkTargets],
+  );
+  const uniqueLinks = React.useMemo(
+    () => Array.from(new Map(links.map((link) => [linkKey(link), link])).values()),
+    [links],
+  );
+  const targets = React.useMemo(
+    () =>
+      uniqueLinks.map((link) => {
+        const matchingTarget = targetByKey.get(linkKey(link));
+        if (matchingTarget) {
+          return matchingTarget;
+        }
+        return {
+          ...link,
+          label: link.wordSpelling,
+          targetLabel:
+            link.linkType === 'definition'
+              ? `Definition #${link.definitionId}`
+              : `Details #${link.wordDetailId}`,
+        };
+      }),
+    [targetByKey, uniqueLinks],
+  );
+
+  if (targets.length === 0) {
+    return <Typography color="text.secondary">-</Typography>;
+  }
+
+  const targetsByWord = targets.reduce((accumulator, target) => {
+    const wordTargets = accumulator.get(target.wordId) ?? [];
+    wordTargets.push(target);
+    accumulator.set(target.wordId, wordTargets);
+    return accumulator;
+  }, new Map<number, TranslationLinkTarget[]>());
+
+  return (
+    <Stack gap={1}>
+      {Array.from(targetsByWord.entries()).map(([wordId, wordTargets]) => {
+        const word = wordTargets[0];
+        const href =
+          `/${lang}/search/definition?` +
+          new URLSearchParams({
+            fromLang: IdToLang[word.wordLangDialectId],
+            toLang: IdToLang[word.definitionsLangDialectId],
+            exp: word.wordSpelling,
+          }).toString();
+        const detailsById = wordTargets.reduce(
+          (
+            accumulator: Map<
+              number,
+              {
+                detailTarget?: TranslationLinkTarget;
+                definitionTargets: TranslationLinkTarget[];
+              }
+            >,
+            target,
+          ) => {
+            const detail = accumulator.get(target.wordDetailId) ?? {
+              detailTarget: undefined,
+              definitionTargets: [],
+            };
+
+            if (target.linkType === 'wordDetail') {
+              detail.detailTarget = target;
+            } else {
+              detail.definitionTargets.push(target);
+            }
+
+            accumulator.set(target.wordDetailId, detail);
+            return accumulator;
+          },
+          new Map(),
+        );
+
+        return (
+          <Box key={wordId}>
+            <Chip component={Link} href={href} clickable size="small" label={word.wordSpelling} />
+            <Stack gap={1} sx={{ mt: 1 }}>
+              {Array.from(detailsById.entries()).map(([wordDetailId, detail]) => {
+                const referenceTarget = detail.detailTarget ?? detail.definitionTargets[0];
+                return (
+                  <Box
+                    key={`${wordId}_${wordDetailId}`}
+                    sx={{
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      p: 1.25,
+                    }}
+                  >
+                    <Stack gap={0.5}>
+                      <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+                        <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                          Detail #{referenceTarget.wordDetailId}
+                        </Typography>
+                        {referenceTarget.detailInflection && (
+                          <Typography variant="h6" color="text.secondary" sx={{ lineHeight: 1.2 }}>
+                            {referenceTarget.detailInflection}
+                          </Typography>
+                        )}
+                      </Stack>
+                      <Typography variant="caption" color="text.secondary">
+                        {langDialectIdToString(referenceTarget.definitionsLangDialectId, t)}
+                      </Typography>
+                    </Stack>
+                    {detail.detailTarget && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+                        Linked to other examples for this detail.
+                      </Typography>
+                    )}
+                    {detail.definitionTargets.length > 0 && (
+                      <Stack gap={1} sx={{ mt: 1 }}>
+                        {detail.definitionTargets.map((target) => (
+                          <DefinitionLinkTargetReview key={linkKey(target)} target={target} />
+                        ))}
+                      </Stack>
+                    )}
+                  </Box>
+                );
+              })}
+            </Stack>
+          </Box>
         );
       })}
     </Stack>
@@ -289,7 +810,7 @@ const LinkTargetSelector: React.FC<{
       .finally(() => setIsLoading(false));
 
     return () => controller.abort();
-  }, [query, selectedWordIds]);
+  }, [fromLangDialectId, query, selectedWordIds]);
 
   const words = React.useMemo(() => {
     const wordsById = new Map<
@@ -352,7 +873,8 @@ const LinkTargetSelector: React.FC<{
       onChange(value.filter((link) => linkKey(link) !== key));
       return;
     }
-    const { label, targetLabel, ...link } = target;
+    const { label, targetLabel, detailInflection, definitionValues, definitionTags, ...link } =
+      target;
     onChange([...value, link]);
   };
 
@@ -401,6 +923,34 @@ const LinkTargetSelector: React.FC<{
             const hasSelectedTargets = wordTargets.some((target) =>
               selectedKeys.has(linkKey(target)),
             );
+            const detailsById = wordTargets.reduce(
+              (
+                accumulator: Map<
+                  number,
+                  {
+                    detailTarget?: TranslationLinkTarget;
+                    definitionTargets: TranslationLinkTarget[];
+                  }
+                >,
+                target,
+              ) => {
+                const detail = accumulator.get(target.wordDetailId) ?? {
+                  detailTarget: undefined,
+                  definitionTargets: [],
+                };
+
+                if (target.linkType === 'wordDetail') {
+                  detail.detailTarget = target;
+                } else {
+                  detail.definitionTargets.push(target);
+                }
+
+                accumulator.set(target.wordDetailId, detail);
+                return accumulator;
+              },
+              new Map(),
+            );
+            const details = Array.from(detailsById.entries());
             return (
               <Box key={wordId} sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 1 }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
@@ -420,23 +970,20 @@ const LinkTargetSelector: React.FC<{
                     Remove
                   </Button>
                 </Stack>
-                <Stack gap={0.25}>
-                  {wordTargets.map((target) => (
-                    <FormControlLabel
-                      key={linkKey(target)}
-                      control={
-                        <Checkbox
-                          size="small"
-                          checked={selectedKeys.has(linkKey(target))}
-                          onChange={() => toggleTarget(target)}
-                        />
+                <Stack gap={1} sx={{ mt: 1 }}>
+                  {details.map(([wordDetailId, detail]) => (
+                    <WordDetailLinkTarget
+                      key={`${wordId}_${wordDetailId}`}
+                      detailTarget={detail.detailTarget}
+                      definitionTargets={detail.definitionTargets}
+                      checked={
+                        detail.detailTarget ? selectedKeys.has(linkKey(detail.detailTarget)) : false
                       }
-                      label={
-                        <Typography variant="body2">
-                          {target.targetLabel}
-                          {target.linkType === 'definition' ? '' : ' · other examples'}
-                        </Typography>
+                      onToggleDetail={
+                        detail.detailTarget ? () => toggleTarget(detail.detailTarget!) : undefined
                       }
+                      isDefinitionChecked={(target) => selectedKeys.has(linkKey(target))}
+                      onToggleDefinition={toggleTarget}
                     />
                   ))}
                 </Stack>
@@ -457,10 +1004,10 @@ const LinkTargetSelector: React.FC<{
 const TranslationProposalPreview: React.FC<{
   proposal: Proposal;
   lang: WebsiteLang;
-  tagEntries: Record<string, string>;
-  allTags: [string, string][];
-}> = ({ proposal, lang, tagEntries, allTags }) => {
-  const data = proposal.data as { entries?: any[] };
+  baselineTranslations: Record<number, TranslationWithLinks>;
+  reviewLinkTargets: TranslationLinkTarget[];
+}> = ({ proposal, lang, baselineTranslations, reviewLinkTargets }) => {
+  const data = proposal.data as { entries?: TranslationProposalEntry[] };
   const entries = data.entries ?? [];
 
   return (
@@ -468,23 +1015,68 @@ const TranslationProposalPreview: React.FC<{
       <Typography variant="h6" fontWeight={700}>
         Review translations
       </Typography>
-      {entries.map((entry, idx) => (
-        <Card key={`${proposal.id}_${idx}`} variant="outlined">
-          <CardHeader title={`Translation ${idx + 1}`} />
-          <CardContent sx={{ pt: 0 }}>
-            <ExampleLine
-              example={new TranslationModel(entry)}
-              onChange={() => {}}
-              onDelete={() => {}}
-              isInnerBlockExample={false}
-              tagEntries={tagEntries}
-              allTags={allTags}
-              lang={lang}
-              readonly={true}
+      {entries.map((entry, idx) => {
+        const baseline =
+          entry.state !== STATE.ADDED && entry.id !== undefined
+            ? baselineTranslations[entry.id]
+            : undefined;
+        const isNewTranslation = entry.state === STATE.ADDED && !baseline;
+
+        return (
+          <Card key={`${proposal.id}_${idx}`} variant="outlined">
+            <CardHeader
+              title={
+                <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
+                  <Typography variant="subtitle1" fontWeight={700}>
+                    Translation {idx + 1}
+                  </Typography>
+                  <Chip
+                    size="small"
+                    color={translationStateColor(entry.state) as any}
+                    variant="outlined"
+                    label={entry.state}
+                  />
+                  {entry.linksState && entry.linksState !== STATE.UNCHANGED && (
+                    <Chip
+                      size="small"
+                      color={translationStateColor(entry.linksState) as any}
+                      variant="outlined"
+                      label={`links ${entry.linksState}`}
+                    />
+                  )}
+                </Stack>
+              }
             />
-          </CardContent>
-        </Card>
-      ))}
+            <CardContent sx={{ pt: 0 }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: isNewTranslation ? '1fr' : { xs: '1fr', md: '1fr 1fr' },
+                  gap: 2,
+                  alignItems: 'start',
+                }}
+              >
+                {!isNewTranslation && (
+                  <TranslationReviewSidePreview
+                    title="Before proposal changes"
+                    translation={baseline}
+                    lang={lang}
+                    linkTargets={reviewLinkTargets}
+                  />
+                )}
+                <TranslationReviewSidePreview
+                  title={
+                    isNewTranslation ? 'New translation after approval' : 'Proposal after approval'
+                  }
+                  translation={entry}
+                  lang={lang}
+                  linkTargets={reviewLinkTargets}
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        );
+      })}
     </Stack>
   );
 };
@@ -495,7 +1087,17 @@ const TranslationsDashboard: React.FC<{
   sourceModels: SourceModelType[];
   proposals: PaginatedResponse<Proposal>;
   proposalsHistory: PaginatedResponse<Proposal>;
-}> = ({ lang, translations, sourceModels, proposals, proposalsHistory }) => {
+  baselineTranslations: Record<number, TranslationWithLinks>;
+  reviewLinkTargets: TranslationLinkTarget[];
+}> = ({
+  lang,
+  translations,
+  sourceModels,
+  proposals,
+  proposalsHistory,
+  baselineTranslations,
+  reviewLinkTargets,
+}) => {
   const { t, i18n } = useTranslation(lang);
   const router = useRouter();
   const pathname = usePathname();
@@ -670,7 +1272,7 @@ const TranslationsDashboard: React.FC<{
   const submit = async () => {
     const entries = drafts
       .filter((draft) => hasCompletePhrase(draft.value))
-      .map((draft) => translationModelToPayload(draft.value, draft.links));
+      .map((draft) => translationModelToPayload(draft));
 
     if (entries.length === 0) {
       setAlert({ severity: 'info', text: 'Add at least one complete sentence pair.' });
@@ -700,12 +1302,19 @@ const TranslationsDashboard: React.FC<{
       setAlert({ severity: 'info', text: 'Add at least one complete sentence pair.' });
       return;
     }
+    if (
+      selectedTranslation.value.getState() === STATE.UNCHANGED &&
+      linksStateForDraft(selectedTranslation) === STATE.UNCHANGED
+    ) {
+      setAlert({ severity: 'info', text: 'Change the translation text, tags, or linked entries.' });
+      return;
+    }
 
     const result = await fetch('translations/api', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        entries: [translationModelToPayload(selectedTranslation.value, selectedTranslation.links)],
+        entries: [translationModelToPayload(selectedTranslation)],
         sourceId: selectedSource.getId(),
       }),
     });
@@ -1002,8 +1611,8 @@ const TranslationsDashboard: React.FC<{
               <TranslationProposalPreview
                 proposal={selectedProposal}
                 lang={lang}
-                tagEntries={tagEntries}
-                allTags={allTags}
+                baselineTranslations={baselineTranslations}
+                reviewLinkTargets={reviewLinkTargets}
               />
             </CardContent>
             {selectedProposal.status === ProposalStatus.PENDING && (

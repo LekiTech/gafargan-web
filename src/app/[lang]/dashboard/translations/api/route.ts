@@ -35,16 +35,7 @@ export async function POST(request: NextRequest) {
     links: entry.links ?? [],
   }));
 
-  const proposal = new TranslationsProposalModel(
-    entries as any,
-    new SourceModel(
-      body.defaultSource ?? {
-        state: 'unchanged',
-        id: body.sourceId,
-        name: '',
-      },
-    ),
-  );
+  const proposal = new TranslationsProposalModel(entries as any, body.sourceId as number);
 
   await createProposal({
     type: ProposalType.TRANSLATIONS,

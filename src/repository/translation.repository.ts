@@ -4,6 +4,7 @@ import { getDataSource } from './dataSource';
 import { Translation } from './entities/Translation';
 import { TranslationSchema } from './entities/schemas';
 import { PaginatedResponse } from './types.model';
+import { In } from 'typeorm';
 
 export type TranslationLink = {
   linkType: 'wordDetail' | 'definition';
@@ -18,32 +19,17 @@ export type TranslationLink = {
 export type TranslationLinkTarget = TranslationLink & {
   label: string;
   targetLabel: string;
+  detailInflection?: string;
+  definitionValues?: { value: string; tags?: string[] }[];
+  definitionTags?: string[];
 };
 
 export type TranslationWithLinks = Translation & {
   links: TranslationLink[];
 };
 
-export async function getPaginatedTranslations({
-  page,
-  size,
-}: {
-  page: number;
-  size: number;
-}): Promise<PaginatedResponse<TranslationWithLinks>> {
+async function getLinksByTranslationId(translationIds: number[]) {
   const AppDataSource = await getDataSource();
-  const translationRepo = AppDataSource.getRepository<Translation>(
-    TranslationSchema.options.tableName!,
-  );
-  const safePage = Math.max(1, page || 1);
-  const safeSize = Math.min(size || 20, 100);
-
-  const [itemsRaw, totalItems] = await translationRepo.findAndCount({
-    take: safeSize,
-    skip: (safePage - 1) * safeSize,
-    order: { updatedAt: 'DESC' },
-  });
-  const translationIds = itemsRaw.map((translation) => translation.id);
   const linksRaw =
     translationIds.length === 0
       ? []
@@ -83,7 +69,8 @@ export async function getPaginatedTranslations({
         `,
           [translationIds],
         );
-  const linksByTranslationId = linksRaw.reduce(
+
+  return linksRaw.reduce(
     (
       accumulator: Record<number, TranslationLink[]>,
       row: TranslationLink & { translationId: number },
@@ -102,6 +89,62 @@ export async function getPaginatedTranslations({
     },
     {},
   );
+}
+
+export async function getTranslationsByIdsWithLinks(
+  ids: number[],
+): Promise<Record<number, TranslationWithLinks>> {
+  const safeIds = Array.from(new Set(ids.filter((id) => Number.isFinite(id))));
+  if (safeIds.length === 0) {
+    return {};
+  }
+
+  const AppDataSource = await getDataSource();
+  const translationRepo = AppDataSource.getRepository<Translation>(
+    TranslationSchema.options.tableName!,
+  );
+  const translations = await translationRepo.find({
+    where: { id: In(safeIds) },
+  });
+  const linksByTranslationId = await getLinksByTranslationId(translations.map(({ id }) => id));
+
+  return JSON.parse(
+    JSON.stringify(
+      translations.reduce(
+        (accumulator: Record<number, TranslationWithLinks>, translation) => {
+          accumulator[translation.id] = {
+            ...translation,
+            links: linksByTranslationId[translation.id] ?? [],
+          };
+          return accumulator;
+        },
+        {},
+      ),
+    ),
+  );
+}
+
+export async function getPaginatedTranslations({
+  page,
+  size,
+}: {
+  page: number;
+  size: number;
+}): Promise<PaginatedResponse<TranslationWithLinks>> {
+  const AppDataSource = await getDataSource();
+  const translationRepo = AppDataSource.getRepository<Translation>(
+    TranslationSchema.options.tableName!,
+  );
+  const safePage = Math.max(1, page || 1);
+  const safeSize = Math.min(size || 20, 100);
+
+  const [itemsRaw, totalItems] = await translationRepo.findAndCount({
+    take: safeSize,
+    skip: (safePage - 1) * safeSize,
+    order: { updatedAt: 'DESC' },
+  });
+  const translationIds = itemsRaw.map((translation) => translation.id);
+  const linksByTranslationId = await getLinksByTranslationId(translationIds);
 
   return {
     items: JSON.parse(

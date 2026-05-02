@@ -1184,10 +1184,10 @@ export class DictionaryProposalModel {
 export class TranslationsProposalModel {
   readonly version = 'V3';
   readonly entries: TranslationModel[];
-  readonly defaultSource: SourceModel;
+  readonly sourceId: number;
 
-  constructor(entries: TranslationModel[], defaultSource: SourceModel) {
+  constructor(entries: TranslationModel[], sourceId: number) {
     this.entries = entries;
-    this.defaultSource = defaultSource;
+    this.sourceId = sourceId;
   }
 }

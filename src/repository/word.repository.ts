@@ -73,6 +73,9 @@ export async function getTranslationLinkTargetsForWords(
         wd.id AS "wordDetailId",
         NULL::int AS "definitionId",
         w.spelling AS "label",
+        wd.inflection AS "detailInflection",
+        NULL::jsonb AS "definitionValues",
+        NULL::text[] AS "definitionTags",
         'Details #' || wd.id ||
           COALESCE(' · ' || NULLIF(wd.inflection, ''), '') AS "targetLabel"
       FROM word_details wd
@@ -90,6 +93,9 @@ export async function getTranslationLinkTargetsForWords(
         wd.id AS "wordDetailId",
         d.id AS "definitionId",
         w.spelling AS "label",
+        wd.inflection AS "detailInflection",
+        d.values AS "definitionValues",
+        d.tags AS "definitionTags",
         'Definition #' || d.id ||
           COALESCE(' · ' || NULLIF(left(d.values->0->>'value', 80), ''), '') AS "targetLabel"
       FROM definition d

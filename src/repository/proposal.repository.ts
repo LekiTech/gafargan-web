@@ -11,7 +11,7 @@ import {
 import { Proposal } from './entities/Proposal';
 import { ProposalStatus, ProposalType } from './entities/enums';
 import { Translation } from './entities/Translation';
-import { In, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 import {
   DictionaryProposalModel,
   DictionaryProposalModelNestedType,
@@ -343,9 +343,15 @@ async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
 
 async function handleTranslationsProposalDbChanges(
   translationRepo: Repository<Translation>,
-  translations: (TranslationModelType & { links?: { linkType: string; wordDetailId: number; definitionId?: number }[] })[],
+  translations: (TranslationModelType & {
+    links?: { linkType: string; wordDetailId: number; definitionId?: number }[];
+    linksState?: string;
+  })[],
 ) {
   const manager = translationRepo.manager;
+  const ensureLinkHistoryTriggers = async () => {
+    await ensureTranslationLinkHistoryTriggersCompatible(manager);
+  };
   for (const translation of translations) {
     let translationId = translation.state === STATE.ADDED ? undefined : translation.id;
     switch (translation.state) {
@@ -373,7 +379,15 @@ async function handleTranslationsProposalDbChanges(
         console.log(`Nothing to do with translation with ID = ${translation.id}`);
     }
 
-    if (translationId !== undefined && translation.links !== undefined) {
+    const shouldUpdateLinks =
+      translation.links !== undefined &&
+      (translation.state === STATE.ADDED ||
+        translation.linksState === STATE.ADDED ||
+        translation.linksState === STATE.MODIFIED ||
+        translation.linksState === undefined);
+
+    if (translationId !== undefined && shouldUpdateLinks) {
+      await ensureLinkHistoryTriggers();
       await manager.query('DELETE FROM word_details_example WHERE translation_id = $1', [
         translationId,
       ]);
@@ -381,7 +395,7 @@ async function handleTranslationsProposalDbChanges(
         translationId,
       ]);
 
-      for (const link of translation.links) {
+      for (const link of translation.links ?? []) {
         if (link.linkType === 'definition' && link.definitionId) {
           await manager.query(
             `INSERT INTO definition_example (definition_id, translation_id)
@@ -400,6 +414,77 @@ async function handleTranslationsProposalDbChanges(
       }
     }
   }
+}
+
+async function ensureTranslationLinkHistoryTriggersCompatible(manager: EntityManager) {
+  await manager.query(
+    'ALTER TABLE history_word_details_example DROP COLUMN IF EXISTS created_by CASCADE',
+  );
+  await manager.query(
+    'ALTER TABLE history_definition_example DROP COLUMN IF EXISTS created_by CASCADE',
+  );
+  await manager.query(`
+    CREATE OR REPLACE FUNCTION history_word_details_example_trigger()
+    RETURNS TRIGGER LANGUAGE plpgsql AS $$
+    BEGIN
+      BEGIN
+        INSERT INTO history_word_details_example (
+          word_details_id,
+          translation_id,
+          created_at,
+          valid_from,
+          valid_to
+        )
+        VALUES (
+          OLD.word_details_id,
+          OLD.translation_id,
+          OLD.created_at,
+          OLD.created_at,
+          CURRENT_TIMESTAMP
+        );
+      EXCEPTION WHEN unique_violation THEN
+        -- Ignore duplicate history row
+      END;
+
+      IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+      ELSE
+        RETURN NEW;
+      END IF;
+    END;
+    $$;
+  `);
+  await manager.query(`
+    CREATE OR REPLACE FUNCTION history_definition_example_trigger()
+    RETURNS TRIGGER LANGUAGE plpgsql AS $$
+    BEGIN
+      BEGIN
+        INSERT INTO history_definition_example (
+          definition_id,
+          translation_id,
+          created_at,
+          valid_from,
+          valid_to
+        )
+        VALUES (
+          OLD.definition_id,
+          OLD.translation_id,
+          OLD.created_at,
+          OLD.created_at,
+          CURRENT_TIMESTAMP
+        );
+      EXCEPTION WHEN unique_violation THEN
+        -- Ignore duplicate history row
+      END;
+
+      IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+      ELSE
+        RETURN NEW;
+      END IF;
+    END;
+    $$;
+  `);
 }
 
 /**
