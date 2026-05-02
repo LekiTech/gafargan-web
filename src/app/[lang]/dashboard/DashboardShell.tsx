@@ -61,7 +61,7 @@ const NAVIGATION = (lang: WebsiteLang, t: TFunction, user: DashboardSessionUser)
   if (user.role === Role.Admin) {
     navigation.push({
       segment: `${lang}/${Routes.Users}`,
-      title: 'Users',
+      title: t('menu.users', { ns: 'dashboard' }),
       icon: <PeopleIcon />,
     });
   }
@@ -90,6 +90,7 @@ const CustomThemeSwitcher: FC<{ websiteLang: WebsiteLang }> = ({ websiteLang }) 
 function CustomToolbarActions({ user }: { user: DashboardSessionUser }) {
   const { lang } = useParams() as { lang: WebsiteLang };
   const router = useRouter();
+  const { t } = useTranslation(lang);
 
   const handleLogout = async () => {
     await fetch(`/${lang}/dashboard/logout`, { method: 'POST' });
@@ -110,7 +111,7 @@ function CustomToolbarActions({ user }: { user: DashboardSessionUser }) {
         startIcon={<LogoutIcon fontSize="small" />}
         onClick={handleLogout}
       >
-        Logout
+        {t('auth.logout', { ns: 'dashboard' })}
       </Button>
     </Stack>
   );

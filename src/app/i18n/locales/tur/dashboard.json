@@ -95,7 +95,85 @@
     "dashboard": "Dashboard",
     "sources": "Sources",
     "dictionary": "Dictionary",
-    "translations": "Translations"
+    "translations": "Translations",
+    "users": "Kullanıcılar"
+  },
+  "auth": {
+    "logout": "Çıkış yap",
+    "errors": {
+      "unauthorized": "Yetkilendirme gerekli",
+      "forbidden": "Erişim yasak"
+    },
+    "login": {
+      "title": "Kontrol paneli girişi",
+      "subtitle": "Yönetici veya Moderatör rolü olan bir hesap kullanın.",
+      "email": "Email",
+      "password": "Şifre",
+      "submit": "Giriş yap",
+      "errors": {
+        "missing": "Email ve şifrenizi girin.",
+        "invalid": "Geçersiz bilgiler veya kontrol paneli rolü.",
+        "server": "Giriş geçici olarak kullanılamıyor. Lütfen tekrar deneyin.",
+        "rateLimited_one": "Çok fazla başarısız deneme. {{count}} dakika sonra tekrar deneyin.",
+        "rateLimited_other": "Çok fazla başarısız deneme. {{count}} dakika sonra tekrar deneyin."
+      }
+    }
+  },
+  "users": {
+    "title": "Kullanıcılar",
+    "description": "Kontrol paneli erişimini, rolleri ve şifre sıfırlamalarını yönetin.",
+    "currentSession": "Geçerli oturum",
+    "languageNone": "Yok",
+    "actions": {
+      "refresh": "Yenile",
+      "add": "Kullanıcı ekle",
+      "editUser": "{{email}} düzenle",
+      "saving": "Kaydediliyor..."
+    },
+    "table": {
+      "ariaLabel": "Kontrol paneli kullanıcıları"
+    },
+    "fields": {
+      "name": "Ad",
+      "email": "Email",
+      "role": "Rol",
+      "language": "Dil",
+      "verified": "Doğrulandı",
+      "updated": "Güncellendi",
+      "actions": "İşlemler",
+      "password": "Şifre",
+      "newPassword": "Yeni şifre"
+    },
+    "boolean": {
+      "yes": "Evet",
+      "no": "Hayır"
+    },
+    "empty": {
+      "loading": "Kullanıcılar yükleniyor...",
+      "none": "Kullanıcı bulunamadı."
+    },
+    "dialog": {
+      "addTitle": "Kullanıcı ekle",
+      "editTitle": "Kullanıcıyı düzenle"
+    },
+    "helpers": {
+      "keepPassword": "Geçerli şifreyi korumak için boş bırakın."
+    },
+    "messages": {
+      "created": "Kullanıcı oluşturuldu.",
+      "updated": "Kullanıcı güncellendi."
+    },
+    "errors": {
+      "loadFailed": "Kullanıcılar yüklenemedi",
+      "saveFailed": "Kullanıcı kaydedilemedi",
+      "emailRequired": "Email zorunludur",
+      "roleRequired": "Rol zorunludur",
+      "languageInvalid": "Dil geçersiz",
+      "passwordRequired": "Şifre zorunludur",
+      "emailExists": "Bu email ile bir kullanıcı zaten var",
+      "userIdRequired": "Kullanıcı id zorunludur",
+      "notFound": "Kullanıcı bulunamadı"
+    }
   },
   "dashboardHome": {
     "title": "Dashboard",

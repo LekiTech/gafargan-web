@@ -92,7 +92,85 @@
     "dashboard": "Dashboard",
     "sources": "Sources",
     "dictionary": "Dictionary",
-    "translations": "Translations"
+    "translations": "Translations",
+    "users": "Users"
+  },
+  "auth": {
+    "logout": "Logout",
+    "errors": {
+      "unauthorized": "Unauthorized",
+      "forbidden": "Forbidden"
+    },
+    "login": {
+      "title": "Dashboard sign in",
+      "subtitle": "Use an account with an Admin or Moderator role.",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Sign in",
+      "errors": {
+        "missing": "Enter your email and password.",
+        "invalid": "Invalid credentials or dashboard role.",
+        "server": "Sign in is temporarily unavailable. Please try again.",
+        "rateLimited_one": "Too many failed attempts. Try again in {{count}} minute.",
+        "rateLimited_other": "Too many failed attempts. Try again in {{count}} minutes."
+      }
+    }
+  },
+  "users": {
+    "title": "Users",
+    "description": "Manage dashboard access, roles, and password resets.",
+    "currentSession": "Current session",
+    "languageNone": "None",
+    "actions": {
+      "refresh": "Refresh",
+      "add": "Add user",
+      "editUser": "Edit {{email}}",
+      "saving": "Saving..."
+    },
+    "table": {
+      "ariaLabel": "Dashboard users"
+    },
+    "fields": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "language": "Language",
+      "verified": "Verified",
+      "updated": "Updated",
+      "actions": "Actions",
+      "password": "Password",
+      "newPassword": "New password"
+    },
+    "boolean": {
+      "yes": "Yes",
+      "no": "No"
+    },
+    "empty": {
+      "loading": "Loading users...",
+      "none": "No users found."
+    },
+    "dialog": {
+      "addTitle": "Add user",
+      "editTitle": "Edit user"
+    },
+    "helpers": {
+      "keepPassword": "Leave blank to keep the current password."
+    },
+    "messages": {
+      "created": "User created.",
+      "updated": "User updated."
+    },
+    "errors": {
+      "loadFailed": "Could not load users",
+      "saveFailed": "Could not save user",
+      "emailRequired": "Email is required",
+      "roleRequired": "Role is required",
+      "languageInvalid": "Language is invalid",
+      "passwordRequired": "Password is required",
+      "emailExists": "A user with this email already exists",
+      "userIdRequired": "User id is required",
+      "notFound": "User was not found"
+    }
   },
   "dashboardHome": {
     "title": "Dashboard",

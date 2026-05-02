@@ -239,7 +239,7 @@ export async function requireDashboardApiUser(): Promise<
   if (!user) {
     return {
       user: null,
-      response: NextResponse.json({ message: 'Unauthorized' }, { status: 401 }),
+      response: NextResponse.json({ message: 'auth.errors.unauthorized' }, { status: 401 }),
     };
   }
 
@@ -259,7 +259,7 @@ export async function requireDashboardAdminApiUser(): Promise<
   if (!canManageDashboardUsers(user.role)) {
     return {
       user: null,
-      response: NextResponse.json({ message: 'Forbidden' }, { status: 403 }),
+      response: NextResponse.json({ message: 'auth.errors.forbidden' }, { status: 403 }),
     };
   }
 

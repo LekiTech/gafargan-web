@@ -26,19 +26,19 @@ const parseBody = (body: any, requirePassword: boolean): DashboardUserInput | { 
   const language = body?.language === null || body?.language === '' ? null : body?.language;
 
   if (!email) {
-    return { message: 'Email is required' };
+    return { message: 'users.errors.emailRequired' };
   }
 
   if (!isRole(body?.role)) {
-    return { message: 'Role is required' };
+    return { message: 'users.errors.roleRequired' };
   }
 
   if (language !== null && !isLanguage(language)) {
-    return { message: 'Language is invalid' };
+    return { message: 'users.errors.languageInvalid' };
   }
 
   if (requirePassword && password.trim().length === 0) {
-    return { message: 'Password is required' };
+    return { message: 'users.errors.passwordRequired' };
   }
 
   return {
@@ -53,10 +53,10 @@ const parseBody = (body: any, requirePassword: boolean): DashboardUserInput | { 
 
 const conflictMessage = (error: unknown) => {
   if (typeof error === 'object' && error && 'code' in error && error.code === '23505') {
-    return 'A user with this email already exists';
+    return 'users.errors.emailExists';
   }
 
-  return 'Could not save user';
+  return 'users.errors.saveFailed';
 };
 
 export async function GET() {
@@ -101,7 +101,7 @@ export async function PUT(request: NextRequest) {
   const id = Number(body?.id);
 
   if (!Number.isInteger(id) || id <= 0) {
-    return NextResponse.json({ message: 'User id is required' }, { status: 400 });
+    return NextResponse.json({ message: 'users.errors.userIdRequired' }, { status: 400 });
   }
 
   const input = parseBody(body, false);
@@ -114,7 +114,7 @@ export async function PUT(request: NextRequest) {
     const user = await updateDashboardUser({ ...input, id });
 
     if (!user) {
-      return NextResponse.json({ message: 'User was not found' }, { status: 404 });
+      return NextResponse.json({ message: 'users.errors.notFound' }, { status: 404 });
     }
 
     return NextResponse.json({ user });

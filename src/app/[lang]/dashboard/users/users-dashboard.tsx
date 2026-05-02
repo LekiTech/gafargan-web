@@ -34,6 +34,9 @@ import SaveIcon from '@mui/icons-material/Save';
 import PeopleIcon from '@mui/icons-material/People';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { Language, Role } from '@repository/entities/enums';
+import { WebsiteLang } from '@api/types.model';
+import { useParams } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 
 type DashboardUserModel = {
   id: number;
@@ -75,13 +78,25 @@ const toDraft = (user: DashboardUserModel): UserDraft => ({
   verified: Boolean(user.verified),
 });
 
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat('en', {
+const dateLocales: Record<WebsiteLang, string> = {
+  eng: 'en',
+  lez: 'ru',
+  rus: 'ru',
+  tur: 'tr',
+};
+
+const formatDate = (value: string, lang: WebsiteLang) =>
+  new Intl.DateTimeFormat(dateLocales[lang] ?? 'en', {
     dateStyle: 'medium',
     timeStyle: 'short',
   }).format(new Date(value));
 
+const getApiErrorKey = (message?: string) =>
+  message?.startsWith('users.errors.') ? message : 'users.errors.saveFailed';
+
 export default function UsersDashboard() {
+  const { lang } = useParams() as { lang: WebsiteLang };
+  const { t } = useTranslation(lang);
   const [users, setUsers] = React.useState<DashboardUserModel[]>([]);
   const [currentUserId, setCurrentUserId] = React.useState<number | null>(null);
   const [draft, setDraft] = React.useState<UserDraft | null>(null);
@@ -100,17 +115,21 @@ export default function UsersDashboard() {
       const body = await response.json();
 
       if (!response.ok) {
-        throw new Error(body?.message ?? 'Could not load users');
+        throw new Error(body?.message ?? 'users.errors.loadFailed');
       }
 
       setUsers(body.users);
       setCurrentUserId(body.currentUserId);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : 'Could not load users');
+      setError(
+        t(loadError instanceof Error ? loadError.message : 'users.errors.loadFailed', {
+          ns: 'dashboard',
+        }),
+      );
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [t]);
 
   React.useEffect(() => {
     loadUsers();
@@ -151,7 +170,7 @@ export default function UsersDashboard() {
       const body = await response.json();
 
       if (!response.ok) {
-        throw new Error(body?.message ?? 'Could not save user');
+        throw new Error(body?.message ?? 'users.errors.saveFailed');
       }
 
       setUsers((current) => {
@@ -161,10 +180,16 @@ export default function UsersDashboard() {
 
         return [...current, body.user];
       });
-      setSuccess(isEditing ? 'User updated.' : 'User created.');
+      setSuccess(
+        t(isEditing ? 'users.messages.updated' : 'users.messages.created', { ns: 'dashboard' }),
+      );
       setDraft(null);
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Could not save user');
+      setError(
+        t(getApiErrorKey(saveError instanceof Error ? saveError.message : undefined), {
+          ns: 'dashboard',
+        }),
+      );
     } finally {
       setIsSaving(false);
     }
@@ -182,10 +207,10 @@ export default function UsersDashboard() {
           <PeopleIcon color="primary" />
           <Box>
             <Typography variant="h5" component="h1" fontWeight={700}>
-              Users
+              {t('users.title', { ns: 'dashboard' })}
             </Typography>
             <Typography color="text.secondary">
-              Manage dashboard access, roles, and password resets.
+              {t('users.description', { ns: 'dashboard' })}
             </Typography>
           </Box>
         </Stack>
@@ -196,10 +221,10 @@ export default function UsersDashboard() {
             onClick={loadUsers}
             disabled={isLoading}
           >
-            Refresh
+            {t('users.actions.refresh', { ns: 'dashboard' })}
           </Button>
           <Button variant="contained" startIcon={<AddIcon />} onClick={() => setDraft(emptyDraft)}>
-            Add user
+            {t('users.actions.add', { ns: 'dashboard' })}
           </Button>
         </Stack>
       </Stack>
@@ -210,27 +235,32 @@ export default function UsersDashboard() {
       <Card variant="outlined" sx={{ borderRadius: 2 }}>
         <CardContent>
           <TableContainer>
-            <Table sx={{ minWidth: 760 }} aria-label="Dashboard users">
+            <Table
+              sx={{ minWidth: 760 }}
+              aria-label={t('users.table.ariaLabel', { ns: 'dashboard' })}
+            >
               <TableHead>
                 <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell>Language</TableCell>
-                  <TableCell>Verified</TableCell>
-                  <TableCell>Updated</TableCell>
-                  <TableCell align="right">Actions</TableCell>
+                  <TableCell>{t('users.fields.name', { ns: 'dashboard' })}</TableCell>
+                  <TableCell>{t('users.fields.email', { ns: 'dashboard' })}</TableCell>
+                  <TableCell>{t('users.fields.role', { ns: 'dashboard' })}</TableCell>
+                  <TableCell>{t('users.fields.language', { ns: 'dashboard' })}</TableCell>
+                  <TableCell>{t('users.fields.verified', { ns: 'dashboard' })}</TableCell>
+                  <TableCell>{t('users.fields.updated', { ns: 'dashboard' })}</TableCell>
+                  <TableCell align="right">
+                    {t('users.fields.actions', { ns: 'dashboard' })}
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={7}>Loading users...</TableCell>
+                    <TableCell colSpan={7}>{t('users.empty.loading', { ns: 'dashboard' })}</TableCell>
                   </TableRow>
                 ) : null}
                 {!isLoading && users.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7}>No users found.</TableCell>
+                    <TableCell colSpan={7}>{t('users.empty.none', { ns: 'dashboard' })}</TableCell>
                   </TableRow>
                 ) : null}
                 {users.map((user) => (
@@ -240,7 +270,7 @@ export default function UsersDashboard() {
                         <Typography>{user.name || '-'}</Typography>
                         {user.id === currentUserId ? (
                           <Typography variant="caption" color="text.secondary">
-                            Current session
+                            {t('users.currentSession', { ns: 'dashboard' })}
                           </Typography>
                         ) : null}
                       </Stack>
@@ -248,10 +278,20 @@ export default function UsersDashboard() {
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.role}</TableCell>
                     <TableCell>{user.language ?? '-'}</TableCell>
-                    <TableCell>{user.verified ? 'Yes' : 'No'}</TableCell>
-                    <TableCell>{formatDate(user.updatedAt)}</TableCell>
+                    <TableCell>
+                      {t(user.verified ? 'users.boolean.yes' : 'users.boolean.no', {
+                        ns: 'dashboard',
+                      })}
+                    </TableCell>
+                    <TableCell>{formatDate(user.updatedAt, lang)}</TableCell>
                     <TableCell align="right">
-                      <IconButton aria-label={`Edit ${user.email}`} onClick={() => setDraft(toDraft(user))}>
+                      <IconButton
+                        aria-label={t('users.actions.editUser', {
+                          ns: 'dashboard',
+                          email: user.email,
+                        })}
+                        onClick={() => setDraft(toDraft(user))}
+                      >
                         <EditIcon />
                       </IconButton>
                     </TableCell>
@@ -264,18 +304,20 @@ export default function UsersDashboard() {
       </Card>
 
       <Dialog open={Boolean(draft)} onClose={handleClose} fullWidth maxWidth="sm">
-        <DialogTitle>{isEditing ? 'Edit user' : 'Add user'}</DialogTitle>
+        <DialogTitle>
+          {t(isEditing ? 'users.dialog.editTitle' : 'users.dialog.addTitle', { ns: 'dashboard' })}
+        </DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
             {error && draft ? <Alert severity="error">{error}</Alert> : null}
             <TextField
-              label="Name"
+              label={t('users.fields.name', { ns: 'dashboard' })}
               value={draft?.name ?? ''}
               onChange={(event) => updateDraft('name', event.target.value)}
               fullWidth
             />
             <TextField
-              label="Email"
+              label={t('users.fields.email', { ns: 'dashboard' })}
               type="email"
               value={draft?.email ?? ''}
               onChange={(event) => updateDraft('email', event.target.value)}
@@ -283,19 +325,25 @@ export default function UsersDashboard() {
               fullWidth
             />
             <TextField
-              label={isEditing ? 'New password' : 'Password'}
+              label={t(isEditing ? 'users.fields.newPassword' : 'users.fields.password', {
+                ns: 'dashboard',
+              })}
               type="password"
               value={draft?.password ?? ''}
               onChange={(event) => updateDraft('password', event.target.value)}
-              helperText={isEditing ? 'Leave blank to keep the current password.' : undefined}
+              helperText={
+                isEditing ? t('users.helpers.keepPassword', { ns: 'dashboard' }) : undefined
+              }
               required={!isEditing}
               fullWidth
             />
             <FormControl fullWidth required>
-              <InputLabel id="user-role-label">Role</InputLabel>
+              <InputLabel id="user-role-label">
+                {t('users.fields.role', { ns: 'dashboard' })}
+              </InputLabel>
               <Select
                 labelId="user-role-label"
-                label="Role"
+                label={t('users.fields.role', { ns: 'dashboard' })}
                 value={draft?.role ?? Role.User}
                 onChange={(event) => updateDraft('role', event.target.value as Role)}
               >
@@ -307,14 +355,16 @@ export default function UsersDashboard() {
               </Select>
             </FormControl>
             <FormControl fullWidth>
-              <InputLabel id="user-language-label">Language</InputLabel>
+              <InputLabel id="user-language-label">
+                {t('users.fields.language', { ns: 'dashboard' })}
+              </InputLabel>
               <Select
                 labelId="user-language-label"
-                label="Language"
+                label={t('users.fields.language', { ns: 'dashboard' })}
                 value={draft?.language ?? ''}
                 onChange={(event) => updateDraft('language', event.target.value as Language | '')}
               >
-                <MenuItem value="">None</MenuItem>
+                <MenuItem value="">{t('users.languageNone', { ns: 'dashboard' })}</MenuItem>
                 {Object.values(Language).map((language) => (
                   <MenuItem key={language} value={language}>
                     {language}
@@ -329,13 +379,13 @@ export default function UsersDashboard() {
                   onChange={(event) => updateDraft('verified', event.target.checked)}
                 />
               }
-              label="Verified"
+              label={t('users.fields.verified', { ns: 'dashboard' })}
             />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose} disabled={isSaving}>
-            Cancel
+            {t('addNewWord.cancel', { ns: 'dashboard' })}
           </Button>
           <Button
             variant="contained"
@@ -343,7 +393,7 @@ export default function UsersDashboard() {
             onClick={handleSave}
             disabled={isSaving}
           >
-            {isSaving ? 'Saving...' : 'Save'}
+            {t(isSaving ? 'users.actions.saving' : 'addNewWord.save', { ns: 'dashboard' })}
           </Button>
         </DialogActions>
       </Dialog>
