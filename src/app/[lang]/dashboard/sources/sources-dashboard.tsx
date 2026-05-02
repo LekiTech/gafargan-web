@@ -152,6 +152,7 @@ const SourceForm: React.FC<{
   draft: SourceDraft;
   onChange: (draft: SourceDraft) => void;
 }> = ({ draft, onChange }) => {
+  const { t } = useTranslation();
   const update = (key: keyof SourceDraft) => (event: React.ChangeEvent<HTMLInputElement>) =>
     onChange({ ...draft, [key]: event.target.value });
 
@@ -163,46 +164,57 @@ const SourceForm: React.FC<{
         gap: 2,
       }}
     >
-      <TextField label="Name" value={draft.name} onChange={update('name')} required fullWidth />
-      <TextField label="Authors" value={draft.authors} onChange={update('authors')} fullWidth />
       <TextField
-        label="Publication year"
+        label={t('sources.fields.name', { ns: 'dashboard' })}
+        value={draft.name}
+        onChange={update('name')}
+        required
+        fullWidth
+      />
+      <TextField
+        label={t('sources.fields.authors', { ns: 'dashboard' })}
+        value={draft.authors}
+        onChange={update('authors')}
+        fullWidth
+      />
+      <TextField
+        label={t('sources.fields.publicationYear', { ns: 'dashboard' })}
         value={draft.publicationYear}
         onChange={update('publicationYear')}
         fullWidth
       />
       <TextField
-        label="Provided by"
+        label={t('sources.fields.providedBy', { ns: 'dashboard' })}
         value={draft.providedBy}
         onChange={update('providedBy')}
         fullWidth
       />
       <TextField
-        label="Provided by URL"
+        label={t('sources.fields.providedByUrl', { ns: 'dashboard' })}
         value={draft.providedByUrl}
         onChange={update('providedByUrl')}
         fullWidth
       />
       <TextField
-        label="Processed by"
+        label={t('sources.fields.processedBy', { ns: 'dashboard' })}
         value={draft.processedBy}
         onChange={update('processedBy')}
         fullWidth
       />
       <TextField
-        label="Copyright"
+        label={t('sources.fields.copyright', { ns: 'dashboard' })}
         value={draft.copyright}
         onChange={update('copyright')}
         fullWidth
       />
       <TextField
-        label="Source URL"
+        label={t('sources.fields.sourceUrl', { ns: 'dashboard' })}
         value={draft.seeSourceUrl}
         onChange={update('seeSourceUrl')}
         fullWidth
       />
       <TextField
-        label="Description"
+        label={t('sources.fields.description', { ns: 'dashboard' })}
         value={draft.description}
         onChange={update('description')}
         multiline
@@ -214,27 +226,50 @@ const SourceForm: React.FC<{
   );
 };
 
-const SourcePreview: React.FC<{ source: SourceModelType }> = ({ source }) => (
-  <Box
-    sx={{
-      display: 'grid',
-      gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
-      gap: 2,
-    }}
-  >
-    <Field label="Name" value={source.name} />
-    <Field label="Authors" value={source.authors} />
-    <Field label="Publication year" value={source.publicationYear} />
-    <Field label="Provided by" value={source.providedBy} />
-    <Field label="Provided by URL" value={source.providedByUrl} />
-    <Field label="Processed by" value={source.processedBy} />
-    <Field label="Copyright" value={source.copyright} />
-    <Field label="Source URL" value={source.seeSourceUrl} />
-    <Box sx={{ gridColumn: { md: '1 / -1' } }}>
-      <Field label="Description" value={source.description} multiline />
+const SourcePreview: React.FC<{ source: SourceModelType }> = ({ source }) => {
+  const { t } = useTranslation();
+
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: 'repeat(2, minmax(0, 1fr))' },
+        gap: 2,
+      }}
+    >
+      <Field label={t('sources.fields.name', { ns: 'dashboard' })} value={source.name} />
+      <Field label={t('sources.fields.authors', { ns: 'dashboard' })} value={source.authors} />
+      <Field
+        label={t('sources.fields.publicationYear', { ns: 'dashboard' })}
+        value={source.publicationYear}
+      />
+      <Field
+        label={t('sources.fields.providedBy', { ns: 'dashboard' })}
+        value={source.providedBy}
+      />
+      <Field
+        label={t('sources.fields.providedByUrl', { ns: 'dashboard' })}
+        value={source.providedByUrl}
+      />
+      <Field
+        label={t('sources.fields.processedBy', { ns: 'dashboard' })}
+        value={source.processedBy}
+      />
+      <Field label={t('sources.fields.copyright', { ns: 'dashboard' })} value={source.copyright} />
+      <Field
+        label={t('sources.fields.sourceUrl', { ns: 'dashboard' })}
+        value={source.seeSourceUrl}
+      />
+      <Box sx={{ gridColumn: { md: '1 / -1' } }}>
+        <Field
+          label={t('sources.fields.description', { ns: 'dashboard' })}
+          value={source.description}
+          multiline
+        />
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 const SourcesDashboard: React.FC<{
   lang: WebsiteLang;
@@ -280,7 +315,10 @@ const SourcesDashboard: React.FC<{
 
   const submit = async () => {
     if (draft.name.trim().length === 0) {
-      setAlert({ severity: 'info', text: 'Add a source name before sending it to review.' });
+      setAlert({
+        severity: 'info',
+        text: t('sources.messages.addSourceName', { ns: 'dashboard' }),
+      });
       return;
     }
 
@@ -291,11 +329,17 @@ const SourcesDashboard: React.FC<{
     });
 
     if (result.status >= 300) {
-      setAlert({ severity: 'error', text: 'Could not send the source for review.' });
+      setAlert({
+        severity: 'error',
+        text: t('sources.messages.sendFailed', { ns: 'dashboard' }),
+      });
       return;
     }
 
-    setAlert({ severity: 'success', text: 'Source was sent for review.' });
+    setAlert({
+      severity: 'success',
+      text: t('sources.messages.sentSuccessfully', { ns: 'dashboard' }),
+    });
     setDraft(emptyDraft);
   };
 
@@ -311,12 +355,12 @@ const SourcesDashboard: React.FC<{
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Proposed at</TableCell>
-              <TableCell>Proposed by</TableCell>
-              <TableCell>Source</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Comment</TableCell>
+              <TableCell>{t('proposals.table.id', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.proposedAt', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.proposedBy', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.source', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.status', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.comment', { ns: 'dashboard' })}</TableCell>
               <TableCell align="right"></TableCell>
             </TableRow>
           </TableHead>
@@ -333,7 +377,10 @@ const SourcesDashboard: React.FC<{
                     <Chip
                       size="small"
                       color={statusColor(proposal.status) as any}
-                      label={proposal.status}
+                      label={t(`proposalStatuses.${proposal.status}`, {
+                        ns: 'dashboard',
+                        defaultValue: proposal.status,
+                      })}
                     />
                   </TableCell>
                   <TableCell>{proposal.comment}</TableCell>
@@ -348,7 +395,9 @@ const SourcesDashboard: React.FC<{
             {paginatedProposals.items.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7}>
-                  <Typography color="text.secondary">No source proposals here.</Typography>
+                  <Typography color="text.secondary">
+                    {t('sources.empty.proposals', { ns: 'dashboard' })}
+                  </Typography>
                 </TableCell>
               </TableRow>
             )}
@@ -356,7 +405,12 @@ const SourcesDashboard: React.FC<{
           <TableFooter>
             <TableRow>
               <TablePagination
-                rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                rowsPerPageOptions={[
+                  5,
+                  10,
+                  25,
+                  { label: t('common.all', { ns: 'dashboard' }), value: -1 },
+                ]}
                 count={paginatedProposals.totalItems}
                 rowsPerPage={rowsPerPage}
                 page={tablePage}
@@ -368,7 +422,9 @@ const SourcesDashboard: React.FC<{
                 }
                 slotProps={{
                   select: {
-                    inputProps: { 'aria-label': 'rows per page' },
+                    inputProps: {
+                      'aria-label': t('pagination.rowsPerPage', { ns: 'dashboard' }),
+                    },
                     native: true,
                   },
                 }}
@@ -383,25 +439,28 @@ const SourcesDashboard: React.FC<{
   return (
     <Box sx={{ display: 'grid', gap: 3 }}>
       <Box>
-        <Stack direction="row" alignItems="center" gap={1}>
+        {/* <Stack direction="row" alignItems="center" gap={1}>
           <LibraryBooksIcon color="primary" />
           <Typography variant="h4" component="h1" fontWeight={700}>
             Sources
           </Typography>
-        </Stack>
+        </Stack> */}
         <Typography color="text.secondary" sx={{ mt: 1, maxWidth: 760 }}>
-          Manage the books, collections, and fieldwork references used across dictionary entries and
-          examples.
+          {t('sources.description', { ns: 'dashboard' })}
         </Typography>
       </Box>
 
       {alert && <Alert severity={alert.severity}>{alert.text}</Alert>}
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={activeTab} onChange={handleTabChange} aria-label="sources tabs">
-          <Tab label="Published sources" {...a11yProps(0)} />
-          <Tab label="Propose source" {...a11yProps(1)} />
-          <Tab label="Review proposals" {...a11yProps(2)} />
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          aria-label={t('sources.tabs.ariaLabel', { ns: 'dashboard' })}
+        >
+          <Tab label={t('sources.tabs.published', { ns: 'dashboard' })} {...a11yProps(0)} />
+          <Tab label={t('sources.tabs.propose', { ns: 'dashboard' })} {...a11yProps(1)} />
+          <Tab label={t('sources.tabs.review', { ns: 'dashboard' })} {...a11yProps(2)} />
         </Tabs>
       </Box>
 
@@ -409,21 +468,24 @@ const SourcesDashboard: React.FC<{
         <Card variant="outlined" sx={{ borderRadius: 2 }}>
           <CardHeader
             avatar={<LibraryBooksIcon color="primary" />}
-            title="Published sources"
-            subheader={`${sources.length} total`}
+            title={t('sources.published.title', { ns: 'dashboard' })}
+            subheader={t('pagination.total', {
+              ns: 'dashboard',
+              count: sources.length,
+            })}
           />
           <CardContent>
             <TableContainer component={Paper} variant="outlined">
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Authors</TableCell>
-                    <TableCell>Year</TableCell>
-                    <TableCell>Provided by</TableCell>
-                    <TableCell>Processed by</TableCell>
-                    <TableCell>URL</TableCell>
+                    <TableCell>{t('proposals.table.id', { ns: 'dashboard' })}</TableCell>
+                    <TableCell>{t('sources.fields.name', { ns: 'dashboard' })}</TableCell>
+                    <TableCell>{t('sources.fields.authors', { ns: 'dashboard' })}</TableCell>
+                    <TableCell>{t('sources.fields.year', { ns: 'dashboard' })}</TableCell>
+                    <TableCell>{t('sources.fields.providedBy', { ns: 'dashboard' })}</TableCell>
+                    <TableCell>{t('sources.fields.processedBy', { ns: 'dashboard' })}</TableCell>
+                    <TableCell>{t('sources.fields.url', { ns: 'dashboard' })}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -460,7 +522,8 @@ const SourcesDashboard: React.FC<{
                             rel="noopener"
                             sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}
                           >
-                            Open <OpenInNewIcon fontSize="inherit" />
+                            {t('common.open', { ns: 'dashboard' })}{' '}
+                            <OpenInNewIcon fontSize="inherit" />
                           </MuiLink>
                         ) : (
                           '-'
@@ -471,7 +534,9 @@ const SourcesDashboard: React.FC<{
                   {sources.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7}>
-                        <Typography color="text.secondary">No published sources yet.</Typography>
+                        <Typography color="text.secondary">
+                          {t('sources.empty.published', { ns: 'dashboard' })}
+                        </Typography>
                       </TableCell>
                     </TableRow>
                   )}
@@ -484,13 +549,16 @@ const SourcesDashboard: React.FC<{
 
       <TabPanel value={activeTab} index={1}>
         <Card variant="outlined" sx={{ borderRadius: 2 }}>
-          <CardHeader avatar={<AddIcon color="primary" />} title="Propose a source" />
+          <CardHeader
+            avatar={<AddIcon color="primary" />}
+            title={t('sources.propose.title', { ns: 'dashboard' })}
+          />
           <CardContent>
             <SourceForm draft={draft} onChange={setDraft} />
           </CardContent>
           <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 2 }}>
             <Button variant="contained" startIcon={<SendIcon />} onClick={submit}>
-              Send to review
+              {t('addNewWord.sendToReview', { ns: 'dashboard' })}
             </Button>
           </CardActions>
         </Card>
@@ -500,20 +568,23 @@ const SourcesDashboard: React.FC<{
         <Card variant="outlined" sx={{ borderRadius: 2 }}>
           <CardHeader
             avatar={<RateReviewIcon color="warning" />}
-            title="Source proposals"
-            subheader={`${proposals.totalItems} pending`}
+            title={t('sources.review.title', { ns: 'dashboard' })}
+            subheader={t('proposals.pendingCount', {
+              ns: 'dashboard',
+              count: proposals.totalItems,
+            })}
           />
           <CardContent>
             <Stack gap={2}>
               <Box>
                 <Typography variant="h6" sx={{ mb: 1 }}>
-                  Needs review
+                  {t('proposals.needsReview', { ns: 'dashboard' })}
                 </Typography>
                 {renderProposalsTable(proposals)}
               </Box>
               <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="h6">History</Typography>
+                  <Typography variant="h6">{t('proposals.history', { ns: 'dashboard' })}</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
                   {renderProposalsTable(proposalsHistory, { history: true })}
@@ -553,7 +624,10 @@ const SourcesDashboard: React.FC<{
                   <Chip
                     size="small"
                     color={statusColor(selectedProposal.status) as any}
-                    label={selectedProposal.status}
+                    label={t(`proposalStatuses.${selectedProposal.status}`, {
+                      ns: 'dashboard',
+                      defaultValue: selectedProposal.status,
+                    })}
                   />
                 </Stack>
               }
@@ -568,18 +642,20 @@ const SourcesDashboard: React.FC<{
                   variant="outlined"
                   startIcon={<RejectIcon />}
                   onClick={async () => {
-                    const comment = prompt('What is the reason for rejection?');
+                    const comment = prompt(t('proposals.rejectionReason', { ns: 'dashboard' }));
                     if (comment) {
                       try {
                         await rejectProposal(selectedProposal.id, 1, comment);
                         window.location.reload();
                       } catch (e: any) {
-                        window.alert(`Cannot reject proposal. ${e.message}`);
+                        window.alert(
+                          t('proposals.cannotReject', { ns: 'dashboard', message: e.message }),
+                        );
                       }
                     }
                   }}
                 >
-                  Reject
+                  {t('proposals.reject', { ns: 'dashboard' })}
                 </Button>
                 <Button
                   variant="contained"
@@ -589,11 +665,13 @@ const SourcesDashboard: React.FC<{
                       await approveProposal(selectedProposal.id, 1);
                       window.location.reload();
                     } catch (e: any) {
-                      window.alert(`Cannot approve proposal. ${e.message}`);
+                      window.alert(
+                        t('proposals.cannotApprove', { ns: 'dashboard', message: e.message }),
+                      );
                     }
                   }}
                 >
-                  Approve
+                  {t('proposals.approve', { ns: 'dashboard' })}
                 </Button>
               </CardActions>
             )}

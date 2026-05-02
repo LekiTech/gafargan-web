@@ -94,7 +94,223 @@
     "dictionary": "Dictionary",
     "translations": "Translations"
   },
+  "dashboardHome": {
+    "title": "Dashboard",
+    "pendingChip": "{{count}} pending",
+    "subtitle": "Every accepted proposal makes Gafargan more useful: cleaner entries, better examples, reliable sources, and more trustworthy translations for readers.",
+    "stats": {
+      "words": {
+        "label": "Published words",
+        "helper": "Entries available to readers"
+      },
+      "definitions": {
+        "label": "Definitions",
+        "helper": "Meanings, nuances, and usage notes"
+      },
+      "translations": {
+        "label": "Sentence translations",
+        "helper": "Examples and full phrases in reviewable form"
+      },
+      "sources": {
+        "label": "Sources",
+        "helper": "References backing the dictionary"
+      }
+    },
+    "review": {
+      "title": "Review queue",
+      "description": "Focus here first when preparing a clean public release.",
+      "button": "Open reviews",
+      "progressLabel": "Approved proposal share",
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "workspaces": {
+      "title": "Contribution workspaces",
+      "dictionary": {
+        "title": "Dictionary",
+        "description": "Add or refine word entries.",
+        "button": "Add words"
+      },
+      "translations": {
+        "title": "Translations",
+        "description": "Add sentence translations that show real usage.",
+        "button": "Add translations"
+      },
+      "sources": {
+        "title": "Sources",
+        "description": "Keep references attached so entries stay auditable.",
+        "button": "Add sources"
+      }
+    }
+  },
+  "common": {
+    "all": "All",
+    "open": "Open",
+    "remove": "Remove",
+    "close": "Close",
+    "more": "More"
+  },
+  "pagination": {
+    "rowsPerPage": "Rows per page",
+    "total": "{{count}} total"
+  },
+  "proposalStatuses": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected"
+  },
+  "states": {
+    "unchanged": "Unchanged",
+    "added": "Added",
+    "modified": "Modified",
+    "deleted": "Deleted",
+    "new": "New",
+    "changed": "Changed",
+    "removed": "Removed",
+    "current": "Current"
+  },
+  "proposals": {
+    "pendingCount": "{{count}} pending",
+    "needsReview": "Needs review",
+    "history": "History",
+    "beforeChanges": "Before proposal changes",
+    "afterApproval": "Proposal after approval",
+    "rejectionReason": "What is the reason for rejection?",
+    "reject": "Reject",
+    "approve": "Approve",
+    "cannotReject": "Cannot reject proposal. {{message}}",
+    "cannotApprove": "Cannot approve proposal. {{message}}",
+    "table": {
+      "id": "ID",
+      "proposedAt": "Proposed at",
+      "proposedBy": "Proposed by",
+      "source": "Source",
+      "status": "Status",
+      "comment": "Comment",
+      "wordsAmount": "Words amount",
+      "languages": "Languages",
+      "examples": "Examples",
+      "ariaLabel": "Proposals table"
+    }
+  },
+  "sources": {
+    "description": "Manage the books, collections, and fieldwork references used across dictionary entries and examples.",
+    "fields": {
+      "name": "Name",
+      "authors": "Authors",
+      "publicationYear": "Publication year",
+      "year": "Year",
+      "providedBy": "Provided by",
+      "providedByUrl": "Provided by URL",
+      "processedBy": "Processed by",
+      "copyright": "Copyright",
+      "sourceUrl": "Source URL",
+      "url": "URL",
+      "description": "Description"
+    },
+    "tabs": {
+      "ariaLabel": "Sources tabs",
+      "published": "Published sources",
+      "propose": "Propose source",
+      "review": "Review proposals"
+    },
+    "published": {
+      "title": "Published sources"
+    },
+    "propose": {
+      "title": "Propose a source"
+    },
+    "review": {
+      "title": "Source proposals"
+    },
+    "empty": {
+      "published": "No published sources yet.",
+      "proposals": "No source proposals here."
+    },
+    "messages": {
+      "addSourceName": "Add a source name before sending it to review.",
+      "sendFailed": "Could not send the source for review.",
+      "sentSuccessfully": "Source was sent for review."
+    }
+  },
+  "translations": {
+    "description": "Add complete sentence pairs, idioms, and usage examples that can be reviewed before they become public.",
+    "tabs": {
+      "ariaLabel": "Translations tabs",
+      "published": "Published translations",
+      "propose": "Propose translations",
+      "review": "Review proposals"
+    },
+    "published": {
+      "title": "Published sentence translations"
+    },
+    "propose": {
+      "title": "Propose translations",
+      "chooseSource": "Choose a source",
+      "addExample": "Add example"
+    },
+    "review": {
+      "title": "Translation proposals",
+      "previewTitle": "Review translations",
+      "translationNumber": "Translation {{number}}",
+      "newAfterApproval": "New translation after approval"
+    },
+    "edit": {
+      "title": "Edit translation",
+      "sendToReview": "Send edit to review"
+    },
+    "table": {
+      "sentences": "Sentences",
+      "updated": "Updated"
+    },
+    "labels": {
+      "translationTags": "Translation tags",
+      "linkedEntries": "Linked entries",
+      "linksState": "links {{state}}",
+      "wordDetail": "Word detail",
+      "detailNumber": "Detail #{{id}}",
+      "definitionNumber": "Definition #{{id}}",
+      "wordNumber": "Word #{{id}}",
+      "linkedToDetailExamples": "Linked to other examples for this detail."
+    },
+    "linkLabels": {
+      "definition": "{{word}} · definition #{{id}}",
+      "detail": "{{word}} · details #{{id}}"
+    },
+    "linkSelector": {
+      "searchLabel": "Search word to link",
+      "searching": "Searching...",
+      "instructions": "Search and select a word, then choose a word detail or definition below.",
+      "pickTargets": "Pick one or more targets for this word."
+    },
+    "empty": {
+      "published": "No published translations yet.",
+      "proposals": "No translation proposals here.",
+      "publishedTranslation": "No existing published translation.",
+      "sentenceText": "No sentence text.",
+      "definitionText": "No definition text."
+    },
+    "messages": {
+      "addSentencePair": "Add at least one complete sentence pair.",
+      "sendFailed": "Could not send translations for review.",
+      "sentSuccessfully": "Translations were sent for review.",
+      "changeBeforeSubmit": "Change the translation text, tags, or linked entries.",
+      "editFailed": "Could not send translation edit for review.",
+      "editSentSuccessfully": "Translation edit was sent for review."
+    }
+  },
+  "dictionaryReview": {
+    "title": "Review changes",
+    "adminOnly": "Review proposals. Only admins can access this page.",
+    "entryFallback": "Entry {{number}}",
+    "newAfterApproval": "New entry after approval",
+    "empty": {
+      "publishedEntry": "No existing published entry."
+    }
+  },
   "addNewWord": {
+    "chooseOrAdd": "Choose or add",
     "source": "Source",
     "addNewSource": "Add new source",
     "sourceName": "Source name (e.g. title of a book)",
@@ -127,9 +343,11 @@
       "failedToSave": "Failed to save",
       "savedSuccessfully": "Saved successfully",
       "nothingToSave": "Nothing to save",
-      "missingRequiredValues": "Missing required values"
+      "missingRequiredValues": "Missing required values",
+      "confirmDeleteEntry": "Are you sure you want to delete this entry?"
     },
     "tabs": {
+      "ariaLabel": "Dictionary tabs",
       "publishedData": "Published data",
       "addWords": "Add words",
       "myProposals": "My proposals",

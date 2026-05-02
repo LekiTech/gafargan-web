@@ -19,41 +19,73 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import SourceIcon from '@mui/icons-material/LocalLibrary';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { getDashboardStats } from '@repository/dashboard.repository';
+import { initTranslations } from '@i18n/index';
 import { Params } from '@/types';
 import { Routes } from '../../routes';
 
-const statFormatter = new Intl.NumberFormat('en');
+const numberFormatLocale = {
+  eng: 'en',
+  rus: 'ru',
+  lez: 'ru',
+  tur: 'tr',
+};
 
 const Dashboard: FC<{ params: Params }> = async ({ params }) => {
   const { lang } = await params;
+  const { t } = await initTranslations(lang);
   const stats = await getDashboardStats();
+  const statFormatter = new Intl.NumberFormat(numberFormatLocale[lang] ?? 'en');
   const reviewTotal =
     stats.pendingProposals + stats.approvedProposals + stats.rejectedProposals || 1;
   const reviewProgress = Math.round((stats.approvedProposals / reviewTotal) * 100);
 
   const statCards = [
     {
-      label: 'Published words',
+      label: t('dashboardHome.stats.words.label', { ns: 'dashboard' }),
       value: stats.words,
-      helper: 'Entries available to readers',
+      helper: t('dashboardHome.stats.words.helper', { ns: 'dashboard' }),
       icon: <MenuBookIcon color="primary" />,
     },
     {
-      label: 'Definitions',
+      label: t('dashboardHome.stats.definitions.label', { ns: 'dashboard' }),
       value: stats.definitions,
-      helper: 'Meanings, nuances, and usage notes',
+      helper: t('dashboardHome.stats.definitions.helper', { ns: 'dashboard' }),
       icon: <DashboardIcon color="secondary" />,
     },
     {
-      label: 'Sentence translations',
+      label: t('dashboardHome.stats.translations.label', { ns: 'dashboard' }),
       value: stats.translations,
-      helper: 'Examples and full phrases in reviewable form',
+      helper: t('dashboardHome.stats.translations.helper', { ns: 'dashboard' }),
       icon: <TranslateIcon color="success" />,
     },
     {
-      label: 'Sources',
+      label: t('dashboardHome.stats.sources.label', { ns: 'dashboard' }),
       value: stats.sources,
-      helper: 'References backing the dictionary',
+      helper: t('dashboardHome.stats.sources.helper', { ns: 'dashboard' }),
+      icon: <SourceIcon color="warning" />,
+    },
+  ];
+
+  const workspaces = [
+    {
+      title: t('dashboardHome.workspaces.dictionary.title', { ns: 'dashboard' }),
+      description: t('dashboardHome.workspaces.dictionary.description', { ns: 'dashboard' }),
+      href: `/${lang}/${Routes.Dictionary}?tab=add`,
+      button: t('dashboardHome.workspaces.dictionary.button', { ns: 'dashboard' }),
+      icon: <MenuBookIcon color="primary" />,
+    },
+    {
+      title: t('dashboardHome.workspaces.translations.title', { ns: 'dashboard' }),
+      description: t('dashboardHome.workspaces.translations.description', { ns: 'dashboard' }),
+      href: `/${lang}/${Routes.Translations}?tab=propose`,
+      button: t('dashboardHome.workspaces.translations.button', { ns: 'dashboard' }),
+      icon: <TranslateIcon color="success" />,
+    },
+    {
+      title: t('dashboardHome.workspaces.sources.title', { ns: 'dashboard' }),
+      description: t('dashboardHome.workspaces.sources.description', { ns: 'dashboard' }),
+      href: `/${lang}/${Routes.Sources}?tab=propose`,
+      button: t('dashboardHome.workspaces.sources.button', { ns: 'dashboard' }),
       icon: <SourceIcon color="warning" />,
     },
   ];
@@ -61,19 +93,21 @@ const Dashboard: FC<{ params: Params }> = async ({ params }) => {
   return (
     <Box sx={{ display: 'grid', gap: 3 }}>
       <Box>
-        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+        {/* <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
           <Typography variant="h4" component="h1" fontWeight={700}>
-            Dashboard
+            {t('dashboardHome.title', { ns: 'dashboard' })}
           </Typography>
           <Chip
             color={stats.pendingProposals > 0 ? 'warning' : 'success'}
-            label={`${stats.pendingProposals} pending`}
+            label={t('dashboardHome.pendingChip', {
+              ns: 'dashboard',
+              count: stats.pendingProposals,
+            })}
             icon={stats.pendingProposals > 0 ? <RateReviewIcon /> : <CheckCircleIcon />}
           />
-        </Stack>
+        </Stack> */}
         <Typography color="text.secondary" sx={{ mt: 1, maxWidth: 760 }}>
-          Every accepted proposal makes Gafargan more useful: cleaner entries, better examples,
-          and more trustworthy translations for readers.
+          {t('dashboardHome.subtitle', { ns: 'dashboard' })}
         </Typography>
       </Box>
 
@@ -112,25 +146,27 @@ const Dashboard: FC<{ params: Params }> = async ({ params }) => {
               >
                 <Box>
                   <Typography variant="h6" fontWeight={700}>
-                    Review queue
+                    {t('dashboardHome.review.title', { ns: 'dashboard' })}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Focus here first when preparing a clean public release.
+                    {t('dashboardHome.review.description', { ns: 'dashboard' })}
                   </Typography>
                 </Box>
                 <Button
                   component={Link}
-                  href={`/${lang}/${Routes.Dictionary}`}
+                  href={`/${lang}/${Routes.Dictionary}?tab=review-proposals`}
                   variant="contained"
                   startIcon={<RateReviewIcon />}
                 >
-                  Open reviews
+                  {t('dashboardHome.review.button', { ns: 'dashboard' })}
                 </Button>
               </Stack>
 
               <Box sx={{ mt: 3 }}>
                 <Stack direction="row" justifyContent="space-between" sx={{ mb: 1 }}>
-                  <Typography variant="body2">Approved proposal share</Typography>
+                  <Typography variant="body2">
+                    {t('dashboardHome.review.progressLabel', { ns: 'dashboard' })}
+                  </Typography>
                   <Typography variant="body2" fontWeight={700}>
                     {reviewProgress}%
                   </Typography>
@@ -141,19 +177,25 @@ const Dashboard: FC<{ params: Params }> = async ({ params }) => {
               <Grid container spacing={1.5} sx={{ mt: 2 }}>
                 <Grid size={{ xs: 4 }}>
                   <Alert severity="warning" icon={false}>
-                    <Typography variant="caption">Pending</Typography>
+                    <Typography variant="caption">
+                      {t('dashboardHome.review.pending', { ns: 'dashboard' })}
+                    </Typography>
                     <Typography fontWeight={700}>{stats.pendingProposals}</Typography>
                   </Alert>
                 </Grid>
                 <Grid size={{ xs: 4 }}>
                   <Alert severity="success" icon={false}>
-                    <Typography variant="caption">Approved</Typography>
+                    <Typography variant="caption">
+                      {t('dashboardHome.review.approved', { ns: 'dashboard' })}
+                    </Typography>
                     <Typography fontWeight={700}>{stats.approvedProposals}</Typography>
                   </Alert>
                 </Grid>
                 <Grid size={{ xs: 4 }}>
                   <Alert severity="error" icon={false}>
-                    <Typography variant="caption">Rejected</Typography>
+                    <Typography variant="caption">
+                      {t('dashboardHome.review.rejected', { ns: 'dashboard' })}
+                    </Typography>
                     <Typography fontWeight={700}>{stats.rejectedProposals}</Typography>
                   </Alert>
                 </Grid>
@@ -166,21 +208,31 @@ const Dashboard: FC<{ params: Params }> = async ({ params }) => {
           <Card variant="outlined" sx={{ borderRadius: 2 }}>
             <CardContent>
               <Typography variant="h6" fontWeight={700}>
-                Today&apos;s priorities
+                {t('dashboardHome.workspaces.title', { ns: 'dashboard' })}
               </Typography>
               <Stack gap={1.5} sx={{ mt: 2 }}>
-                <Stack direction="row" alignItems="center" gap={1.25}>
-                  <RateReviewIcon color="warning" />
-                  <Typography>Review pending dictionary proposals with side-by-side changes.</Typography>
-                </Stack>
-                <Stack direction="row" alignItems="center" gap={1.25}>
-                  <TranslateIcon color="success" />
-                  <Typography>Add sentence translations that show real usage.</Typography>
-                </Stack>
-                <Stack direction="row" alignItems="center" gap={1.25}>
-                  <SourceIcon color="primary" />
-                  <Typography>Keep sources attached so every entry stays auditable.</Typography>
-                </Stack>
+                {workspaces.map((workspace) => (
+                  <Stack
+                    key={workspace.href}
+                    direction={{ xs: 'column', sm: 'row' }}
+                    alignItems={{ xs: 'stretch', sm: 'center' }}
+                    justifyContent="space-between"
+                    gap={1.25}
+                  >
+                    <Stack direction="row" alignItems="center" gap={1.25}>
+                      {workspace.icon}
+                      <Box>
+                        <Typography fontWeight={600}>{workspace.title}</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {workspace.description}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                    <Button component={Link} href={workspace.href} size="small">
+                      {workspace.button}
+                    </Button>
+                  </Stack>
+                ))}
               </Stack>
             </CardContent>
           </Card>

@@ -3,6 +3,7 @@ import * as React from 'react';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import { FoundDefinitionsList } from './FoundDefinitionsList';
 import { WebsiteLang } from '@api/types.model';
 import { PaginatedResponse } from '@repository/types.model';
@@ -91,7 +92,11 @@ const TabsContent: React.FC<{
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+        <Tabs
+          value={value}
+          onChange={handleChange}
+          aria-label={t('addNewWord.tabs.ariaLabel', { ns: 'dashboard' })}
+        >
           <Tab label={t('addNewWord.tabs.publishedData', { ns: 'dashboard' })} {...a11yProps(0)} />
           <Tab label={t('addNewWord.tabs.addWords', { ns: 'dashboard' })} {...a11yProps(1)} />
           <Tab label={t('addNewWord.tabs.myProposals', { ns: 'dashboard' })} {...a11yProps(2)} />
@@ -128,7 +133,9 @@ const TabsContent: React.FC<{
         />
       </CustomTabPanel>
       <CustomTabPanel value={value} index={3}>
-        Review Proposals {[<br key={1} />, <br key={2} />]}Only admins can access this page
+        <Typography color="text.secondary" sx={{ mb: 2 }}>
+          {t('dictionaryReview.adminOnly', { ns: 'dashboard' })}
+        </Typography>
         <DictionaryProposalsOverview
           proposals={reviewProposals}
           historyProposals={reviewProposalsHistory}

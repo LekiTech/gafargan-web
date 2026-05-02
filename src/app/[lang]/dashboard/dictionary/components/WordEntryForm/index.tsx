@@ -131,7 +131,9 @@ export const WordEntryForm: React.FC<{
       const entry = item.value;
 
       if (!entry.isEmpty()) {
-        const answer = window.confirm('Are you sure you want to delete this entry?');
+        const answer = window.confirm(
+          t('addNewWord.messages.confirmDeleteEntry', { ns: 'dashboard' }),
+        );
         if (!answer) {
           return prev;
         }
@@ -151,7 +153,7 @@ export const WordEntryForm: React.FC<{
       next[idx] = { ...item, value: entry };
       return next;
     });
-  }, []);
+  }, [t]);
 
   const handleSubmit = useCallback(async () => {
     const proposalEntries = entries.filter(
@@ -229,7 +231,7 @@ export const WordEntryForm: React.FC<{
             lang={lang}
             onChange={setSelectedSource}
             readonly={formEntryState !== FORM_ENTRY_STATE.NEW}
-            placeholder="Choose or add"
+            placeholder={t('addNewWord.chooseOrAdd', { ns: 'dashboard' })}
           />
         </Grid>
 

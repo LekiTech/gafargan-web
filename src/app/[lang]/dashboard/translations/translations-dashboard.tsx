@@ -239,7 +239,9 @@ const TranslationReviewSidePreview: React.FC<{
         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
           {title}
         </Typography>
-        <Typography color="text.secondary">No existing published translation.</Typography>
+        <Typography color="text.secondary">
+          {t('translations.empty.publishedTranslation', { ns: 'dashboard' })}
+        </Typography>
       </Box>
     );
   }
@@ -267,7 +269,10 @@ const TranslationReviewSidePreview: React.FC<{
             size="small"
             color={translationStateColor(translation.state) as any}
             variant="outlined"
-            label={translation.state}
+            label={t(`states.${translation.state}`, {
+              ns: 'dashboard',
+              defaultValue: translation.state,
+            })}
           />
         )}
       </Stack>
@@ -299,12 +304,14 @@ const TranslationReviewSidePreview: React.FC<{
             );
           })
         ) : (
-          <Typography color="text.secondary">No sentence text.</Typography>
+          <Typography color="text.secondary">
+            {t('translations.empty.sentenceText', { ns: 'dashboard' })}
+          </Typography>
         )}
 
         <Box>
           <Typography variant="caption" color="text.secondary">
-            Translation tags
+            {t('translations.labels.translationTags', { ns: 'dashboard' })}
           </Typography>
           <Box sx={{ mt: 0.5 }}>
             <LinkTargetTags tags={translation.tags} />
@@ -319,14 +326,20 @@ const TranslationReviewSidePreview: React.FC<{
         <Box>
           <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
             <Typography variant="caption" color="text.secondary">
-              Linked entries
+              {t('translations.labels.linkedEntries', { ns: 'dashboard' })}
             </Typography>
             {translation.linksState && translation.linksState !== STATE.UNCHANGED && (
               <Chip
                 size="small"
                 color={translationStateColor(translation.linksState) as any}
                 variant="outlined"
-                label={`links ${translation.linksState}`}
+                label={t('translations.labels.linksState', {
+                  ns: 'dashboard',
+                  state: t(`states.${translation.linksState}`, {
+                    ns: 'dashboard',
+                    defaultValue: translation.linksState,
+                  }),
+                })}
               />
             )}
           </Stack>
@@ -347,6 +360,7 @@ const TranslationLinks: React.FC<{
   links: TranslationLink[];
   lang: WebsiteLang;
 }> = ({ links, lang }) => {
+  const { t } = useTranslation();
   const uniqueLinks = React.useMemo(
     () =>
       Array.from(
@@ -384,8 +398,16 @@ const TranslationLinks: React.FC<{
             variant="outlined"
             label={
               link.linkType === 'definition'
-                ? `${link.wordSpelling} · definition #${link.definitionId}`
-                : `${link.wordSpelling} · details #${link.wordDetailId}`
+                ? t('translations.linkLabels.definition', {
+                    ns: 'dashboard',
+                    word: link.wordSpelling,
+                    id: link.definitionId,
+                  })
+                : t('translations.linkLabels.detail', {
+                    ns: 'dashboard',
+                    word: link.wordSpelling,
+                    id: link.wordDetailId,
+                  })
             }
           />
         );
@@ -439,7 +461,7 @@ const DefinitionLinkTarget: React.FC<{
       <Stack gap={0.75}>
         <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
           <Typography variant="subtitle2" color="text.secondary">
-            Meaning
+            {t('addNewWord.definition', { ns: 'dashboard' })}
           </Typography>
           <Chip size="small" variant="outlined" label={`#${target.definitionId}`} />
         </Stack>
@@ -469,7 +491,7 @@ const DefinitionLinkTarget: React.FC<{
             ))
           ) : (
             <Typography variant="body2" color="text.secondary">
-              No definition text.
+              {t('translations.empty.definitionText', { ns: 'dashboard' })}
             </Typography>
           )}
         </Stack>
@@ -519,12 +541,18 @@ const WordDetailLinkTarget: React.FC<{
           checked={checked}
           onChange={onToggleDetail}
           disabled={!detailTarget}
-          inputProps={{ 'aria-label': detailTarget?.targetLabel ?? 'Word detail' }}
+          inputProps={{
+            'aria-label':
+              detailTarget?.targetLabel ?? t('translations.labels.wordDetail', { ns: 'dashboard' }),
+          }}
         />
         <Stack gap={0.5}>
           <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
             <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-              Detail #{referenceTarget.wordDetailId}
+              {t('translations.labels.detailNumber', {
+                ns: 'dashboard',
+                id: referenceTarget.wordDetailId,
+              })}
             </Typography>
             {referenceTarget.detailInflection && (
               <Typography variant="h6" color="text.secondary" sx={{ lineHeight: 1.2 }}>
@@ -569,7 +597,7 @@ const DefinitionLinkTargetReview: React.FC<{ target: TranslationLinkTarget }> = 
       <Stack gap={0.75}>
         <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
           <Typography variant="subtitle2" color="text.secondary">
-            Meaning
+            {t('addNewWord.definition', { ns: 'dashboard' })}
           </Typography>
           <Chip size="small" variant="outlined" label={`#${target.definitionId}`} />
         </Stack>
@@ -599,7 +627,7 @@ const DefinitionLinkTargetReview: React.FC<{ target: TranslationLinkTarget }> = 
             ))
           ) : (
             <Typography variant="body2" color="text.secondary">
-              No definition text.
+              {t('translations.empty.definitionText', { ns: 'dashboard' })}
             </Typography>
           )}
         </Stack>
@@ -634,11 +662,14 @@ const TranslationLinkTargetsReview: React.FC<{
           label: link.wordSpelling,
           targetLabel:
             link.linkType === 'definition'
-              ? `Definition #${link.definitionId}`
-              : `Details #${link.wordDetailId}`,
+              ? t('translations.labels.definitionNumber', {
+                  ns: 'dashboard',
+                  id: link.definitionId,
+                })
+              : t('translations.labels.detailNumber', { ns: 'dashboard', id: link.wordDetailId }),
         };
       }),
-    [targetByKey, uniqueLinks],
+    [t, targetByKey, uniqueLinks],
   );
 
   if (targets.length === 0) {
@@ -710,7 +741,10 @@ const TranslationLinkTargetsReview: React.FC<{
                     <Stack gap={0.5}>
                       <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
                         <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                          Detail #{referenceTarget.wordDetailId}
+                          {t('translations.labels.detailNumber', {
+                            ns: 'dashboard',
+                            id: referenceTarget.wordDetailId,
+                          })}
                         </Typography>
                         {referenceTarget.detailInflection && (
                           <Typography variant="h6" color="text.secondary" sx={{ lineHeight: 1.2 }}>
@@ -724,7 +758,7 @@ const TranslationLinkTargetsReview: React.FC<{
                     </Stack>
                     {detail.detailTarget && (
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
-                        Linked to other examples for this detail.
+                        {t('translations.labels.linkedToDetailExamples', { ns: 'dashboard' })}
                       </Typography>
                     )}
                     {detail.definitionTargets.length > 0 && (
@@ -750,6 +784,7 @@ const LinkTargetSelector: React.FC<{
   fromLangDialectId: number;
   onChange: (value: TranslationLink[]) => void;
 }> = ({ value, fromLangDialectId, onChange }) => {
+  const { t } = useTranslation();
   const [query, setQuery] = React.useState('');
   const [searchResults, setSearchResults] = React.useState<WordSearchResult[]>([]);
   const [selectedWordLabels, setSelectedWordLabels] = React.useState<Record<number, string>>({});
@@ -884,11 +919,13 @@ const LinkTargetSelector: React.FC<{
         <TextField
           size="small"
           fullWidth
-          label="Search word to link"
+          label={t('translations.linkSelector.searchLabel', { ns: 'dashboard' })}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           autoComplete="off"
-          helperText={isLoading ? 'Searching...' : undefined}
+          helperText={
+            isLoading ? t('translations.linkSelector.searching', { ns: 'dashboard' }) : undefined
+          }
         />
         {filteredWords.length > 0 && (
           <Stack direction="row" gap={0.75} flexWrap="wrap">
@@ -914,7 +951,7 @@ const LinkTargetSelector: React.FC<{
         )}
         {selectedWordIds.length === 0 ? (
           <Typography variant="body2" color="text.secondary">
-            Search and select a word, then choose a word detail or definition below.
+            {t('translations.linkSelector.instructions', { ns: 'dashboard' })}
           </Typography>
         ) : (
           selectedWordIds.map((wordId) => {
@@ -954,7 +991,10 @@ const LinkTargetSelector: React.FC<{
             return (
               <Box key={wordId} sx={{ borderTop: '1px solid', borderColor: 'divider', pt: 1 }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between" gap={1}>
-                  <Typography variant="subtitle2">{word?.spelling ?? `Word #${wordId}`}</Typography>
+                  <Typography variant="subtitle2">
+                    {word?.spelling ??
+                      t('translations.labels.wordNumber', { ns: 'dashboard', id: wordId })}
+                  </Typography>
                   <Button
                     size="small"
                     onClick={() => {
@@ -967,7 +1007,7 @@ const LinkTargetSelector: React.FC<{
                       onChange(value.filter((link) => link.wordId !== wordId));
                     }}
                   >
-                    Remove
+                    {t('common.remove', { ns: 'dashboard' })}
                   </Button>
                 </Stack>
                 <Stack gap={1} sx={{ mt: 1 }}>
@@ -989,7 +1029,7 @@ const LinkTargetSelector: React.FC<{
                 </Stack>
                 {!hasSelectedTargets && (
                   <Typography variant="caption" color="text.secondary">
-                    Pick one or more targets for this word.
+                    {t('translations.linkSelector.pickTargets', { ns: 'dashboard' })}
                   </Typography>
                 )}
               </Box>
@@ -1007,13 +1047,14 @@ const TranslationProposalPreview: React.FC<{
   baselineTranslations: Record<number, TranslationWithLinks>;
   reviewLinkTargets: TranslationLinkTarget[];
 }> = ({ proposal, lang, baselineTranslations, reviewLinkTargets }) => {
+  const { t } = useTranslation(lang);
   const data = proposal.data as { entries?: TranslationProposalEntry[] };
   const entries = data.entries ?? [];
 
   return (
     <Stack gap={2}>
       <Typography variant="h6" fontWeight={700}>
-        Review translations
+        {t('translations.review.previewTitle', { ns: 'dashboard' })}
       </Typography>
       {entries.map((entry, idx) => {
         const baseline =
@@ -1028,20 +1069,32 @@ const TranslationProposalPreview: React.FC<{
               title={
                 <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
                   <Typography variant="subtitle1" fontWeight={700}>
-                    Translation {idx + 1}
+                    {t('translations.review.translationNumber', {
+                      ns: 'dashboard',
+                      number: idx + 1,
+                    })}
                   </Typography>
                   <Chip
                     size="small"
                     color={translationStateColor(entry.state) as any}
                     variant="outlined"
-                    label={entry.state}
+                    label={t(`states.${entry.state}`, {
+                      ns: 'dashboard',
+                      defaultValue: entry.state,
+                    })}
                   />
                   {entry.linksState && entry.linksState !== STATE.UNCHANGED && (
                     <Chip
                       size="small"
                       color={translationStateColor(entry.linksState) as any}
                       variant="outlined"
-                      label={`links ${entry.linksState}`}
+                      label={t('translations.labels.linksState', {
+                        ns: 'dashboard',
+                        state: t(`states.${entry.linksState}`, {
+                          ns: 'dashboard',
+                          defaultValue: entry.linksState,
+                        }),
+                      })}
                     />
                   )}
                 </Stack>
@@ -1058,7 +1111,7 @@ const TranslationProposalPreview: React.FC<{
               >
                 {!isNewTranslation && (
                   <TranslationReviewSidePreview
-                    title="Before proposal changes"
+                    title={t('proposals.beforeChanges', { ns: 'dashboard' })}
                     translation={baseline}
                     lang={lang}
                     linkTargets={reviewLinkTargets}
@@ -1066,7 +1119,9 @@ const TranslationProposalPreview: React.FC<{
                 )}
                 <TranslationReviewSidePreview
                   title={
-                    isNewTranslation ? 'New translation after approval' : 'Proposal after approval'
+                    isNewTranslation
+                      ? t('translations.review.newAfterApproval', { ns: 'dashboard' })
+                      : t('proposals.afterApproval', { ns: 'dashboard' })
                   }
                   translation={entry}
                   lang={lang}
@@ -1198,12 +1253,12 @@ const TranslationsDashboard: React.FC<{
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Proposed at</TableCell>
-              <TableCell>Proposed by</TableCell>
-              <TableCell>Examples</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Comment</TableCell>
+              <TableCell>{t('proposals.table.id', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.proposedAt', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.proposedBy', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.examples', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.status', { ns: 'dashboard' })}</TableCell>
+              <TableCell>{t('proposals.table.comment', { ns: 'dashboard' })}</TableCell>
               <TableCell align="right"></TableCell>
             </TableRow>
           </TableHead>
@@ -1220,7 +1275,10 @@ const TranslationsDashboard: React.FC<{
                     <Chip
                       size="small"
                       color={statusColor(proposal.status) as any}
-                      label={proposal.status}
+                      label={t(`proposalStatuses.${proposal.status}`, {
+                        ns: 'dashboard',
+                        defaultValue: proposal.status,
+                      })}
                     />
                   </TableCell>
                   <TableCell>{proposal.comment}</TableCell>
@@ -1235,7 +1293,9 @@ const TranslationsDashboard: React.FC<{
             {paginatedProposals.items.length === 0 && (
               <TableRow>
                 <TableCell colSpan={7}>
-                  <Typography color="text.secondary">No translation proposals here.</Typography>
+                  <Typography color="text.secondary">
+                    {t('translations.empty.proposals', { ns: 'dashboard' })}
+                  </Typography>
                 </TableCell>
               </TableRow>
             )}
@@ -1243,7 +1303,12 @@ const TranslationsDashboard: React.FC<{
           <TableFooter>
             <TableRow>
               <TablePagination
-                rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                rowsPerPageOptions={[
+                  5,
+                  10,
+                  25,
+                  { label: t('common.all', { ns: 'dashboard' }), value: -1 },
+                ]}
                 count={paginatedProposals.totalItems}
                 rowsPerPage={rowsPerPage}
                 page={tablePage}
@@ -1256,7 +1321,7 @@ const TranslationsDashboard: React.FC<{
                 slotProps={{
                   select: {
                     inputProps: {
-                      'aria-label': 'rows per page',
+                      'aria-label': t('pagination.rowsPerPage', { ns: 'dashboard' }),
                     },
                     native: true,
                   },
@@ -1275,7 +1340,10 @@ const TranslationsDashboard: React.FC<{
       .map((draft) => translationModelToPayload(draft));
 
     if (entries.length === 0) {
-      setAlert({ severity: 'info', text: 'Add at least one complete sentence pair.' });
+      setAlert({
+        severity: 'info',
+        text: t('translations.messages.addSentencePair', { ns: 'dashboard' }),
+      });
       return;
     }
 
@@ -1289,24 +1357,36 @@ const TranslationsDashboard: React.FC<{
     });
 
     if (result.status >= 300) {
-      setAlert({ severity: 'error', text: 'Could not send translations for review.' });
+      setAlert({
+        severity: 'error',
+        text: t('translations.messages.sendFailed', { ns: 'dashboard' }),
+      });
       return;
     }
 
-    setAlert({ severity: 'success', text: 'Translations were sent for review.' });
+    setAlert({
+      severity: 'success',
+      text: t('translations.messages.sentSuccessfully', { ns: 'dashboard' }),
+    });
     setDrafts([createDraft(fromLangDialectId, toLangDialectId)]);
   };
 
   const submitEdit = async () => {
     if (!selectedTranslation || !hasCompletePhrase(selectedTranslation.value)) {
-      setAlert({ severity: 'info', text: 'Add at least one complete sentence pair.' });
+      setAlert({
+        severity: 'info',
+        text: t('translations.messages.addSentencePair', { ns: 'dashboard' }),
+      });
       return;
     }
     if (
       selectedTranslation.value.getState() === STATE.UNCHANGED &&
       linksStateForDraft(selectedTranslation) === STATE.UNCHANGED
     ) {
-      setAlert({ severity: 'info', text: 'Change the translation text, tags, or linked entries.' });
+      setAlert({
+        severity: 'info',
+        text: t('translations.messages.changeBeforeSubmit', { ns: 'dashboard' }),
+      });
       return;
     }
 
@@ -1320,36 +1400,45 @@ const TranslationsDashboard: React.FC<{
     });
 
     if (result.status >= 300) {
-      setAlert({ severity: 'error', text: 'Could not send translation edit for review.' });
+      setAlert({
+        severity: 'error',
+        text: t('translations.messages.editFailed', { ns: 'dashboard' }),
+      });
       return;
     }
 
-    setAlert({ severity: 'success', text: 'Translation edit was sent for review.' });
+    setAlert({
+      severity: 'success',
+      text: t('translations.messages.editSentSuccessfully', { ns: 'dashboard' }),
+    });
     setSelectedTranslation(undefined);
   };
 
   return (
     <Box sx={{ display: 'grid', gap: 3 }}>
       <Box>
-        <Stack direction="row" alignItems="center" gap={1}>
+        {/* <Stack direction="row" alignItems="center" gap={1}>
           <TranslateIcon color="primary" />
           <Typography variant="h4" component="h1" fontWeight={700}>
             Sentence translations
           </Typography>
-        </Stack>
+        </Stack> */}
         <Typography color="text.secondary" sx={{ mt: 1, maxWidth: 760 }}>
-          Add complete sentence pairs, idioms, and usage examples that can be reviewed before they
-          become public.
+          {t('translations.description', { ns: 'dashboard' })}
         </Typography>
       </Box>
 
       {alert && <Alert severity={alert.severity}>{alert.text}</Alert>}
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={activeTab} onChange={handleTabChange} aria-label="translations tabs">
-          <Tab label="Published translations" {...a11yProps(0)} />
-          <Tab label="Propose translations" {...a11yProps(1)} />
-          <Tab label="Review proposals" {...a11yProps(2)} />
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          aria-label={t('translations.tabs.ariaLabel', { ns: 'dashboard' })}
+        >
+          <Tab label={t('translations.tabs.published', { ns: 'dashboard' })} {...a11yProps(0)} />
+          <Tab label={t('translations.tabs.propose', { ns: 'dashboard' })} {...a11yProps(1)} />
+          <Tab label={t('translations.tabs.review', { ns: 'dashboard' })} {...a11yProps(2)} />
         </Tabs>
       </Box>
 
@@ -1357,8 +1446,11 @@ const TranslationsDashboard: React.FC<{
         <Card variant="outlined" sx={{ borderRadius: 2 }}>
           <CardHeader
             avatar={<CheckCircleIcon color="success" />}
-            title="Published sentence translations"
-            subheader={`${translations.totalItems} total`}
+            title={t('translations.published.title', { ns: 'dashboard' })}
+            subheader={t('pagination.total', {
+              ns: 'dashboard',
+              count: translations.totalItems,
+            })}
           />
           <CardContent>
             <Stack
@@ -1396,11 +1488,13 @@ const TranslationsDashboard: React.FC<{
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>ID</TableCell>
-                    <TableCell>Sentences</TableCell>
-                    <TableCell>Linked entries</TableCell>
-                    <TableCell>Tags</TableCell>
-                    <TableCell>Updated</TableCell>
+                    <TableCell>{t('proposals.table.id', { ns: 'dashboard' })}</TableCell>
+                    <TableCell>{t('translations.table.sentences', { ns: 'dashboard' })}</TableCell>
+                    <TableCell>
+                      {t('translations.labels.linkedEntries', { ns: 'dashboard' })}
+                    </TableCell>
+                    <TableCell>{t('addNewWord.tags', { ns: 'dashboard' })}</TableCell>
+                    <TableCell>{t('translations.table.updated', { ns: 'dashboard' })}</TableCell>
                     <TableCell align="right"></TableCell>
                   </TableRow>
                 </TableHead>
@@ -1435,7 +1529,7 @@ const TranslationsDashboard: React.FC<{
                     <TableRow>
                       <TableCell colSpan={6}>
                         <Typography color="text.secondary">
-                          No published translations yet.
+                          {t('translations.empty.published', { ns: 'dashboard' })}
                         </Typography>
                       </TableCell>
                     </TableRow>
@@ -1461,7 +1555,7 @@ const TranslationsDashboard: React.FC<{
 
       <TabPanel value={activeTab} index={1}>
         <Card variant="outlined" sx={{ borderRadius: 2 }}>
-          <CardHeader title="Propose translations" />
+          <CardHeader title={t('translations.propose.title', { ns: 'dashboard' })} />
           <CardContent>
             <Grid container columns={{ xs: 6 }} spacing={1.5} sx={{ mb: 2 }}>
               <Grid size={{ xs: 6 }}>
@@ -1472,7 +1566,7 @@ const TranslationsDashboard: React.FC<{
                   lang={lang}
                   onChange={setSelectedSource}
                   readonly={false}
-                  placeholder="Choose a source"
+                  placeholder={t('translations.propose.chooseSource', { ns: 'dashboard' })}
                 />
               </Grid>
               <Grid size={{ xs: 6 }} display="flex" alignItems="center" gap={1}>
@@ -1536,10 +1630,10 @@ const TranslationsDashboard: React.FC<{
                 ])
               }
             >
-              Add example
+              {t('translations.propose.addExample', { ns: 'dashboard' })}
             </Button>
             <Button variant="contained" startIcon={<SendIcon />} onClick={submit}>
-              Send to review
+              {t('addNewWord.sendToReview', { ns: 'dashboard' })}
             </Button>
           </CardActions>
         </Card>
@@ -1549,20 +1643,23 @@ const TranslationsDashboard: React.FC<{
         <Card variant="outlined" sx={{ borderRadius: 2 }}>
           <CardHeader
             avatar={<RateReviewIcon color="warning" />}
-            title="Translation proposals"
-            subheader={`${proposals.totalItems} pending`}
+            title={t('translations.review.title', { ns: 'dashboard' })}
+            subheader={t('proposals.pendingCount', {
+              ns: 'dashboard',
+              count: proposals.totalItems,
+            })}
           />
           <CardContent>
             <Stack gap={2}>
               <Box>
                 <Typography variant="h6" sx={{ mb: 1 }}>
-                  Needs review
+                  {t('proposals.needsReview', { ns: 'dashboard' })}
                 </Typography>
                 {renderProposalsTable(proposals)}
               </Box>
               <Accordion>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="h6">History</Typography>
+                  <Typography variant="h6">{t('proposals.history', { ns: 'dashboard' })}</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
                   {renderProposalsTable(proposalsHistory, { history: true })}
@@ -1601,7 +1698,10 @@ const TranslationsDashboard: React.FC<{
                   <Chip
                     size="small"
                     color={statusColor(selectedProposal.status) as any}
-                    label={selectedProposal.status}
+                    label={t(`proposalStatuses.${selectedProposal.status}`, {
+                      ns: 'dashboard',
+                      defaultValue: selectedProposal.status,
+                    })}
                   />
                 </Stack>
               }
@@ -1621,18 +1721,20 @@ const TranslationsDashboard: React.FC<{
                   variant="outlined"
                   startIcon={<RejectIcon />}
                   onClick={async () => {
-                    const comment = prompt('What is the reason for rejection?');
+                    const comment = prompt(t('proposals.rejectionReason', { ns: 'dashboard' }));
                     if (comment) {
                       try {
                         await rejectProposal(selectedProposal.id, 1, comment);
                         window.location.reload();
                       } catch (e: any) {
-                        window.alert(`Cannot reject proposal. ${e.message}`);
+                        window.alert(
+                          t('proposals.cannotReject', { ns: 'dashboard', message: e.message }),
+                        );
                       }
                     }
                   }}
                 >
-                  Reject
+                  {t('proposals.reject', { ns: 'dashboard' })}
                 </Button>
                 <Button
                   variant="contained"
@@ -1642,11 +1744,13 @@ const TranslationsDashboard: React.FC<{
                       await approveProposal(selectedProposal.id, 1);
                       window.location.reload();
                     } catch (e: any) {
-                      window.alert(`Cannot approve proposal. ${e.message}`);
+                      window.alert(
+                        t('proposals.cannotApprove', { ns: 'dashboard', message: e.message }),
+                      );
                     }
                   }}
                 >
-                  Approve
+                  {t('proposals.approve', { ns: 'dashboard' })}
                 </Button>
               </CardActions>
             )}
@@ -1667,7 +1771,7 @@ const TranslationsDashboard: React.FC<{
             }}
           >
             <CardHeader
-              title="Edit translation"
+              title={t('translations.edit.title', { ns: 'dashboard' })}
               action={
                 <IconButton onClick={() => setSelectedTranslation(undefined)}>
                   <CloseIcon />
@@ -1699,7 +1803,7 @@ const TranslationsDashboard: React.FC<{
             </CardContent>
             <CardActions sx={{ justifyContent: 'center' }}>
               <Button variant="contained" startIcon={<SendIcon />} onClick={submitEdit}>
-                Send edit to review
+                {t('translations.edit.sendToReview', { ns: 'dashboard' })}
               </Button>
             </CardActions>
           </Card>

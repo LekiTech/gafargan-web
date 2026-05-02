@@ -56,13 +56,16 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { TFunction } from 'i18next';
 
 const ProposalsStatusChip: React.FC<{ status: string }> = ({ status }) => {
+  const { t } = useTranslation();
+  const label = t(`proposalStatuses.${status}`, { ns: 'dashboard', defaultValue: status });
+
   switch (status) {
     case ProposalStatus.APPROVED:
-      return <Chip variant="outlined" color="success" label={status} icon={<ApprovedIcon />} />;
+      return <Chip variant="outlined" color="success" label={label} icon={<ApprovedIcon />} />;
     case ProposalStatus.REJECTED:
-      return <Chip variant="outlined" color="error" label={status} icon={<RejectedIcon />} />;
+      return <Chip variant="outlined" color="error" label={label} icon={<RejectedIcon />} />;
     default:
-      return <Chip color="warning" label={status} icon={<PendingIcon />} />;
+      return <Chip color="warning" label={label} icon={<PendingIcon />} />;
   }
 };
 
@@ -92,16 +95,16 @@ const stateBorderColor = (state?: string) => {
   }
 };
 
-const stateLabel = (state?: string) => {
+const stateLabel = (t: TFunction, state?: string) => {
   switch (state) {
     case STATE.ADDED:
-      return 'new';
+      return t('states.new', { ns: 'dashboard' });
     case STATE.MODIFIED:
-      return 'changed';
+      return t('states.changed', { ns: 'dashboard' });
     case STATE.DELETED:
-      return 'removed';
+      return t('states.removed', { ns: 'dashboard' });
     default:
-      return 'current';
+      return t('states.current', { ns: 'dashboard' });
   }
 };
 
@@ -121,6 +124,8 @@ const getSourceName = (sourceModels: SourceModelType[], t: TFunction, sourceId?:
 };
 
 const ChangeChip: React.FC<{ state?: string; changed?: boolean }> = ({ state, changed }) => {
+  const { t } = useTranslation();
+
   if (!state && !changed) {
     return null;
   }
@@ -130,7 +135,7 @@ const ChangeChip: React.FC<{ state?: string; changed?: boolean }> = ({ state, ch
       size="small"
       color={stateColor(state ?? STATE.MODIFIED) as any}
       variant="outlined"
-      label={state ? stateLabel(state) : 'changed'}
+      label={state ? stateLabel(t, state) : t('states.changed', { ns: 'dashboard' })}
       sx={{ height: 22, fontSize: 12 }}
     />
   );
@@ -223,7 +228,7 @@ const DefinitionPreview: React.FC<{
     >
       <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 0.5 }}>
         <Typography variant="subtitle2" color="text.secondary">
-          Meaning
+          {t('addNewWord.definition', { ns: 'dashboard' })}
         </Typography>
         <ChangeChip state={definition.state} changed={changed} />
       </Stack>
@@ -249,7 +254,7 @@ const DefinitionPreview: React.FC<{
       {definition.examples?.length > 0 && (
         <Box sx={{ mt: 1.5 }}>
           <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.75 }}>
-            Examples
+            {t('addNewWord.stats.examples', { ns: 'dashboard' })}
           </Typography>
           <Stack gap={1}>
             {definition.examples.map((example: any, idx: number) => (
@@ -295,7 +300,9 @@ const WordSidePreview: React.FC<{
         <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
           {title}
         </Typography>
-        <Typography color="text.secondary">No existing published entry.</Typography>
+        <Typography color="text.secondary">
+          {t('dictionaryReview.empty.publishedEntry', { ns: 'dashboard' })}
+        </Typography>
       </Box>
     );
   }
@@ -338,7 +345,7 @@ const WordSidePreview: React.FC<{
       {word.spellingVariants?.length > 0 && (
         <Box sx={{ mt: 2 }}>
           <Typography variant="subtitle2" color="text.secondary">
-            Word variants
+            {t('addNewWord.stats.wordVariants', { ns: 'dashboard' })}
           </Typography>
           <Stack direction="row" gap={1} flexWrap="wrap" sx={{ mt: 0.75 }}>
             {word.spellingVariants.map((variant) => {
@@ -415,7 +422,7 @@ const WordSidePreview: React.FC<{
               {(detail.examples?.length ?? 0) > 0 && (
                 <Box sx={{ mt: 1.5 }}>
                   <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.75 }}>
-                    Other examples
+                    {t('addNewWord.otherExamples', { ns: 'dashboard' })}
                   </Typography>
                   <Stack gap={1}>
                     {detail.examples?.map((example, idx) => (
@@ -446,12 +453,13 @@ const ProposalDiff: React.FC<{
   sourceModels: SourceModelType[];
   lang: WebsiteLang;
 }> = ({ proposal, baselineWords, sourceModels, lang }) => {
+  const { t } = useTranslation(lang);
   const dictionaryData = proposal.data as DictionaryProposalModelNestedType;
 
   return (
     <Stack gap={2}>
       <Typography variant="h6" fontWeight={700}>
-        Review changes
+        {t('dictionaryReview.title', { ns: 'dashboard' })}
       </Typography>
       {dictionaryData.entries.map((entry, idx) => {
         const baseline = 'id' in entry ? baselineWords[proposal.id]?.[entry.id] : undefined;
@@ -463,13 +471,14 @@ const ProposalDiff: React.FC<{
               title={
                 <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
                   <Typography variant="subtitle1" fontWeight={700}>
-                    {entry.spelling || `Entry ${idx + 1}`}
+                    {entry.spelling ||
+                      t('dictionaryReview.entryFallback', { ns: 'dashboard', number: idx + 1 })}
                   </Typography>
                   <Chip
                     size="small"
                     color={stateColor(entry.state) as any}
                     variant="outlined"
-                    label={entry.state}
+                    label={stateLabel(t, entry.state)}
                   />
                 </Stack>
               }
@@ -485,7 +494,7 @@ const ProposalDiff: React.FC<{
               >
                 {!isNewWord && (
                   <WordSidePreview
-                    title="Before proposal changes"
+                    title={t('proposals.beforeChanges', { ns: 'dashboard' })}
                     word={baseline}
                     oppositeWord={entry}
                     sourceModels={sourceModels}
@@ -495,7 +504,11 @@ const ProposalDiff: React.FC<{
                   />
                 )}
                 <WordSidePreview
-                  title={isNewWord ? 'New entry after approval' : 'Proposal after approval'}
+                  title={
+                    isNewWord
+                      ? t('dictionaryReview.newAfterApproval', { ns: 'dashboard' })
+                      : t('proposals.afterApproval', { ns: 'dashboard' })
+                  }
                   word={entry}
                   oppositeWord={baseline}
                   sourceModels={sourceModels}
@@ -558,19 +571,31 @@ const DictionaryProposalsOverview: React.FC<{
 
     return (
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+        <Table sx={{ minWidth: 650 }} aria-label={t('proposals.table.ariaLabel', { ns: 'dashboard' })}>
           <TableHead>
             <TableRow>
               {/* Type is not needed because we will review proposals for every type on its dedicated route  */}
               {/* <TableCell>Type</TableCell> */}
-              <TableCell align="left">ID</TableCell>
-              <TableCell align="left">Proposed at</TableCell>
-              <TableCell align="left">Proposed by</TableCell>
+              <TableCell align="left">{t('proposals.table.id', { ns: 'dashboard' })}</TableCell>
+              <TableCell align="left">
+                {t('proposals.table.proposedAt', { ns: 'dashboard' })}
+              </TableCell>
+              <TableCell align="left">
+                {t('proposals.table.proposedBy', { ns: 'dashboard' })}
+              </TableCell>
               {/* <TableCell align="left">Reviewed by</TableCell> */}
-              <TableCell align="left">Words amount</TableCell>
-              <TableCell align="left">Languages</TableCell>
-              <TableCell align="left">Status</TableCell>
-              <TableCell align="left">Comment</TableCell>
+              <TableCell align="left">
+                {t('proposals.table.wordsAmount', { ns: 'dashboard' })}
+              </TableCell>
+              <TableCell align="left">
+                {t('proposals.table.languages', { ns: 'dashboard' })}
+              </TableCell>
+              <TableCell align="left">
+                {t('proposals.table.status', { ns: 'dashboard' })}
+              </TableCell>
+              <TableCell align="left">
+                {t('proposals.table.comment', { ns: 'dashboard' })}
+              </TableCell>
               <TableCell align="right"></TableCell>
             </TableRow>
           </TableHead>
@@ -614,7 +639,12 @@ const DictionaryProposalsOverview: React.FC<{
           <TableFooter>
             <TableRow>
               <TablePagination
-                rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                rowsPerPageOptions={[
+                  5,
+                  10,
+                  25,
+                  { label: t('common.all', { ns: 'dashboard' }), value: -1 },
+                ]}
                 colSpan={3}
                 count={paginatedProposals.totalItems}
                 rowsPerPage={rowsPerPage}
@@ -622,7 +652,7 @@ const DictionaryProposalsOverview: React.FC<{
                 slotProps={{
                   select: {
                     inputProps: {
-                      'aria-label': 'rows per page',
+                      'aria-label': t('pagination.rowsPerPage', { ns: 'dashboard' }),
                     },
                     native: true,
                   },
@@ -647,13 +677,13 @@ const DictionaryProposalsOverview: React.FC<{
       <Stack gap={2}>
         <Box>
           <Typography variant="h6" sx={{ mb: 1 }}>
-            Needs review
+            {t('proposals.needsReview', { ns: 'dashboard' })}
           </Typography>
           {renderTable(proposals)}
         </Box>
         <Accordion>
           <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-            <Typography variant="h6">History</Typography>
+            <Typography variant="h6">{t('proposals.history', { ns: 'dashboard' })}</Typography>
           </AccordionSummary>
           <AccordionDetails>{renderTable(historyProposals, { history: true })}</AccordionDetails>
         </Accordion>
@@ -676,7 +706,10 @@ const DictionaryProposalsOverview: React.FC<{
           >
             <CardHeader
               action={
-                <IconButton aria-label="settings" onClick={() => setSelectedProposal(undefined)}>
+                <IconButton
+                  aria-label={t('common.close', { ns: 'dashboard' })}
+                  onClick={() => setSelectedProposal(undefined)}
+                >
                   <CloseIcon />
                 </IconButton>
               }
@@ -705,18 +738,18 @@ const DictionaryProposalsOverview: React.FC<{
                   variant="outlined"
                   startIcon={<RejectIcon />}
                   onClick={async () => {
-                    const comment = prompt('What is the reason for rejection?');
+                    const comment = prompt(t('proposals.rejectionReason', { ns: 'dashboard' }));
                     if (comment) {
                       try {
                         await rejectProposal(selectedProposal.id, 1, comment);
                         window.location.reload();
                       } catch (e: any) {
-                        alert(`Cannot reject proposal. ${e.message}`);
+                        alert(t('proposals.cannotReject', { ns: 'dashboard', message: e.message }));
                       }
                     }
                   }}
                 >
-                  Reject
+                  {t('proposals.reject', { ns: 'dashboard' })}
                 </Button>
                 {/* // TODO: fix real user ID */}
                 <Button
@@ -727,11 +760,13 @@ const DictionaryProposalsOverview: React.FC<{
                       await approveProposal(selectedProposal.id, 1);
                       window.location.reload();
                     } catch (e: any) {
-                      alert(`Cannot approve proposal. ${e.message}`);
+                      alert(
+                        t('proposals.cannotApprove', { ns: 'dashboard', message: e.message }),
+                      );
                     }
                   }}
                 >
-                  Approve
+                  {t('proposals.approve', { ns: 'dashboard' })}
                 </Button>
                 {/* <IconButton aria-label="share">
                 <ThumbDownIcon color="error" />

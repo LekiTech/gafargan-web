@@ -87,7 +87,7 @@ function CustomToolbarActions() {
   const { lang } = useParams() as { lang: WebsiteLang };
   return (
     <Stack direction="row" alignItems="center">
-      {pathname === `/${lang}/${Routes.Dictionary}` && <CustomThemeSwitcher websiteLang={lang} />}
+      <CustomThemeSwitcher websiteLang={lang} />
       {/* <Account /> */}
     </Stack>
   );
