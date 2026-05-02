@@ -3,6 +3,7 @@ import { getDataSource } from './dataSource';
 import {
   DefinitionSchema,
   ProposalSchema,
+  SourceSchema,
   SpellingVariantSchema,
   TranslationSchema,
   WordDetailSchema,
@@ -27,6 +28,7 @@ import { WordDetail } from './entities/WordDetail';
 import { Definition } from './entities/Definition';
 import { DUMMY_USER_ID } from './constants';
 import { PaginatedResponse } from './types.model';
+import { Source } from './entities/Source';
 
 export type PaginationQuery = {
   type: ProposalType;
@@ -131,9 +133,58 @@ export async function approveProposal(proposalId: number, adminId: number) {
     case ProposalType.TRANSLATIONS:
       await translationsV3ProposalToDbChanges(proposalEntity);
       break;
+    case ProposalType.SOURCE:
+      await sourceProposalToDbChanges(proposalEntity);
+      break;
     default:
       await proposalRepo.save(proposalEntity);
   }
+}
+
+async function sourceProposalToDbChanges(proposal: Proposal) {
+  if (proposal.data == undefined || !('state' in proposal.data)) {
+    throw new Error(`Proposal ${proposal.id} contains data incompatible with sources`);
+  }
+
+  const sourceProposal = proposal.data as SourceModelType;
+  const AppDataSource = await getDataSource();
+  await AppDataSource.transaction(async (manager) => {
+    const proposalRepo = manager.getRepository<Proposal>(ProposalSchema.options.tableName!);
+    await proposalRepo.save(proposal);
+
+    const sourceRepo = manager.getRepository<Source>(SourceSchema.options.tableName!);
+    const sourceValues = {
+      name: sourceProposal.name.trim(),
+      authors: sourceProposal.authors?.trim() || null,
+      publicationYear: sourceProposal.publicationYear?.trim() || null,
+      providedBy: sourceProposal.providedBy?.trim() || null,
+      providedByUrl: sourceProposal.providedByUrl?.trim() || null,
+      processedBy: sourceProposal.processedBy?.trim() || null,
+      copyright: sourceProposal.copyright?.trim() || null,
+      seeSourceUrl: sourceProposal.seeSourceUrl?.trim() || null,
+      description: sourceProposal.description?.trim() || null,
+      updatedById: DUMMY_USER_ID,
+    };
+
+    switch (sourceProposal.state) {
+      case STATE.ADDED:
+        await sourceRepo.save(
+          sourceRepo.create({
+            ...sourceValues,
+            createdById: DUMMY_USER_ID,
+          }),
+        );
+        break;
+      case STATE.MODIFIED:
+        await sourceRepo.update(sourceProposal.id, sourceValues);
+        break;
+      case STATE.DELETED:
+        await sourceRepo.delete(sourceProposal.id);
+        break;
+      default:
+        console.log(`Nothing to do with source with ID = ${sourceProposal.id}`);
+    }
+  });
 }
 
 async function translationsV3ProposalToDbChanges(proposal: Proposal) {

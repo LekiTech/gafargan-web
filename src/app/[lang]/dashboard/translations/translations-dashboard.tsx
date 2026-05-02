@@ -729,7 +729,7 @@ const TranslationLinkTargetsReview: React.FC<{
                     )}
                     {detail.definitionTargets.length > 0 && (
                       <Stack gap={1} sx={{ mt: 1 }}>
-                        {detail.definitionTargets.map((target) => (
+                        {detail.definitionTargets.map((target: TranslationLinkTarget) => (
                           <DefinitionLinkTargetReview key={linkKey(target)} target={target} />
                         ))}
                       </Stack>

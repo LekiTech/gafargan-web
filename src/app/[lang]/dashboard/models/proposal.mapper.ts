@@ -31,6 +31,9 @@ export function mapSourceToModelType(source: Source): SourceModelType {
     providedBy: source.providedBy ?? undefined,
     providedByUrl: source.providedByUrl ?? undefined,
     processedBy: source.processedBy ?? undefined,
+    copyright: source.copyright ?? undefined,
+    seeSourceUrl: source.seeSourceUrl ?? undefined,
+    description: source.description ?? undefined,
   };
   return sourceModelType;
 }

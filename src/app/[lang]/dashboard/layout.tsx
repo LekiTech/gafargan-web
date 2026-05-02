@@ -40,7 +40,7 @@ const NAVIGATION = (lang: WebsiteLang, t: TFunction): Navigation => {
       title: t('menu.mainItems', { ns: 'dashboard' }),
     },
     {
-      segment: `${lang}/dashboard`,
+      segment: `${lang}/${Routes.Dashboard}`,
       title: t('menu.dashboard', { ns: 'dashboard' }),
       icon: <DashboardIcon />,
     },
@@ -50,12 +50,12 @@ const NAVIGATION = (lang: WebsiteLang, t: TFunction): Navigation => {
       icon: <MenuBookIcon />,
     },
     {
-      segment: `${lang}/dashboard/translations`,
+      segment: `${lang}/${Routes.Translations}`,
       title: t('menu.translations', { ns: 'dashboard' }),
       icon: <TranslateIcon />,
     },
     {
-      segment: `${lang}/dashboard/sources`,
+      segment: `${lang}/${Routes.Sources}`,
       title: t('menu.sources', { ns: 'dashboard' }),
       icon: <LocalLibraryIcon />,
     },
@@ -110,64 +110,6 @@ export default function DashboardPagesLayout(props: { children: React.ReactNode 
 
   const renderPageItem = React.useCallback(
     (item: NavigationPageItem, { mini }: { mini: boolean }) => {
-      const addWordUrlPath = `/${lang}/${Routes.AddWord}`;
-      const reviewSegment = `${lang}/${Routes.Dictionary}`;
-      if (pathname === addWordUrlPath) {
-        return (
-          // NOTE: This is a workaround to prevent the default behavior of the link
-          //       Better to rewrite it once MUI supports overriding onClick handlers for DashboardSidebarPageItem
-          <DashboardSidebarPageItem
-            item={item}
-            LinkComponent={() => (
-              <CustomNavigationListItemButton
-                onClick={() => {
-                  const confirmed = confirm(cancelMessage);
-                  if (confirmed && item.segment) {
-                    router.push(`/${item.segment}`);
-                  }
-                }}
-                selected={
-                  pathname === addWordUrlPath
-                    ? item.segment === reviewSegment
-                    : pathname === `/${item.segment}`
-                }
-                sx={{
-                  flexDirection: mini ? 'column' : 'row',
-                  justifyContent: mini ? 'center' : 'flex-start',
-                  alignItems: 'center',
-                  height: mini ? '60px' : 'auto',
-                }}
-              >
-                <ListItemIcon
-                  sx={{ minWidth: 'fit-content', pr: mini ? undefined : '10px !important' }}
-                >
-                  {item.icon}
-                </ListItemIcon>
-                {mini ? (
-                  <Typography
-                    component="span"
-                    variant="caption"
-                    sx={{
-                      // transform: 'translateX(-50%)',
-                      fontSize: '10px',
-                      fontWeight: '500',
-                      textAlign: 'center',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      maxWidth: '56px',
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
-                ) : (
-                  <ListItemText sx={{ ml: '5px' }} primary={item.title} />
-                )}
-              </CustomNavigationListItemButton>
-            )}
-          />
-        );
-      }
       return <DashboardSidebarPageItem item={item} />;
     },
     [lang, pathname, router],
