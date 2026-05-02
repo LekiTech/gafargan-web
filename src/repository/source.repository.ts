@@ -20,6 +20,9 @@ export async function getSources(): Promise<Source[]> {
       seeSourceUrl: true,
       description: true,
     },
+    order: {
+      id: 'ASC',
+    },
   });
   // console.log('search', JSON.stringify(word, null, 2));
   return JSON.parse(JSON.stringify(sources));

@@ -45,8 +45,8 @@ export const FoundExamplesList: FC<{
       {examples.flatMap((ex, i) => {
         const srcExample = ex.phrases_per_lang_dialect[ex.word_lang_dialect_id];
         const trgExample = ex.phrases_per_lang_dialect[ex.definitions_lang_dialect_id];
-        // console.log(srcExample);
-        // console.log(trgExample);
+        console.log(srcExample);
+        console.log(trgExample);
         if (srcExample && trgExample) {
           return [
             <Divider key={`${ex.id}_divider_${i}`} component="li" sx={{ mt: '5px' }} />,
@@ -63,14 +63,13 @@ export const FoundExamplesList: FC<{
                 <ListItemText
                   primary={
                     <ParsedTextComp
-                      // TODO: fixme:
-                      text={srcExample.phrase}
+                      text={srcExample[0].phrase}
                       highlightOptions={{ stringToHighlight: searchString }}
                     />
                   }
                   secondary={
                     <ParsedTextComp
-                      text={trgExample.phrase}
+                      text={trgExample[0].phrase}
                       highlightOptions={{ stringToHighlight: searchString }}
                     />
                   }

@@ -57,7 +57,7 @@ export const FoundWordsList: FC<{
 };
 
 const WordListItem: FC<{ word: Word; t: TFunction }> = ({ word, t }) => {
-  const allTags = word.details
+  const allTags = word.wordDetails
     .flatMap((wd) =>
       wd.definitions.flatMap((definition) => {
         const defnitionValueTags: string[] = definition.values.flatMap((v) => v.tags ?? []);
@@ -77,7 +77,7 @@ const WordListItem: FC<{ word: Word; t: TFunction }> = ({ word, t }) => {
         sx={{ ml: 0, pl: 0 }}
       />
       <ListItemText
-        primary={<ParsedTextComp text={word.details[0].definitions[0].values[0].value} />}
+        primary={<ParsedTextComp text={word.wordDetails[0].definitions[0].values[0].value} />}
       />
       {allTags.length > 0 && (
         <Stack direction="row" spacing={2} sx={{ mt: '10px !important' }}>
@@ -98,7 +98,7 @@ const WordListItem2: FC<{ word: Word; t: TFunction; lang: WebsiteLang }> = ({ wo
   const theme = useTheme();
   const isMdDown = useMediaQuery(theme.breakpoints.down('md'));
 
-  const firstDefinition = word.details[0]?.definitions[0];
+  const firstDefinition = word.wordDetails[0]?.definitions[0];
 
   const searchParams = useSearchParams();
   const starts = searchParams.get('s') ?? undefined;
@@ -137,10 +137,10 @@ const WordListItem2: FC<{ word: Word; t: TFunction; lang: WebsiteLang }> = ({ wo
         {spellingVariantTitle == undefined
           ? toLowerCaseLezgi(word.spelling)
           : toLowerCaseLezgi(spellingVariantTitle.spelling)}
-        {word.details[0]?.inflection && (
+        {word.wordDetails[0]?.inflection && (
           <Typography variant="body2" color="text.secondary" sx={{ pl: isMdDown ? '10px' : 0 }}>
             {spellingVariantTitle == undefined
-              ? word.details[0]?.inflection
+              ? word.wordDetails[0]?.inflection
               : langDialectToString(spellingVariantTitle.langDialect!, t, {
                   showOnlyDialect: true,
                 })}
@@ -206,7 +206,7 @@ const WordListItem2: FC<{ word: Word; t: TFunction; lang: WebsiteLang }> = ({ wo
               >
                 {
                   LangToId['lez']
-                    .map((langId) => example.phrasesPerLangDialect[langId])
+                    .flatMap((langId) => example.phrasesPerLangDialect[langId])
                     .filter((p) => p)[0]?.phrase
                 }
                 <br />
@@ -214,7 +214,7 @@ const WordListItem2: FC<{ word: Word; t: TFunction; lang: WebsiteLang }> = ({ wo
                   {/* {example.phrasesPerLangDialect[LangToId['rus']].phrase} */}
                   {
                     LangToId['rus']
-                      .map((langId) => example.phrasesPerLangDialect[langId])
+                      .flatMap((langId) => example.phrasesPerLangDialect[langId])
                       .filter((p) => p)[0].phrase
                   }
                 </i>
@@ -231,7 +231,7 @@ const WordListItem2: FC<{ word: Word; t: TFunction; lang: WebsiteLang }> = ({ wo
         />
         <Typography sx={{ mt: '16px', cursor: 'pointer' }} variant="body2">
           <Link
-            href={`${pathname}?fromLang=${IdToLang[word.langDialect.id]}&toLang=${IdToLang[word.details[0].langDialect.id]}&exp=${word.spelling}`}
+            href={`${pathname}?fromLang=${IdToLang[word.langDialect.id]}&toLang=${IdToLang[word.wordDetails[0].langDialect.id]}&exp=${word.spelling}`}
             target="_blank"
           >
             {t('learnMore')}

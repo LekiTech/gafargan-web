@@ -11,7 +11,7 @@ CREATE OR REPLACE FUNCTION set_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
   IF TG_OP = 'UPDATE' THEN
-    NEW.updated_at = CURRENT_TIMESTAMP;
+    NEW.updated_at = now();
   END IF;
   RETURN NEW;
 END;
@@ -31,8 +31,8 @@ CREATE TABLE lang_dialect (
   id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   language    Language NOT NULL,
   dialect     TEXT,
-  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at  TIMESTAMPZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPZ NOT NULL DEFAULT now()
 );
 CREATE TRIGGER lang_dialect_ts
   BEFORE UPDATE ON lang_dialect
@@ -45,11 +45,12 @@ CREATE TABLE "user" (
   name        TEXT,
   email       TEXT    NOT NULL UNIQUE,
   password    TEXT    NOT NULL,
+  password_changed_at TIMESTAMPZ NOT NULL DEFAULT now(),
   language    Language,
   verified    BOOLEAN,
   role        Role,
-  created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at  TIMESTAMPZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPZ NOT NULL DEFAULT now()
 );
 CREATE TRIGGER user_ts
   BEFORE UPDATE ON "user"
@@ -70,8 +71,8 @@ CREATE TABLE source (
   description      TEXT,
   created_by       INTEGER    NOT NULL REFERENCES "user"(id),
   updated_by       INTEGER    NOT NULL REFERENCES "user"(id),
-  created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at       TIMESTAMPZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPZ NOT NULL DEFAULT now()
 );
 CREATE TRIGGER source_ts
   BEFORE UPDATE ON source
@@ -85,8 +86,8 @@ CREATE TABLE word (
   source_id        INTEGER    REFERENCES source(id),
   created_by       INTEGER    NOT NULL REFERENCES "user"(id),
   updated_by       INTEGER    NOT NULL REFERENCES "user"(id),
-  created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at       TIMESTAMPZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPZ NOT NULL DEFAULT now()
 );
 CREATE INDEX word_gin_idx ON word USING gin (spelling gin_trgm_ops);
 CREATE TRIGGER word_ts
@@ -101,8 +102,8 @@ CREATE TABLE spelling_variant (
   word_id          INTEGER    NOT NULL REFERENCES word(id),
   spelling         TEXT    NOT NULL,
   source_id        INTEGER    REFERENCES source(id),
-  created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at       TIMESTAMPZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPZ NOT NULL DEFAULT now()
 );
 CREATE INDEX spelling_variant_gin_idx ON spelling_variant USING gin (spelling gin_trgm_ops);
 CREATE TRIGGER spelling_variant_ts
@@ -120,8 +121,8 @@ CREATE TABLE word_details (
   source_id        INTEGER    REFERENCES source(id),
   created_by       INTEGER    NOT NULL REFERENCES "user"(id),
   updated_by       INTEGER    NOT NULL REFERENCES "user"(id),
-  created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at       TIMESTAMPZ NOT NULL DEFAULT now(),
+  updated_at       TIMESTAMPZ NOT NULL DEFAULT now()
 );
 CREATE TRIGGER word_details_ts
   BEFORE UPDATE ON word_details
@@ -132,12 +133,12 @@ CREATE TRIGGER word_details_ts
 CREATE TABLE definition (
   id                 INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   word_details_id    INTEGER    REFERENCES word_details(id),
-  values             JSON[],
+  values             JSONB      NOT NULL DEFAULT '[]'::jsonb,
   tags               TEXT[],
   created_by         INTEGER    NOT NULL REFERENCES "user"(id),
   updated_by         INTEGER    NOT NULL REFERENCES "user"(id),
-  created_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at         TIMESTAMPZ NOT NULL DEFAULT now(),
+  updated_at         TIMESTAMPZ NOT NULL DEFAULT now()
 );
 CREATE TRIGGER definition_ts
   BEFORE UPDATE ON definition
@@ -151,8 +152,8 @@ CREATE TABLE translations (
   raw                   TEXT,
   created_by            INTEGER    NOT NULL REFERENCES "user"(id),
   updated_by            INTEGER    NOT NULL REFERENCES "user"(id),
-  created_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at            TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at            TIMESTAMPZ NOT NULL DEFAULT now(),
+  updated_at            TIMESTAMPZ NOT NULL DEFAULT now()
 );
 CREATE TRIGGER translations_ts
   BEFORE UPDATE ON translations
@@ -162,8 +163,7 @@ CREATE TRIGGER translations_ts
 CREATE TABLE word_details_example (
   word_details_id  INTEGER    NOT NULL REFERENCES word_details(id),
   translation_id   INTEGER    NOT NULL REFERENCES translations(id),
-  created_by       INTEGER    NOT NULL REFERENCES "user"(id),
-  created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at       TIMESTAMPZ NOT NULL DEFAULT now(),
   PRIMARY KEY (word_details_id, translation_id)
 );
 
@@ -172,8 +172,7 @@ CREATE TABLE word_details_example (
 CREATE TABLE definition_example (
   definition_id    INTEGER    NOT NULL REFERENCES definition(id),
   translation_id   INTEGER    NOT NULL REFERENCES translations(id),
-  created_by       INTEGER    NOT NULL REFERENCES "user"(id),
-  created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at       TIMESTAMPZ NOT NULL DEFAULT now(),
   PRIMARY KEY (definition_id, translation_id)
 );
 
@@ -182,12 +181,24 @@ CREATE TABLE proposal (
   type              ProposalType NOT NULL,
   data              JSONB      NOT NULL,
   proposed_by_id    INTEGER    NOT NULL REFERENCES "user"(id),
-  proposed_at       TIMESTAMP  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  proposed_at       TIMESTAMPZ  NOT NULL DEFAULT now(),
   status            ProposalStatus NOT NULL DEFAULT 'pending',
   comment			      TEXT	   NULL,
   reviewed_by_id    INTEGER    NULL REFERENCES "user"(id),
-  reviewed_at       TIMESTAMP  NULL
+  reviewed_at       TIMESTAMPZ  NULL
 );
+
+CREATE TABLE dashboard_login_rate_limit (
+  email            TEXT      NOT NULL,
+  ip_address       TEXT      NOT NULL,
+  attempt_count    INTEGER   NOT NULL DEFAULT 0,
+  first_attempt_at TIMESTAMPZ NOT NULL DEFAULT now(),
+  last_attempt_at  TIMESTAMPZ NOT NULL DEFAULT now(),
+  locked_until     TIMESTAMPZ NULL,
+  PRIMARY KEY (email, ip_address)
+);
+CREATE INDEX dashboard_login_rate_limit_locked_until_idx
+  ON dashboard_login_rate_limit (locked_until);
 
 -- materialized view for fast lookups
 -- DROP MATERIALIZED VIEW IF EXISTS mv_word_definition_translation;

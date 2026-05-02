@@ -35,3 +35,5 @@ export const LangDialects: Record<number, string> = Object.freeze({
   '30': 'Arabic Modern Standard',
   '31': 'Arabic Old (Quranic)',
 });
+
+export const DUMMY_USER_ID = 1;

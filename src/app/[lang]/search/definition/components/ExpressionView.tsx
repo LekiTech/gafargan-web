@@ -1,10 +1,5 @@
 'use client';
-import React, { FC, useMemo, useState } from 'react';
-import {
-  ExpressionDefinitionResponseDto,
-  ExpressionExampleResponseDto,
-  ExpressionSearchResponseDto,
-} from '@api/types.dto';
+import React, { FC } from 'react';
 import { WebsiteLang } from '@api/types.model';
 import {
   Box,
@@ -12,18 +7,14 @@ import {
   Grid,
   List,
   ListItem,
-  ListItemText,
-  ListSubheader,
-  Pagination,
   Paper,
-  Skeleton,
   Stack,
   Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
 import { Sidebar } from './Sidebar';
-import { langDialectToString, toContents } from '../utils';
+import { toContents } from '../utils';
 import { ExpressionDetailsComp } from './ExpressionDetailsComp';
 import { FoundExamplesList, FoundExamplesListMobile } from './FoundExamplesList';
 import { SpellingListItem } from '../../../components/SpellingListItem';
@@ -31,11 +22,6 @@ import { FoundDefinitionsList, FoundDefinitionsListMobile } from './FoundDefinit
 import { useTranslation } from 'react-i18next';
 import { Word } from '@repository/entities/Word';
 import { FoundDefinition, FoundExample, FoundSpelling } from '@repository/types.model';
-import { toLowerCaseLezgi } from '../../../../utils';
-import { IdToLang } from '@api/languages';
-// import { useViewport } from '../../../use/useViewport';
-// import { EBreakpoints } from '../../../utils/BreakPoints';
-// import { IExpressionPageContentStyles } from '@/definition/types';
 
 type ExpressionViewProps = {
   lang: WebsiteLang;
@@ -63,7 +49,6 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
   const theme = useTheme();
   const isSmallerThanMd = useMediaQuery(theme.breakpoints.down('md'));
 
-  console.debug('ExpressionView > word', words);
   return (
     <Box
       sx={(theme) => ({
@@ -89,7 +74,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
         {words && words.length > 0 && (
           <Sidebar
             contents={words
-              .map((word) => word.details?.map((d, i) => toContents(i, word.spelling, d)))
+              .map((word) => word.wordDetails?.map((d, i) => toContents(i, word.spelling, d)))
               .flat()}
             otherExamplesLabel={labels.otherExamples}
           />
@@ -121,7 +106,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
           })}
         >
           {words?.map((word, wi) =>
-            word.details?.map((detail, i) => (
+            word.wordDetails?.map((detail, i) => (
               <ExpressionDetailsComp
                 key={`exp_det_${i}`}
                 idx={i}
@@ -130,7 +115,7 @@ export const ExpressionView: FC<ExpressionViewProps> = ({
                 spellingVariants={word.spellingVariants}
                 wordLangDialect={word.langDialect}
                 data={detail}
-                isLast={i === word?.details?.length - 1 && wi === words.length - 1}
+                isLast={i === word?.wordDetails?.length - 1 && wi === words.length - 1}
               />
             )),
           )}

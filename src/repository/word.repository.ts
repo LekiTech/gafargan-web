@@ -16,11 +16,99 @@ import { SourceSchema, WordSchema } from './entities/schemas';
 import { WordSearchType } from './enums';
 import { FindOperator, ILike, In } from 'typeorm';
 import { sources } from 'next/dist/compiled/webpack/webpack';
+import type { TranslationLinkTarget } from './translation.repository';
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
 // client.connect();
 
+export type SimpleWordSearchResult = {
+  id: number;
+  spelling: string;
+  langDialectId: number;
+};
+
+export async function simpleSearch({
+  spelling,
+  fromLangDialectId,
+  limit = 20,
+}: {
+  spelling: string;
+  fromLangDialectId: number;
+  limit?: number;
+}): Promise<SimpleWordSearchResult[]> {
+  const AppDataSource = await getDataSource();
+  const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
+  const normalizedSpelling = spelling.trim();
+  if (!normalizedSpelling) {
+    return [];
+  }
+  const words = await wordRepo.find({
+    where: { spelling: ILike(`${normalizedSpelling}%`), langDialectId: fromLangDialectId },
+    select: ['id', 'spelling', 'langDialectId'],
+    order: { spelling: 'ASC' },
+    take: limit,
+  });
+  console.log('simpleSearch', JSON.stringify(words, null, 2));
+  return JSON.parse(JSON.stringify(words));
+}
+
+export async function getTranslationLinkTargetsForWords(
+  wordIds: number[],
+): Promise<TranslationLinkTarget[]> {
+  const safeWordIds = Array.from(new Set(wordIds.filter((id) => Number.isFinite(id))));
+  if (safeWordIds.length === 0) {
+    return [];
+  }
+
+  const AppDataSource = await getDataSource();
+  const rows = await AppDataSource.query(
+    `
+      SELECT
+        'wordDetail' AS "linkType",
+        w.id AS "wordId",
+        w.spelling AS "wordSpelling",
+        w.lang_dialect_id AS "wordLangDialectId",
+        wd.lang_dialect_id AS "definitionsLangDialectId",
+        wd.id AS "wordDetailId",
+        NULL::int AS "definitionId",
+        w.spelling AS "label",
+        wd.inflection AS "detailInflection",
+        NULL::jsonb AS "definitionValues",
+        NULL::text[] AS "definitionTags",
+        'Details #' || wd.id ||
+          COALESCE(' · ' || NULLIF(wd.inflection, ''), '') AS "targetLabel"
+      FROM word_details wd
+      JOIN word w ON w.id = wd.word_id
+      WHERE w.id = ANY($1)
+
+      UNION ALL
+
+      SELECT
+        'definition' AS "linkType",
+        w.id AS "wordId",
+        w.spelling AS "wordSpelling",
+        w.lang_dialect_id AS "wordLangDialectId",
+        wd.lang_dialect_id AS "definitionsLangDialectId",
+        wd.id AS "wordDetailId",
+        d.id AS "definitionId",
+        w.spelling AS "label",
+        wd.inflection AS "detailInflection",
+        d.values AS "definitionValues",
+        d.tags AS "definitionTags",
+        'Definition #' || d.id ||
+          COALESCE(' · ' || NULLIF(left(d.values->0->>'value', 80), ''), '') AS "targetLabel"
+      FROM definition d
+      JOIN word_details wd ON wd.id = d.word_details_id
+      JOIN word w ON w.id = wd.word_id
+      WHERE w.id = ANY($1)
+      ORDER BY "wordSpelling", "wordDetailId", "definitionId" NULLS FIRST;
+    `,
+    [safeWordIds],
+  );
+
+  return JSON.parse(JSON.stringify(rows));
+}
 interface SearchSpellingQuery {
   spelling: string;
   wordLangDialectIds: number[];
@@ -110,7 +198,7 @@ export async function searchAdvanced({
     .leftJoinAndSelect('variant.source', 'variantSource')
 
     // details and their nested relations
-    .leftJoinAndSelect('word.details', 'detail')
+    .leftJoinAndSelect('word.wordDetails', 'detail')
     .leftJoinAndSelect('detail.langDialect', 'detailLangDialect')
     .leftJoinAndSelect('detail.source', 'detailSource')
     .leftJoinAndSelect('detail.createdBy', 'detailCreatedBy')
@@ -188,9 +276,9 @@ export async function searchAdvanced({
           WHERE t = ANY(definition.tags)
         )
         OR EXISTS (
-          SELECT 1 FROM unnest(definition.values) AS val,
+          SELECT 1 FROM jsonb_array_elements(definition.values) AS v(elem),
                        unnest(:tags::text[]) AS t
-          WHERE val::jsonb ? 'tags' AND val::jsonb -> 'tags' @> to_jsonb(ARRAY[t])
+          WHERE v.elem ? 'tags' AND (v.elem -> 'tags') @> to_jsonb(ARRAY[t])
         )
       )`,
         { tags },
@@ -199,8 +287,8 @@ export async function searchAdvanced({
       query.andWhere(
         `(:tag = ANY(definition.tags)
           OR EXISTS (
-            SELECT 1 FROM unnest(definition.values) AS val
-            WHERE val::jsonb ? 'tags' AND val::jsonb -> 'tags' @> to_jsonb(ARRAY[:tag]::text[])
+            SELECT 1 FROM jsonb_array_elements(definition.values) AS v(elem)
+            WHERE v.elem ? 'tags' AND (v.elem -> 'tags') @> to_jsonb(ARRAY[:tag]::text[])
           ))`,
         { tag: tag },
       );
@@ -238,12 +326,12 @@ export async function searchAdvanced({
     ends: params.ends ?? null,
   });
 
-  // console.log(query.getSql());
+  // console.log(query.getQueryAndParameters());
 
   const [dataRaw, totalItems] = await query.getManyAndCount();
 
   const items = JSON.parse(JSON.stringify(dataRaw)) as Word[];
-  console.debug(items);
+  // console.log(items);
   return {
     items,
     totalItems,
@@ -251,6 +339,378 @@ export async function searchAdvanced({
     pageSize: limit,
     totalPages: Math.ceil(totalItems / limit),
   };
+}
+
+export async function getWordsByIds(ids: number[]): Promise<Word[]> {
+  const uniqueIds = Array.from(new Set(ids.filter((id) => Number.isFinite(id))));
+  if (uniqueIds.length === 0) {
+    return [];
+  }
+
+  const AppDataSource = await getDataSource();
+  const wordRepo = AppDataSource.getRepository<Word>(WordSchema.options.tableName!);
+  const words = await wordRepo.find({
+    where: { id: In(uniqueIds) },
+    relations: {
+      langDialect: true,
+      source: true,
+      spellingVariants: true,
+      wordDetails: {
+        langDialect: true,
+        source: true,
+        examples: true,
+        definitions: {
+          examples: true,
+        },
+      },
+    },
+    order: {
+      spelling: 'ASC',
+      wordDetails: {
+        orderIdx: 'ASC',
+        definitions: {
+          id: 'ASC',
+          examples: {
+            id: 'ASC',
+          },
+        },
+        examples: {
+          id: 'ASC',
+        },
+      },
+    },
+  });
+
+  return JSON.parse(JSON.stringify(words));
+}
+
+export type WordHistorySnapshot = {
+  id: number;
+  spelling: string;
+  langDialectId: number;
+  sourceId: number;
+  spellingVariants: {
+    state: 'unchanged';
+    id: number;
+    spelling: string;
+    sourceId: number;
+    langDialectId: number;
+  }[];
+  wordDetails: {
+    state: 'unchanged';
+    id: number;
+    inflection?: string;
+    langDialectId: number;
+    sourceId: number;
+    definitions: {
+      state: 'unchanged';
+      id: number;
+      values: { value: string; tags?: string[] }[];
+      tags?: string[];
+      examples: {
+        state: 'unchanged';
+        id: number;
+        phrasesPerLangDialect: Record<string, { phrase: string; tags?: string[] }[]>;
+        tags?: string[];
+      }[];
+    }[];
+    examples: {
+      state: 'unchanged';
+      id: number;
+      phrasesPerLangDialect: Record<string, { phrase: string; tags?: string[] }[]>;
+      tags?: string[];
+    }[];
+  }[];
+};
+
+export async function getWordsHistoryByIds(
+  ids: number[],
+  validTo: Date,
+): Promise<WordHistorySnapshot[]> {
+  const uniqueIds = Array.from(new Set(ids.filter((id) => Number.isFinite(id))));
+  if (uniqueIds.length === 0) {
+    return [];
+  }
+
+  const AppDataSource = await getDataSource();
+  const rows = await AppDataSource.query(
+    `
+    WITH target AS (SELECT $2::timestamp AS reviewed_at),
+    history_words AS (
+      SELECT DISTINCT ON (hw.id) hw.*
+      FROM history_word hw, target
+      WHERE hw.id = ANY($1)
+        AND hw.valid_to BETWEEN target.reviewed_at - INTERVAL '5 minutes'
+                            AND target.reviewed_at + INTERVAL '5 minutes'
+      ORDER BY hw.id, ABS(EXTRACT(EPOCH FROM (hw.valid_to - target.reviewed_at))) ASC
+    ),
+    current_words AS (
+      SELECT w.*
+      FROM word w, target
+      WHERE w.id = ANY($1)
+        AND w.created_at < target.reviewed_at
+        AND NOT EXISTS (SELECT 1 FROM history_words hw WHERE hw.id = w.id)
+    ),
+    snapshot_words AS (
+      SELECT id, spelling, lang_dialect_id, source_id FROM history_words
+      UNION ALL
+      SELECT id, spelling, lang_dialect_id, source_id FROM current_words
+    ),
+    history_details AS (
+      SELECT DISTINCT ON (hwd.id) hwd.*
+      FROM history_word_details hwd
+      JOIN snapshot_words sw ON sw.id = hwd.word_id
+      JOIN target ON TRUE
+      WHERE hwd.valid_to BETWEEN target.reviewed_at - INTERVAL '5 minutes'
+                             AND target.reviewed_at + INTERVAL '5 minutes'
+      ORDER BY hwd.id, ABS(EXTRACT(EPOCH FROM (hwd.valid_to - target.reviewed_at))) ASC
+    ),
+    current_details AS (
+      SELECT wd.*
+      FROM word_details wd
+      JOIN snapshot_words sw ON sw.id = wd.word_id
+      JOIN target ON TRUE
+      WHERE wd.created_at < target.reviewed_at
+        AND NOT EXISTS (SELECT 1 FROM history_details hwd WHERE hwd.id = wd.id)
+    ),
+    snapshot_details AS (
+      SELECT id, word_id, order_idx, inflection, lang_dialect_id, source_id FROM history_details
+      UNION ALL
+      SELECT id, word_id, order_idx, inflection, lang_dialect_id, source_id FROM current_details
+    ),
+    history_definitions AS (
+      SELECT DISTINCT ON (hd.id) hd.*
+      FROM history_definition hd
+      JOIN snapshot_details sd ON sd.id = hd.word_details_id
+      JOIN target ON TRUE
+      WHERE hd.valid_to BETWEEN target.reviewed_at - INTERVAL '5 minutes'
+                            AND target.reviewed_at + INTERVAL '5 minutes'
+      ORDER BY hd.id, ABS(EXTRACT(EPOCH FROM (hd.valid_to - target.reviewed_at))) ASC
+    ),
+    current_definitions AS (
+      SELECT d.*
+      FROM definition d
+      JOIN snapshot_details sd ON sd.id = d.word_details_id
+      JOIN target ON TRUE
+      WHERE d.created_at < target.reviewed_at
+        AND NOT EXISTS (SELECT 1 FROM history_definitions hd WHERE hd.id = d.id)
+    ),
+    snapshot_definitions AS (
+      SELECT id, word_details_id, values, tags FROM history_definitions
+      UNION ALL
+      SELECT id, word_details_id, values, tags FROM current_definitions
+    ),
+    history_variants AS (
+      SELECT DISTINCT ON (hsv.id) hsv.*
+      FROM history_spelling_variant hsv
+      JOIN snapshot_words sw ON sw.id = hsv.word_id
+      JOIN target ON TRUE
+      WHERE hsv.valid_to BETWEEN target.reviewed_at - INTERVAL '5 minutes'
+                             AND target.reviewed_at + INTERVAL '5 minutes'
+      ORDER BY hsv.id, ABS(EXTRACT(EPOCH FROM (hsv.valid_to - target.reviewed_at))) ASC
+    ),
+    current_variants AS (
+      SELECT sv.*
+      FROM spelling_variant sv
+      JOIN snapshot_words sw ON sw.id = sv.word_id
+      JOIN target ON TRUE
+      WHERE sv.created_at < target.reviewed_at
+        AND NOT EXISTS (SELECT 1 FROM history_variants hsv WHERE hsv.id = sv.id)
+    ),
+    snapshot_variants AS (
+      SELECT id, word_id, spelling, lang_dialect_id, source_id FROM history_variants
+      UNION ALL
+      SELECT id, word_id, spelling, lang_dialect_id, source_id FROM current_variants
+    ),
+    history_definition_examples AS (
+      SELECT DISTINCT ON (hde.definition_id, hde.translation_id)
+        hde.definition_id,
+        hde.translation_id
+      FROM history_definition_example hde
+      JOIN snapshot_definitions sd ON sd.id = hde.definition_id
+      JOIN target ON TRUE
+      WHERE hde.valid_to BETWEEN target.reviewed_at - INTERVAL '5 minutes'
+                             AND target.reviewed_at + INTERVAL '5 minutes'
+      ORDER BY
+        hde.definition_id,
+        hde.translation_id,
+        ABS(EXTRACT(EPOCH FROM (hde.valid_to - target.reviewed_at))) ASC
+    ),
+    current_definition_examples AS (
+      SELECT de.definition_id, de.translation_id
+      FROM definition_example de
+      JOIN snapshot_definitions sd ON sd.id = de.definition_id
+      JOIN target ON TRUE
+      WHERE de.created_at < target.reviewed_at
+        AND NOT EXISTS (
+          SELECT 1
+          FROM history_definition_examples hde
+          WHERE hde.definition_id = de.definition_id
+            AND hde.translation_id = de.translation_id
+        )
+    ),
+    snapshot_definition_examples AS (
+      SELECT definition_id, translation_id FROM history_definition_examples
+      UNION ALL
+      SELECT definition_id, translation_id FROM current_definition_examples
+    ),
+    history_word_detail_examples AS (
+      SELECT DISTINCT ON (hwde.word_details_id, hwde.translation_id)
+        hwde.word_details_id,
+        hwde.translation_id
+      FROM history_word_details_example hwde
+      JOIN snapshot_details sd ON sd.id = hwde.word_details_id
+      JOIN target ON TRUE
+      WHERE hwde.valid_to BETWEEN target.reviewed_at - INTERVAL '5 minutes'
+                              AND target.reviewed_at + INTERVAL '5 minutes'
+      ORDER BY
+        hwde.word_details_id,
+        hwde.translation_id,
+        ABS(EXTRACT(EPOCH FROM (hwde.valid_to - target.reviewed_at))) ASC
+    ),
+    current_word_detail_examples AS (
+      SELECT wde.word_details_id, wde.translation_id
+      FROM word_details_example wde
+      JOIN snapshot_details sd ON sd.id = wde.word_details_id
+      JOIN target ON TRUE
+      WHERE wde.created_at < target.reviewed_at
+        AND NOT EXISTS (
+          SELECT 1
+          FROM history_word_detail_examples hwde
+          WHERE hwde.word_details_id = wde.word_details_id
+            AND hwde.translation_id = wde.translation_id
+        )
+    ),
+    snapshot_word_detail_examples AS (
+      SELECT word_details_id, translation_id FROM history_word_detail_examples
+      UNION ALL
+      SELECT word_details_id, translation_id FROM current_word_detail_examples
+    ),
+    snapshot_translation_ids AS (
+      SELECT translation_id AS id FROM snapshot_definition_examples
+      UNION
+      SELECT translation_id AS id FROM snapshot_word_detail_examples
+    ),
+    history_translation_rows AS (
+      SELECT DISTINCT ON (ht.id) ht.*
+      FROM history_translations ht
+      JOIN snapshot_translation_ids sti ON sti.id = ht.id
+      JOIN target ON TRUE
+      WHERE ht.valid_to BETWEEN target.reviewed_at - INTERVAL '5 minutes'
+                            AND target.reviewed_at + INTERVAL '5 minutes'
+      ORDER BY ht.id, ABS(EXTRACT(EPOCH FROM (ht.valid_to - target.reviewed_at))) ASC
+    ),
+    current_translations AS (
+      SELECT t.*
+      FROM translations t
+      JOIN snapshot_translation_ids sti ON sti.id = t.id
+      JOIN target ON TRUE
+      WHERE t.created_at < target.reviewed_at
+        AND NOT EXISTS (SELECT 1 FROM history_translation_rows ht WHERE ht.id = t.id)
+    ),
+    snapshot_translations AS (
+      SELECT id, phrases_per_lang_dialect, tags, raw FROM history_translation_rows
+      UNION ALL
+      SELECT id, phrases_per_lang_dialect, tags, raw FROM current_translations
+    )
+    SELECT
+      hw.id,
+      hw.spelling,
+      hw.lang_dialect_id AS "langDialectId",
+      hw.source_id AS "sourceId",
+      COALESCE(
+        (
+          SELECT jsonb_agg(
+            jsonb_build_object(
+              'state', 'unchanged',
+              'id', sv.id,
+              'spelling', sv.spelling,
+              'langDialectId', sv.lang_dialect_id,
+              'sourceId', sv.source_id
+            )
+            ORDER BY sv.spelling
+          )
+          FROM snapshot_variants sv
+          WHERE sv.word_id = hw.id
+        ),
+        '[]'::jsonb
+      ) AS "spellingVariants",
+      COALESCE(
+        (
+          SELECT jsonb_agg(
+            jsonb_build_object(
+              'state', 'unchanged',
+              'id', wd.id,
+              'inflection', wd.inflection,
+              'langDialectId', wd.lang_dialect_id,
+              'sourceId', wd.source_id,
+              'definitions', COALESCE(
+                (
+                  SELECT jsonb_agg(
+                    jsonb_build_object(
+                      'state', 'unchanged',
+                      'id', d.id,
+                      'values', d.values,
+                      'tags', d.tags,
+                      'examples', COALESCE(
+                        (
+                          SELECT jsonb_agg(
+                            jsonb_build_object(
+                              'state', 'unchanged',
+                              'id', t.id,
+                              'phrasesPerLangDialect', t.phrases_per_lang_dialect,
+                              'tags', t.tags,
+                              'raw', t.raw
+                            )
+                            ORDER BY t.id
+                          )
+                          FROM snapshot_definition_examples de
+                          JOIN snapshot_translations t ON t.id = de.translation_id
+                          WHERE de.definition_id = d.id
+                        ),
+                        '[]'::jsonb
+                      )
+                    )
+                    ORDER BY d.id
+                  )
+                  FROM snapshot_definitions d
+                  WHERE d.word_details_id = wd.id
+                ),
+                '[]'::jsonb
+              ),
+              'examples', COALESCE(
+                (
+                  SELECT jsonb_agg(
+                    jsonb_build_object(
+                      'state', 'unchanged',
+                      'id', t.id,
+                      'phrasesPerLangDialect', t.phrases_per_lang_dialect,
+                      'tags', t.tags,
+                      'raw', t.raw
+                    )
+                    ORDER BY t.id
+                  )
+                  FROM snapshot_word_detail_examples wde
+                  JOIN snapshot_translations t ON t.id = wde.translation_id
+                  WHERE wde.word_details_id = wd.id
+                ),
+                '[]'::jsonb
+              )
+            )
+            ORDER BY wd.order_idx NULLS LAST, wd.id
+          )
+          FROM snapshot_details wd
+          WHERE wd.word_id = hw.id
+        ),
+        '[]'::jsonb
+      ) AS "wordDetails"
+    FROM snapshot_words hw
+    ORDER BY hw.spelling ASC;
+    `,
+    [uniqueIds, validTo],
+  );
+
+  return JSON.parse(JSON.stringify(rows));
 }
 
 export type SearchQuery = {
@@ -270,7 +730,7 @@ export async function search({
       {
         spelling: spelling.toUpperCase(),
         langDialect: { id: In(wordLangDialectIds) },
-        details: { langDialect: { id: In(definitionsLangDialectIds) } },
+        wordDetails: { langDialect: { id: In(definitionsLangDialectIds) } },
       },
       {
         spellingVariants: {
@@ -278,7 +738,7 @@ export async function search({
           langDialect: { id: In(wordLangDialectIds) },
         },
         langDialect: { id: In(wordLangDialectIds) },
-        details: { langDialect: { id: In(definitionsLangDialectIds) } },
+        wordDetails: { langDialect: { id: In(definitionsLangDialectIds) } },
       },
     ],
     relations: {
@@ -293,7 +753,7 @@ export async function search({
       },
 
       // nest “details” and everything under it
-      details: {
+      wordDetails: {
         langDialect: true,
         source: true,
         createdBy: true,
@@ -322,7 +782,7 @@ export async function search({
     // If both match or neither matches, sort by createdAt date
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
-  // console.log('search', JSON.stringify(word, null, 2));
+  // console.log('search', JSON.stringify(wordWithDefinitions, null, 2));
   return JSON.parse(JSON.stringify(wordWithDefinitions));
 }
 
@@ -374,12 +834,11 @@ export async function searchInDefinitions({
     FROM definition d  
       JOIN word_details AS wd ON d.word_details_id = wd.id 
       JOIN word w ON w.id = word_id
-      -- 1) UNNEST the SQL JSON[] array into individual JSON objects:
-      CROSS JOIN LATERAL unnest(d.values) AS v(elem)
+      CROSS JOIN LATERAL jsonb_array_elements(d.values) AS v(elem)
     WHERE
-      -- 2) Search inside each JSON object’s "value" field:
+      -- 1) Search inside each JSON object’s "value" field:
       v.elem ->> 'value' ILIKE '%' || $1 || '%'
-      -- 3) Compare your dialect IDs as normal integers:
+      -- 2) Compare your dialect IDs as normal integers:
       AND w.lang_dialect_id = ANY($3) 
       AND wd.lang_dialect_id = ANY($2)
     ORDER BY value, d.id DESC
@@ -442,7 +901,7 @@ export async function getPaginatedWords({
   const words = await wordRepo.find({
     where: {
       langDialect: { id: wordLangDialectId },
-      details: { langDialect: { id: definitionsLangDialectId } },
+      wordDetails: { langDialect: { id: definitionsLangDialectId } },
     },
     take: size,
     skip: page * size,
@@ -454,7 +913,7 @@ export async function getPaginatedWords({
       spellingVariants: true,
 
       // nest “details” and everything under it
-      details: {
+      wordDetails: {
         langDialect: true,
         source: true,
         createdBy: true,

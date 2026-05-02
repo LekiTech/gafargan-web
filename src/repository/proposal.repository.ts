@@ -11,21 +11,30 @@ import {
 } from './entities/schemas';
 import { Proposal } from './entities/Proposal';
 import { ProposalStatus, ProposalType } from './entities/enums';
-import { LangDialect } from './entities/LangDialect';
-import { DefinitionValue } from './entities/Definition';
-import { TranslationPhrase } from './entities/Translation';
-import { EntitySchema } from 'typeorm';
+import { Translation } from './entities/Translation';
+import { EntityManager, In, Repository } from 'typeorm';
 import {
   DictionaryProposalModel,
+  DictionaryProposalModelNestedType,
   SourceModelType,
+  STATE,
+  StateType,
+  TranslationsProposalModel,
   TranslationModelType,
 } from '@/dashboard/models/proposal.model';
+import { Word } from './entities/Word';
+import { SpellingVariant } from './entities/SpellingVariant';
+import { WordDetail } from './entities/WordDetail';
+import { Definition } from './entities/Definition';
+import { DUMMY_USER_ID } from './constants';
+import { PaginatedResponse } from './types.model';
+import { Source } from './entities/Source';
 
 export type PaginationQuery = {
   type: ProposalType;
   page: number;
   size: number;
-  status?: ProposalStatus;
+  status?: ProposalStatus | ProposalStatus[];
   // wordLangDialectId: number;
   // definitionsLangDialectId: number;
 };
@@ -36,31 +45,43 @@ export async function getPaginatedProposals({
   size,
   // wordLangDialectId,
   // definitionsLangDialectId,
-}: PaginationQuery): Promise<Proposal[]> {
+}: PaginationQuery): Promise<PaginatedResponse<Proposal>> {
   // status = status ?? ProposalStatus.PENDING;
   const AppDataSource = await getDataSource();
   const proposalRepo = AppDataSource.getRepository<Proposal>(ProposalSchema.options.tableName!);
-  const proposals = await proposalRepo.find({
+  const currentPage = Math.max(1, page || 1);
+  const isAll = size === -1;
+  const pageSize = isAll ? -1 : Math.max(1, size || 10);
+  const [proposals, totalItems] = await proposalRepo.findAndCount({
     where: {
       type,
-      status,
+      status: Array.isArray(status) ? In(status) : status,
       // langDialect: { id: wordLangDialectId },
       // details: { langDialect: { id: definitionsLangDialectId } },
     },
-    take: size,
-    skip: page * size,
+    take: isAll ? undefined : pageSize,
+    skip: isAll ? undefined : (currentPage - 1) * pageSize,
     relations: {
       proposedBy: true,
       reviewedBy: true,
     },
+    order: {
+      proposedAt: 'asc',
+    },
   });
   // console.log('search', JSON.stringify(word, null, 2));
-  return JSON.parse(JSON.stringify(proposals));
+  return {
+    items: JSON.parse(JSON.stringify(proposals)),
+    totalItems,
+    currentPage,
+    pageSize,
+    totalPages: isAll ? 1 : Math.ceil(totalItems / pageSize),
+  };
 }
 
 export interface CreateProposalDto {
   type: ProposalType;
-  data: DictionaryProposalModel | SourceModelType | TranslationModelType;
+  data: DictionaryProposalModel | SourceModelType | TranslationModelType | TranslationsProposalModel;
   proposedById: number;
 }
 
@@ -81,6 +102,7 @@ export async function createProposal(dto: CreateProposalDto): Promise<Proposal> 
   });
   // Save the proposal
   const saved = await proposalRepo.save(proposalEntity);
+  console.log(`Saved Proposal: ${saved}`);
   return saved;
 }
 
@@ -96,16 +118,424 @@ export async function approveProposal(proposalId: number, adminId: number) {
   if (!proposalEntity) {
     throw new Error(`Proposal ${proposalId} not found`);
   }
-  // NOTE: for the case if someone changes his mind
-  // if (proposalEntity.status !== ProposalStatus.PENDING) {
-  //   throw new Error(`Proposal ${proposalId} is not pending`);
-  // }
+  // NOTE: for the case if someone changes his mind, allow changing from any other status to approved
+  if (proposalEntity.status === ProposalStatus.APPROVED) {
+    throw new Error(`Proposal ${proposalId} is already approved`);
+  }
   proposalEntity.status = ProposalStatus.APPROVED;
   proposalEntity.reviewedById = adminId;
   proposalEntity.reviewedAt = new Date();
-  // Save the proposal
-  await proposalRepo.save(proposalEntity);
-  // TODO: add/modify/delete all values to the correct tables
+
+  switch (proposalEntity.type) {
+    case ProposalType.DICTIONARY:
+      await dictionaryV3ProposalToDbChanges(proposalEntity);
+      break;
+    case ProposalType.TRANSLATIONS:
+      await translationsV3ProposalToDbChanges(proposalEntity);
+      break;
+    case ProposalType.SOURCE:
+      await sourceProposalToDbChanges(proposalEntity);
+      break;
+    default:
+      await proposalRepo.save(proposalEntity);
+  }
+}
+
+async function sourceProposalToDbChanges(proposal: Proposal) {
+  if (proposal.data == undefined || !('state' in proposal.data)) {
+    throw new Error(`Proposal ${proposal.id} contains data incompatible with sources`);
+  }
+
+  const sourceProposal = proposal.data as SourceModelType;
+  const AppDataSource = await getDataSource();
+  await AppDataSource.transaction(async (manager) => {
+    const proposalRepo = manager.getRepository<Proposal>(ProposalSchema.options.tableName!);
+    await proposalRepo.save(proposal);
+
+    const sourceRepo = manager.getRepository<Source>(SourceSchema.options.tableName!);
+    const sourceValues = {
+      name: sourceProposal.name.trim(),
+      authors: sourceProposal.authors?.trim() || null,
+      publicationYear: sourceProposal.publicationYear?.trim() || null,
+      providedBy: sourceProposal.providedBy?.trim() || null,
+      providedByUrl: sourceProposal.providedByUrl?.trim() || null,
+      processedBy: sourceProposal.processedBy?.trim() || null,
+      copyright: sourceProposal.copyright?.trim() || null,
+      seeSourceUrl: sourceProposal.seeSourceUrl?.trim() || null,
+      description: sourceProposal.description?.trim() || null,
+      updatedById: DUMMY_USER_ID,
+    };
+
+    switch (sourceProposal.state) {
+      case STATE.ADDED:
+        await sourceRepo.save(
+          sourceRepo.create({
+            ...sourceValues,
+            createdById: DUMMY_USER_ID,
+          }),
+        );
+        break;
+      case STATE.MODIFIED:
+        await sourceRepo.update(sourceProposal.id, sourceValues);
+        break;
+      case STATE.DELETED:
+        await sourceRepo.delete(sourceProposal.id);
+        break;
+      default:
+        console.log(`Nothing to do with source with ID = ${sourceProposal.id}`);
+    }
+  });
+}
+
+async function translationsV3ProposalToDbChanges(proposal: Proposal) {
+  if (
+    proposal.data == undefined ||
+    !('version' in proposal.data && proposal.data.version === 'V3') ||
+    !('entries' in proposal.data)
+  ) {
+    throw new Error(`Proposal ${proposal.id} contains data incompatible with V3 translations`);
+  }
+
+  const AppDataSource = await getDataSource();
+  await AppDataSource.transaction(async (manager) => {
+    const proposalRepo = manager.getRepository<Proposal>(ProposalSchema.options.tableName!);
+    await proposalRepo.save(proposal);
+
+    const translationRepo = manager.getRepository<Translation>(
+      TranslationSchema.options.tableName!,
+    );
+    await handleTranslationsProposalDbChanges(translationRepo, proposal.data!.entries);
+  });
+}
+
+async function dictionaryV3ProposalToDbChanges(proposal: Proposal) {
+  if (
+    proposal.data == undefined ||
+    !('version' in proposal.data && proposal.data.version === 'V3') ||
+    !('entries' in proposal.data) ||
+    !('source' in proposal.data)
+  ) {
+    console.log(proposal);
+    throw new Error(`Proposal ${proposal.id} contains data incompatible with V3 dictionary`);
+  }
+  const AppDataSource = await getDataSource();
+  await AppDataSource.transaction(async (manager) => {
+    const proposalRepo = manager.getRepository<Proposal>(ProposalSchema.options.tableName!);
+    await proposalRepo.save(proposal);
+
+    const wordRepo = manager.getRepository<Word>(WordSchema.options.tableName!);
+    const spellingVariantRepo = manager.getRepository<SpellingVariant>(
+      SpellingVariantSchema.options.tableName!,
+    );
+    const wordDetailRepo = manager.getRepository<WordDetail>(WordDetailSchema.options.tableName!);
+    const translationRepo = manager.getRepository<Translation>(
+      TranslationSchema.options.tableName!,
+    );
+    const definitionRepo = manager.getRepository<Definition>(DefinitionSchema.options.tableName!);
+
+    const dictionaryProposal: DictionaryProposalModelNestedType =
+      proposal.data as DictionaryProposalModelNestedType;
+    for (const word of dictionaryProposal.entries) {
+      if ((word.state === STATE.MODIFIED || word.state === STATE.DELETED) && !word.id) {
+        throw new Error(`Modified/deleted word "${word.spelling}" is missing id`);
+      }
+      if (word.state === STATE.DELETED) {
+        await wordRepo.delete(word.id);
+        // no need to continue inside the word, as it should be deleted with all of it inside (except for translations)
+      } else {
+        let createdWord: Word | undefined = undefined;
+        if (word.state === STATE.ADDED) {
+          const wordEntity = wordRepo.create({
+            ...word,
+            spelling: word.spelling.toUpperCase(),
+            sourceId: word.sourceId,
+            createdById: DUMMY_USER_ID,
+            updatedById: DUMMY_USER_ID,
+          });
+          createdWord = await wordRepo.save(wordEntity);
+        } else if (word.state === STATE.MODIFIED) {
+          await wordRepo.update(word.id, {
+            spelling: word.spelling.toUpperCase(),
+            langDialectId: word.langDialectId,
+            sourceId: word.sourceId,
+            updatedById: DUMMY_USER_ID,
+          });
+        }
+        for (const spellingVariant of word.spellingVariants) {
+          switch (spellingVariant.state) {
+            case STATE.ADDED:
+              const spellingVariantEntity = spellingVariantRepo.create({
+                ...spellingVariant,
+                word: createdWord ?? word,
+                spelling: spellingVariant.spelling.toUpperCase(),
+                sourceId: spellingVariant.sourceId,
+                createdById: DUMMY_USER_ID,
+                updatedById: DUMMY_USER_ID,
+              });
+              await spellingVariantRepo.save(spellingVariantEntity);
+              break;
+            case STATE.DELETED:
+              await spellingVariantRepo.delete(spellingVariant.id);
+              break;
+            case STATE.MODIFIED:
+              await spellingVariantRepo.update(spellingVariant.id, {
+                spelling: spellingVariant.spelling.toUpperCase(),
+                langDialectId: spellingVariant.langDialectId,
+                sourceId: spellingVariant.sourceId,
+                updatedById: DUMMY_USER_ID,
+              });
+              break;
+            default:
+              console.log(`Nothing to do with spellingVariant with ID = ${spellingVariant.id}`);
+          }
+        }
+        for (let i = 0; i < word.wordDetails.length; i++) {
+          const wordDetail = word.wordDetails[i];
+          let createdWordDetail: WordDetail | undefined = undefined;
+          if (wordDetail.state === STATE.DELETED) {
+            await wordDetailRepo.delete(wordDetail.id);
+            // no need to continue inside the word, as it should be deleted with all of it inside (except for translations)
+          } else {
+            const wordDetailExamples =
+              wordDetail.examples?.map((example) => ({
+                createdById: DUMMY_USER_ID,
+                ...example,
+                updatedById: DUMMY_USER_ID,
+              })) ?? [];
+            if (wordDetail.state === STATE.ADDED) {
+              const wordEntity = wordDetailRepo.create({
+                ...wordDetail,
+                orderIdx: i,
+                inflection:
+                  wordDetail.inflection?.trim().length === 0 ? undefined : wordDetail.inflection,
+                wordId: word.state === STATE.ADDED ? createdWord!.id : word.id,
+                sourceId: wordDetail.sourceId,
+                createdById: DUMMY_USER_ID,
+                updatedById: DUMMY_USER_ID,
+                examples: wordDetailExamples,
+              });
+              createdWordDetail = await wordDetailRepo.save(wordEntity);
+            } else if (wordDetail.state === STATE.MODIFIED) {
+              const existingWordDetail = await wordDetailRepo.findOne({
+                where: { id: wordDetail.id },
+                relations: { examples: true },
+              });
+
+              if (!existingWordDetail) {
+                throw new Error(`WordDetail ${wordDetail.id} not found`);
+              }
+              const providedInflection = wordDetail.inflection?.trim() ?? null;
+              existingWordDetail.inflection =
+                providedInflection?.length === 0 ? null : providedInflection;
+              existingWordDetail.langDialectId = wordDetail.langDialectId;
+              existingWordDetail.sourceId = wordDetail.sourceId;
+              //   // TODO: add to the db model
+              // existing.tags = wordDetail.tags;
+              existingWordDetail.updatedById = DUMMY_USER_ID;
+
+              existingWordDetail.examples = wordDetailExamples as any;
+              await wordDetailRepo.save(existingWordDetail);
+              // if (wordDetailExamples.length > 0) {
+              //   await handleTranslationsProposalDbChanges(translationRepo, wordDetailExamples);
+              // }
+            }
+
+            for (const definition of wordDetail.definitions) {
+              if (definition.state === STATE.DELETED) {
+                await definitionRepo.delete(definition.id);
+                // no need to continue inside the word, as it should be deleted with all of it inside (except for translations)
+              } else {
+                const definitionExamples =
+                  definition.examples?.map((example) => ({
+                    createdById: DUMMY_USER_ID,
+                    ...example,
+                    updatedById: DUMMY_USER_ID,
+                  })) ?? [];
+                switch (definition.state) {
+                  case STATE.ADDED:
+                    const definitionEntity = definitionRepo.create({
+                      ...definition,
+                      wordDetailsId:
+                        wordDetail.state === STATE.ADDED ? createdWordDetail!.id : wordDetail.id,
+                      values: definition.values,
+                      createdById: DUMMY_USER_ID,
+                      updatedById: DUMMY_USER_ID,
+                      examples: definitionExamples,
+                    });
+                    await definitionRepo.save(definitionEntity);
+                    break;
+                  case STATE.MODIFIED:
+                    const existingDefinition = await definitionRepo.findOne({
+                      where: { id: definition.id },
+                      relations: { examples: true },
+                    });
+
+                    if (!existingDefinition) {
+                      throw new Error(`Definition ${definition.id} not found`);
+                    }
+                    existingDefinition.values = definition.values;
+                    existingDefinition.tags = definition.tags ?? [];
+                    existingDefinition.updatedById = DUMMY_USER_ID;
+
+                    existingDefinition.examples = definitionExamples as any;
+                    await definitionRepo.save(existingDefinition);
+                    break;
+                  default:
+                    console.log(`Nothing to do with definition with ID = ${definition.id}`);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+async function handleTranslationsProposalDbChanges(
+  translationRepo: Repository<Translation>,
+  translations: (TranslationModelType & {
+    links?: { linkType: string; wordDetailId: number; definitionId?: number }[];
+    linksState?: string;
+  })[],
+) {
+  const manager = translationRepo.manager;
+  const ensureLinkHistoryTriggers = async () => {
+    await ensureTranslationLinkHistoryTriggersCompatible(manager);
+  };
+  for (const translation of translations) {
+    let translationId = translation.state === STATE.ADDED ? undefined : translation.id;
+    switch (translation.state) {
+      case STATE.ADDED:
+        const translationEntity = translationRepo.create(translation);
+        const savedTranslation = await translationRepo.save({
+          ...translationEntity,
+          createdById: DUMMY_USER_ID,
+          updatedById: DUMMY_USER_ID,
+        });
+        translationId = savedTranslation.id;
+        break;
+      // On deletion should only remove the link to translation record, but not delete the translation itself
+      // case STATE.DELETED:
+      //   await translationRepo.delete(translation.id);
+      //   break;
+      case STATE.MODIFIED:
+        await translationRepo.update(translation.id, {
+          phrasesPerLangDialect: translation.phrasesPerLangDialect,
+          tags: translation.tags,
+          updatedById: DUMMY_USER_ID,
+        });
+        break;
+      default:
+        console.log(`Nothing to do with translation with ID = ${translation.id}`);
+    }
+
+    const shouldUpdateLinks =
+      translation.links !== undefined &&
+      (translation.state === STATE.ADDED ||
+        translation.linksState === STATE.ADDED ||
+        translation.linksState === STATE.MODIFIED ||
+        translation.linksState === undefined);
+
+    if (translationId !== undefined && shouldUpdateLinks) {
+      await ensureLinkHistoryTriggers();
+      await manager.query('DELETE FROM word_details_example WHERE translation_id = $1', [
+        translationId,
+      ]);
+      await manager.query('DELETE FROM definition_example WHERE translation_id = $1', [
+        translationId,
+      ]);
+
+      for (const link of translation.links ?? []) {
+        if (link.linkType === 'definition' && link.definitionId) {
+          await manager.query(
+            `INSERT INTO definition_example (definition_id, translation_id)
+             VALUES ($1, $2)
+             ON CONFLICT DO NOTHING`,
+            [link.definitionId, translationId],
+          );
+        } else if (link.linkType === 'wordDetail') {
+          await manager.query(
+            `INSERT INTO word_details_example (word_details_id, translation_id)
+             VALUES ($1, $2)
+             ON CONFLICT DO NOTHING`,
+            [link.wordDetailId, translationId],
+          );
+        }
+      }
+    }
+  }
+}
+
+async function ensureTranslationLinkHistoryTriggersCompatible(manager: EntityManager) {
+  await manager.query(
+    'ALTER TABLE history_word_details_example DROP COLUMN IF EXISTS created_by CASCADE',
+  );
+  await manager.query(
+    'ALTER TABLE history_definition_example DROP COLUMN IF EXISTS created_by CASCADE',
+  );
+  await manager.query(`
+    CREATE OR REPLACE FUNCTION history_word_details_example_trigger()
+    RETURNS TRIGGER LANGUAGE plpgsql AS $$
+    BEGIN
+      BEGIN
+        INSERT INTO history_word_details_example (
+          word_details_id,
+          translation_id,
+          created_at,
+          valid_from,
+          valid_to
+        )
+        VALUES (
+          OLD.word_details_id,
+          OLD.translation_id,
+          OLD.created_at,
+          OLD.created_at,
+          CURRENT_TIMESTAMP
+        );
+      EXCEPTION WHEN unique_violation THEN
+        -- Ignore duplicate history row
+      END;
+
+      IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+      ELSE
+        RETURN NEW;
+      END IF;
+    END;
+    $$;
+  `);
+  await manager.query(`
+    CREATE OR REPLACE FUNCTION history_definition_example_trigger()
+    RETURNS TRIGGER LANGUAGE plpgsql AS $$
+    BEGIN
+      BEGIN
+        INSERT INTO history_definition_example (
+          definition_id,
+          translation_id,
+          created_at,
+          valid_from,
+          valid_to
+        )
+        VALUES (
+          OLD.definition_id,
+          OLD.translation_id,
+          OLD.created_at,
+          OLD.created_at,
+          CURRENT_TIMESTAMP
+        );
+      EXCEPTION WHEN unique_violation THEN
+        -- Ignore duplicate history row
+      END;
+
+      IF TG_OP = 'DELETE' THEN
+        RETURN OLD;
+      ELSE
+        RETURN NEW;
+      END IF;
+    END;
+    $$;
+  `);
 }
 
 /**
@@ -120,6 +550,9 @@ export async function rejectProposal(proposalId: number, adminId: number, commen
   if (!proposalEntity) {
     throw new Error(`Proposal ${proposalId} not found`);
   }
+  // If proposal ws approved previously, rejecting it will not change anything
+  //    in public data from other tables than `proposal`
+  // For this reason only allow rejecting proposals with status `PENDING`
   if (proposalEntity.status !== ProposalStatus.PENDING) {
     throw new Error(`Proposal ${proposalId} is not pending`);
   }

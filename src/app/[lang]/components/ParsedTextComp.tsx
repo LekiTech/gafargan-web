@@ -53,11 +53,12 @@ type ParsedTextCompProps = {
     backgroundColor?: string;
     color?: string;
   };
+  fontSize?: string;
 };
 
-export const ParsedTextComp: FC<ParsedTextCompProps> = ({ text, highlightOptions }) => {
+export const ParsedTextComp: FC<ParsedTextCompProps> = ({ text, highlightOptions, fontSize }) => {
   return text && text.length > 0 ? (
-    <span>
+    <span style={{ fontSize }}>
       {definitionToFormatJson(text).map((textObj, i) => {
         const key = `${textObj.text}_${i}_${Math.random()}`;
         const style: React.CSSProperties = {};

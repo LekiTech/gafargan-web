@@ -21,8 +21,10 @@ export class Translation {
 
   raw!: string | null;
 
+  createdById!: number;
   createdBy!: User;
 
+  updatedById!: number;
   updatedBy!: User;
 
   createdAt!: Date;

@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { cache, FC } from 'react';
 // import * as expressionApi from '../../../api/expressionApi';
 import {
   search,
@@ -17,6 +17,15 @@ import { AdvancedSearchParams, Params, SearchParams } from '../../types';
 import { redirect } from 'next/navigation';
 import { AdvancedSearchResults } from './components/AdvancedSearchResults';
 
+const cachedSearch = cache(
+  async (spelling: string, fromLang: DictionaryLang, toLang: DictionaryLang) =>
+    search({
+      spelling,
+      wordLangDialectIds: LangToId[fromLang],
+      definitionsLangDialectIds: LangToId[toLang],
+    }),
+);
+
 export async function generateMetadata(
   { params, searchParams }: ExpressionPageProps,
   parent: ResolvingMetadata,
@@ -28,15 +37,14 @@ export async function generateMetadata(
     return {};
   }
   // fetch data
-  const searchQuery = {
-    spelling: exp,
-    wordLangDialectIds: LangToId[fromLang],
-    definitionsLangDialectIds: LangToId[toLang],
-  };
-  const data = await search(searchQuery);
+  const data = await cachedSearch(exp, fromLang, toLang);
 
-  if (!data) {
-    const similarWords = await suggestionsFuzzy(searchQuery);
+  if (!data || data.length === 0) {
+    const similarWords = await suggestionsFuzzy({
+      spelling: exp,
+      wordLangDialectIds: LangToId[fromLang],
+      definitionsLangDialectIds: LangToId[toLang],
+    });
     const title = t('meta.title');
     const description = t('probablyYouMeant') + ' ' + similarWords.join(', ');
     return {
@@ -57,7 +65,8 @@ export async function generateMetadata(
       'languages.' + toLang,
     )} ${t('translation').toLowerCase()}`, //.charAt(0).toUpperCase() + spelling.slice(1),
     description:
-      data?.[0]?.details[0].definitions[0]?.values[0]?.value?.replaceAll(/\{|}|<[^>]*>/g, '') || '',
+      data?.[0]?.wordDetails[0].definitions[0]?.values[0]?.value?.replaceAll(/\{|}|<[^>]*>/g, '') ||
+      '',
     // openGraph: {
     //   images: ['/some-specific-page-image.jpg', ...previousImages],
     // },
@@ -106,52 +115,35 @@ const ExpressionPage: FC<ExpressionPageProps> = async ({ params, searchParams })
     return;
   }
   const normalizedExpValue = normalizeLezgiString(exp, { removePunctuation: false });
-  console.debug('normalizedExpValue', normalizedExpValue);
   // const fromLang = fromLang as DictionaryLang;
   // const toLang = toLang as DictionaryLang;
-  const data = await search({
-    spelling: normalizedExpValue,
-    wordLangDialectIds: LangToId[fromLang],
-    definitionsLangDialectIds: LangToId[toLang],
-  });
+  const data = await cachedSearch(normalizedExpValue, fromLang, toLang);
 
   // true if found, false if not
   const isExpressionFound = !!data && data.length > 0;
 
-  const similarWords =
-    // isExpressionFound
-    //   ? []
-    //   :
-    await suggestionsFuzzy({
-      spelling: normalizedExpValue,
-      wordLangDialectIds: LangToId[fromLang],
-      definitionsLangDialectIds: LangToId[toLang],
-      limit: 5,
-    });
-
-  const foundInExamples =
-    // isExpressionFound
-    //   ? []
-    //   :
-    await searchInExamples({
-      spelling: normalizedExpValue,
-      wordLangDialectIds: LangToId[fromLang],
-      definitionsLangDialectIds: LangToId[toLang],
-      limit: 100,
-    });
-
-  console.debug('data', data);
-
-  const foundInDefinitions =
-    // isExpressionFound
-    //   ? []
-    //   :
-    await searchInDefinitions({
-      spelling: normalizedExpValue,
-      wordLangDialectIds: LangToId[fromLang],
-      definitionsLangDialectIds: LangToId[toLang],
-      limit: 100,
-    });
+  const [similarWords, foundInExamples, foundInDefinitions] = isExpressionFound
+    ? [[], [], []]
+    : await Promise.all([
+        suggestionsFuzzy({
+          spelling: normalizedExpValue,
+          wordLangDialectIds: LangToId[fromLang],
+          definitionsLangDialectIds: LangToId[toLang],
+          limit: 5,
+        }),
+        searchInExamples({
+          spelling: normalizedExpValue,
+          wordLangDialectIds: LangToId[fromLang],
+          definitionsLangDialectIds: LangToId[toLang],
+          limit: 100,
+        }),
+        searchInDefinitions({
+          spelling: normalizedExpValue,
+          wordLangDialectIds: LangToId[fromLang],
+          definitionsLangDialectIds: LangToId[toLang],
+          limit: 100,
+        }),
+      ]);
 
   return (
     <>

@@ -55,7 +55,7 @@ const Home: FC<HomeProps> = async (props) => {
           </Grid>
           <Grid size={{ xs: 12 }}>
             <Sources
-              labels={{ sources: t('sources'), learnMore: t('learnMore') }}
+              labels={{ sources: t('sources'), fieldworkData: t('fieldworkData') }}
               sources={sources}
             />
           </Grid>

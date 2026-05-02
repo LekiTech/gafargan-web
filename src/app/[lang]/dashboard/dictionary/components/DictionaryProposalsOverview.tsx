@@ -6,7 +6,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { ProposalStatus, ProposalType } from '@repository/entities/enums';
+import { ProposalStatus } from '@repository/entities/enums';
 import {
   Button,
   Card,
@@ -14,134 +14,680 @@ import {
   CardContent,
   CardHeader,
   Chip,
+  Box,
+  Divider,
   IconButton,
   Modal,
   Stack,
+  TableFooter,
+  TablePagination,
+  Typography,
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
-import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
-import TranslateIcon from '@mui/icons-material/Translate';
 import PendingIcon from '@mui/icons-material/AccessTime';
 import ApprovedIcon from '@mui/icons-material/CheckCircle';
 import RejectedIcon from '@mui/icons-material/Cancel';
 import CloseIcon from '@mui/icons-material/Close';
 import ApproveIcon from '@mui/icons-material/CheckCircleOutline';
 import RejectIcon from '@mui/icons-material/CancelOutlined';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
-import ThumbDownIcon from '@mui/icons-material/ThumbDown';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import {
-  DictionaryProposalModel,
-  SourceModel,
+  DictionaryProposalModelNestedType,
   SourceModelType,
+  STATE,
+  WordModelExistingNestedType,
+  WordModelNestedType,
 } from '@/dashboard/models/proposal.model';
 import { Proposal } from '@repository/entities/Proposal';
-import { WordEntryForm } from './WordEntryForm';
 import { WebsiteLang } from '@api/types.model';
 import { approveProposal, rejectProposal } from '@repository/proposal.repository';
+import { langDialectIdToString } from '@/dashboard/utils';
+import { useTranslation } from 'react-i18next';
+import { ParsedTextComp } from '../../../components/ParsedTextComp';
+import { TagComp } from '../../../components/TagComp';
+import { expressionFont } from '@/fonts';
+import { toLowerCaseLezgi } from '../../../../utils';
+import { PaginatedResponse } from '@repository/types.model';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { TFunction } from 'i18next';
 
-function createData(
-  id: number,
-  type: string,
-  proposedBy: string,
-  status: string,
-  reviewedBy?: string,
-  comment?: string,
-) {
-  return { id, type, proposedBy, status, reviewedBy, comment };
-}
+const ProposalsStatusChip: React.FC<{ status: string }> = ({ status }) => {
+  const { t } = useTranslation();
+  const label = t(`proposalStatuses.${status}`, { ns: 'dashboard', defaultValue: status });
 
-const rows = [
-  createData(1, ProposalType.DICTIONARY, 'K.Z. Tadzjibov', ProposalStatus.APPROVED, 'R. Gasratov'),
-  createData(2, ProposalType.SOURCE, 'K.Z. Tadzjibov', ProposalStatus.PENDING),
-  createData(
-    3,
-    ProposalType.DICTIONARY,
-    'K.Z. Tadzjibov',
-    ProposalStatus.REJECTED,
-    'R. Gamidov',
-    'a lot of typos',
-  ),
-  createData(4, ProposalType.TRANSLATIONS, 'A. Magomedov', ProposalStatus.APPROVED, 'R. Gamidov'),
-  createData(5, ProposalType.DICTIONARY, 'A. Magomedov', ProposalStatus.APPROVED, 'R. Gamidov'),
-];
-
-const ProposalsTypeChip: React.FC<{ type: string }> = ({ type }) => {
-  switch (type) {
-    case ProposalType.DICTIONARY:
-      return <Chip variant="outlined" label={type} icon={<MenuBookIcon />} />;
-    case ProposalType.SOURCE:
-      return <Chip variant="outlined" label={type} icon={<LocalLibraryIcon />} />;
-    case ProposalType.TRANSLATIONS:
-      return <Chip variant="outlined" label={type} icon={<TranslateIcon />} />;
+  switch (status) {
+    case ProposalStatus.APPROVED:
+      return <Chip variant="outlined" color="success" label={label} icon={<ApprovedIcon />} />;
+    case ProposalStatus.REJECTED:
+      return <Chip variant="outlined" color="error" label={label} icon={<RejectedIcon />} />;
     default:
-      return <Chip label={type} />;
+      return <Chip color="warning" label={label} icon={<PendingIcon />} />;
   }
 };
 
-const ProposalsStatusChip: React.FC<{ status: string }> = ({ status }) => {
-  switch (status) {
-    case ProposalStatus.APPROVED:
-      return <Chip variant="outlined" color="success" label={status} icon={<ApprovedIcon />} />;
-    case ProposalStatus.REJECTED:
-      return <Chip variant="outlined" color="error" label={status} icon={<RejectedIcon />} />;
+const stateColor = (state?: string) => {
+  switch (state) {
+    case STATE.ADDED:
+      return 'success';
+    case STATE.MODIFIED:
+      return 'warning';
+    case STATE.DELETED:
+      return 'error';
     default:
-      return <Chip color="warning" label={status} icon={<PendingIcon />} />;
+      return 'default';
   }
+};
+
+const stateBorderColor = (state?: string) => {
+  switch (state) {
+    case STATE.ADDED:
+      return 'success.light';
+    case STATE.MODIFIED:
+      return 'warning.light';
+    case STATE.DELETED:
+      return 'error.dark';
+    default:
+      return 'divider';
+  }
+};
+
+const stateLabel = (t: TFunction, state?: string) => {
+  switch (state) {
+    case STATE.ADDED:
+      return t('states.new', { ns: 'dashboard' });
+    case STATE.MODIFIED:
+      return t('states.changed', { ns: 'dashboard' });
+    case STATE.DELETED:
+      return t('states.removed', { ns: 'dashboard' });
+    default:
+      return t('states.current', { ns: 'dashboard' });
+  }
+};
+
+const normalizeComparable = (value: unknown) => JSON.stringify(value ?? null);
+
+const findById = <T,>(items: T[] | undefined, id?: number): T | undefined =>
+  id === undefined ? undefined : items?.find((item: any) => item.id === id);
+
+const getSourceName = (sourceModels: SourceModelType[], t: TFunction, sourceId?: number) => {
+  if (!sourceId) {
+    return undefined;
+  }
+  if (sourceId === -1) {
+    return t('fieldworkData');
+  }
+  return sourceModels.find((source) => 'id' in source && source.id === sourceId)?.name;
+};
+
+const ChangeChip: React.FC<{ state?: string; changed?: boolean }> = ({ state, changed }) => {
+  const { t } = useTranslation();
+
+  if (!state && !changed) {
+    return null;
+  }
+
+  return (
+    <Chip
+      size="small"
+      color={stateColor(state ?? STATE.MODIFIED) as any}
+      variant="outlined"
+      label={state ? stateLabel(t, state) : t('states.changed', { ns: 'dashboard' })}
+      sx={{ height: 22, fontSize: 12 }}
+    />
+  );
+};
+
+const Tags: React.FC<{ tags?: string[] }> = ({ tags }) => {
+  const { t } = useTranslation();
+  if (!tags || tags.length === 0) {
+    return null;
+  }
+  return (
+    <Stack direction="row" gap={0.5} flexWrap="wrap" sx={{ mb: 0.5 }}>
+      {tags.map((tag, idx) => (
+        <TagComp key={`${tag}_${idx}`} label={t(tag, { ns: 'tags' })} />
+      ))}
+    </Stack>
+  );
+};
+
+const TranslationPreview: React.FC<{
+  lang: WebsiteLang;
+  translation: any;
+  fromLangDialectId: number;
+  toLangDialectId: number;
+  borderColor?: string;
+}> = ({ translation, fromLangDialectId, toLangDialectId, borderColor }) => {
+  const { t } = useTranslation();
+  const phrasesByLang = translation.phrasesPerLangDialect ?? {};
+  const sourcePhrases = phrasesByLang[fromLangDialectId] ?? [];
+  const targetPhrases = phrasesByLang[toLangDialectId] ?? [];
+  const fallbackLangIds = Object.keys(phrasesByLang)
+    .map(Number)
+    .filter((id) => id !== fromLangDialectId && id !== toLangDialectId);
+
+  return (
+    <Box sx={{ pl: 2, borderLeft: '2px solid', borderColor: borderColor || 'divider' }}>
+      <Stack gap={0.5}>
+        {[
+          [fromLangDialectId, sourcePhrases],
+          [toLangDialectId, targetPhrases],
+          ...fallbackLangIds.map((id) => [id, phrasesByLang[id]] as const),
+        ].map(([langDialectId, phrases]) =>
+          phrases?.length ? (
+            <Box key={langDialectId}>
+              <Typography variant="caption" color="text.secondary">
+                {langDialectIdToString(Number(langDialectId), t)}
+              </Typography>
+              {phrases.map((phrase: { phrase: string; tags?: string[] }, idx: number) => (
+                <Box key={`${phrase.phrase}_${idx}`}>
+                  <Tags tags={phrase.tags} />
+                  <Typography component="div" variant="body2">
+                    <ParsedTextComp text={phrase.phrase} />
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          ) : null,
+        )}
+        <Tags tags={translation.tags} />
+      </Stack>
+    </Box>
+  );
+};
+
+const DefinitionPreview: React.FC<{
+  definition: any;
+  previousDefinition?: any;
+  lang: WebsiteLang;
+  fromLangDialectId: number;
+  toLangDialectId: number;
+}> = ({ definition, previousDefinition, lang, fromLangDialectId, toLangDialectId }) => {
+  const { t } = useTranslation();
+  const changed =
+    previousDefinition &&
+    normalizeComparable(previousDefinition) !==
+      normalizeComparable({
+        ...definition,
+        state: previousDefinition.state,
+      });
+
+  return (
+    <Box
+      sx={{
+        py: 1.25,
+        opacity: definition.state === STATE.DELETED ? 0.65 : 1,
+        borderLeft: '4px solid',
+        borderColor: stateBorderColor(definition.state),
+        pl: 1.5,
+      }}
+    >
+      <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 0.5 }}>
+        <Typography variant="subtitle2" color="text.secondary">
+          {t('addNewWord.definition', { ns: 'dashboard' })}
+        </Typography>
+        <ChangeChip state={definition.state} changed={changed} />
+      </Stack>
+      <Tags tags={definition.tags} />
+      <Stack gap={0.75}>
+        {definition.values?.map((value: { value: string; tags?: string[] }, idx: number) => (
+          <Stack key={`${value.value}_${idx}`} direction="row" gap={1} alignItems="flex-start">
+            <Typography
+              variant="body2"
+              sx={{ minWidth: 22, fontWeight: 700, color: 'text.secondary' }}
+            >
+              {t(`alphabet.${idx}`)}:
+            </Typography>
+            <Box>
+              <Tags tags={value.tags} />
+              <Typography component="div" variant="body1" sx={{ fontSize: 18 }}>
+                <ParsedTextComp text={value.value} />
+              </Typography>
+            </Box>
+          </Stack>
+        ))}
+      </Stack>
+      {definition.examples?.length > 0 && (
+        <Box sx={{ mt: 1.5 }}>
+          <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.75 }}>
+            {t('addNewWord.stats.examples', { ns: 'dashboard' })}
+          </Typography>
+          <Stack gap={1}>
+            {definition.examples.map((example: any, idx: number) => (
+              <TranslationPreview
+                key={`definition_example_${idx}`}
+                lang={lang}
+                translation={example}
+                fromLangDialectId={fromLangDialectId}
+                toLangDialectId={toLangDialectId}
+                borderColor={stateBorderColor(example.state)}
+              />
+            ))}
+          </Stack>
+        </Box>
+      )}
+    </Box>
+  );
+};
+
+const WordSidePreview: React.FC<{
+  title: string;
+  word?: WordModelNestedType | WordModelExistingNestedType;
+  oppositeWord?: WordModelNestedType | WordModelExistingNestedType;
+  sourceModels: SourceModelType[];
+  lang: WebsiteLang;
+  fromLangDialectId: number;
+  toLangDialectId: number;
+}> = ({ title, word, oppositeWord, sourceModels, lang, fromLangDialectId, toLangDialectId }) => {
+  const { t } = useTranslation(lang);
+
+  if (!word) {
+    return (
+      <Box
+        sx={{
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          p: 2,
+          minHeight: 220,
+          bgcolor: 'action.hover',
+        }}
+      >
+        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 2 }}>
+          {title}
+        </Typography>
+        <Typography color="text.secondary">
+          {t('dictionaryReview.empty.publishedEntry', { ns: 'dashboard' })}
+        </Typography>
+      </Box>
+    );
+  }
+
+  const spellingChanged = oppositeWord && word.spelling !== oppositeWord.spelling;
+  const sourceName = getSourceName(sourceModels, t, word.sourceId);
+
+  return (
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 1,
+        p: 2,
+        minHeight: 220,
+      }}
+    >
+      <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+        {title}
+      </Typography>
+      <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+        <Typography
+          variant="h3"
+          className={expressionFont.className}
+          sx={{
+            fontSize: { xs: '2.25rem', md: '3rem' },
+            wordBreak: 'break-word',
+            textDecoration: word.state === STATE.DELETED ? 'line-through' : 'none',
+          }}
+        >
+          {toLowerCaseLezgi(word.spelling)}
+        </Typography>
+        <ChangeChip state={word.state} changed={spellingChanged} />
+      </Stack>
+      <Typography variant="caption" color="text.secondary">
+        {langDialectIdToString(word.langDialectId, t)}
+        {sourceName ? ` · ${sourceName}` : ''}
+      </Typography>
+
+      {word.spellingVariants?.length > 0 && (
+        <Box sx={{ mt: 2 }}>
+          <Typography variant="subtitle2" color="text.secondary">
+            {t('addNewWord.stats.wordVariants', { ns: 'dashboard' })}
+          </Typography>
+          <Stack direction="row" gap={1} flexWrap="wrap" sx={{ mt: 0.75 }}>
+            {word.spellingVariants.map((variant) => {
+              const previousVariant = findById(
+                oppositeWord?.spellingVariants,
+                'id' in variant ? variant.id : undefined,
+              );
+              const variantChanged =
+                previousVariant &&
+                normalizeComparable(previousVariant) !==
+                  normalizeComparable({ ...variant, state: previousVariant.state });
+              return (
+                <Chip
+                  key={`${variant.spelling}_${'id' in variant ? variant.id : 'new'}`}
+                  variant="outlined"
+                  label={toLowerCaseLezgi(variant.spelling)}
+                  color={stateColor(variant.state) as any}
+                  icon={
+                    variant.state !== STATE.UNCHANGED || variantChanged ? (
+                      <span style={{ width: 4 }} />
+                    ) : undefined
+                  }
+                />
+              );
+            })}
+          </Stack>
+        </Box>
+      )}
+
+      <Stack gap={2} sx={{ mt: 2.5 }}>
+        {word.wordDetails.map((detail, detailIdx) => {
+          const previousDetail: any = findById(
+            oppositeWord?.wordDetails,
+            'id' in detail ? detail.id : undefined,
+          );
+          const detailChanged =
+            previousDetail &&
+            normalizeComparable(previousDetail) !==
+              normalizeComparable({ ...detail, state: previousDetail.state });
+          const detailSourceName = getSourceName(sourceModels, t, detail.sourceId);
+
+          return (
+            <Box key={`${detail.inflection}_${detailIdx}`}>
+              <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                  {detailIdx + 1}
+                </Typography>
+                {detail.inflection && (
+                  <Typography variant="h6" color="text.secondary">
+                    {detail.inflection}
+                  </Typography>
+                )}
+                <ChangeChip state={detail.state} changed={detailChanged} />
+              </Stack>
+              <Typography variant="caption" color="text.secondary">
+                {langDialectIdToString(detail.langDialectId, t)}
+                {detailSourceName ? ` · ${detailSourceName}` : ''}
+              </Typography>
+              <Stack gap={1} sx={{ mt: 1 }}>
+                {detail.definitions.map((definition, definitionIdx) => (
+                  <DefinitionPreview
+                    key={`${definitionIdx}_${'id' in definition ? definition.id : 'new'}`}
+                    definition={definition}
+                    previousDefinition={findById(
+                      previousDetail?.definitions,
+                      'id' in definition ? definition.id : undefined,
+                    )}
+                    lang={lang}
+                    fromLangDialectId={fromLangDialectId}
+                    toLangDialectId={toLangDialectId}
+                  />
+                ))}
+              </Stack>
+              {(detail.examples?.length ?? 0) > 0 && (
+                <Box sx={{ mt: 1.5 }}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.75 }}>
+                    {t('addNewWord.otherExamples', { ns: 'dashboard' })}
+                  </Typography>
+                  <Stack gap={1}>
+                    {detail.examples?.map((example, idx) => (
+                      <TranslationPreview
+                        key={`detail_example_${idx}`}
+                        lang={lang}
+                        translation={example}
+                        fromLangDialectId={fromLangDialectId}
+                        toLangDialectId={toLangDialectId}
+                        borderColor={stateBorderColor(example.state)}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+              {detailIdx < word.wordDetails.length - 1 && <Divider sx={{ mt: 2 }} />}
+            </Box>
+          );
+        })}
+      </Stack>
+    </Box>
+  );
+};
+
+const ProposalDiff: React.FC<{
+  proposal: Proposal;
+  baselineWords: Record<number, Record<number, WordModelExistingNestedType>>;
+  sourceModels: SourceModelType[];
+  lang: WebsiteLang;
+}> = ({ proposal, baselineWords, sourceModels, lang }) => {
+  const { t } = useTranslation(lang);
+  const dictionaryData = proposal.data as DictionaryProposalModelNestedType;
+
+  return (
+    <Stack gap={2}>
+      <Typography variant="h6" fontWeight={700}>
+        {t('dictionaryReview.title', { ns: 'dashboard' })}
+      </Typography>
+      {dictionaryData.entries.map((entry, idx) => {
+        const baseline = 'id' in entry ? baselineWords[proposal.id]?.[entry.id] : undefined;
+        const isNewWord = entry.state === STATE.ADDED && !baseline;
+
+        return (
+          <Card key={`${entry.state}-${'id' in entry ? entry.id : idx}`} variant="outlined">
+            <CardHeader
+              title={
+                <Stack direction="row" gap={1} alignItems="center" flexWrap="wrap">
+                  <Typography variant="subtitle1" fontWeight={700}>
+                    {entry.spelling ||
+                      t('dictionaryReview.entryFallback', { ns: 'dashboard', number: idx + 1 })}
+                  </Typography>
+                  <Chip
+                    size="small"
+                    color={stateColor(entry.state) as any}
+                    variant="outlined"
+                    label={stateLabel(t, entry.state)}
+                  />
+                </Stack>
+              }
+            />
+            <CardContent sx={{ pt: 0 }}>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: isNewWord ? '1fr' : { xs: '1fr', md: '1fr 1fr' },
+                  gap: 2,
+                  alignItems: 'start',
+                }}
+              >
+                {!isNewWord && (
+                  <WordSidePreview
+                    title={t('proposals.beforeChanges', { ns: 'dashboard' })}
+                    word={baseline}
+                    oppositeWord={entry}
+                    sourceModels={sourceModels}
+                    lang={lang}
+                    fromLangDialectId={dictionaryData.fromLangDialectId}
+                    toLangDialectId={dictionaryData.toLangDialectId}
+                  />
+                )}
+                <WordSidePreview
+                  title={
+                    isNewWord
+                      ? t('dictionaryReview.newAfterApproval', { ns: 'dashboard' })
+                      : t('proposals.afterApproval', { ns: 'dashboard' })
+                  }
+                  word={entry}
+                  oppositeWord={baseline}
+                  sourceModels={sourceModels}
+                  lang={lang}
+                  fromLangDialectId={dictionaryData.fromLangDialectId}
+                  toLangDialectId={dictionaryData.toLangDialectId}
+                />
+              </Box>
+            </CardContent>
+          </Card>
+        );
+      })}
+    </Stack>
+  );
 };
 
 const DictionaryProposalsOverview: React.FC<{
   lang: WebsiteLang;
   sourceModels: SourceModelType[];
-  proposals: Proposal[];
+  proposals: PaginatedResponse<Proposal>;
+  historyProposals: PaginatedResponse<Proposal>;
   readonly: boolean;
-}> = ({ lang, sourceModels, proposals, readonly }) => {
+  baselineWords: Record<number, Record<number, WordModelExistingNestedType>>;
+  queryParamPrefix: string;
+}> = ({
+  lang,
+  sourceModels,
+  proposals,
+  historyProposals,
+  readonly,
+  baselineWords,
+  queryParamPrefix,
+}) => {
+  const { t } = useTranslation(lang);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [selectedProposal, setSelectedProposal] = React.useState<Proposal | undefined>();
-  return (
-    <>
+
+  const replacePaginationParams = (
+    newPage: number,
+    newRowsPerPage: number,
+    options?: { history?: boolean },
+  ) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', queryParamPrefix === 'reviewProposals' ? 'review-proposals' : 'my-proposals');
+    const pageParam = `${queryParamPrefix}${options?.history ? 'History' : ''}Page`;
+    const pageSizeParam = `${queryParamPrefix}${options?.history ? 'History' : ''}PageSize`;
+    params.set(pageParam, Math.max(1, newPage + 1).toString());
+    params.set(pageSizeParam, newRowsPerPage.toString());
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
+  const renderTable = (
+    paginatedProposals: PaginatedResponse<Proposal>,
+    options?: { history?: boolean },
+  ) => {
+    const page = Math.max(0, paginatedProposals.currentPage - 1);
+    const rowsPerPage = paginatedProposals.pageSize;
+
+    return (
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+        <Table sx={{ minWidth: 650 }} aria-label={t('proposals.table.ariaLabel', { ns: 'dashboard' })}>
           <TableHead>
             <TableRow>
               {/* Type is not needed because we will review proposals for every type on its dedicated route  */}
               {/* <TableCell>Type</TableCell> */}
-              <TableCell align="left">ID</TableCell>
-              <TableCell align="left">Proposed at</TableCell>
-              <TableCell align="left">Proposed by</TableCell>
-              <TableCell align="left">Reviewed by</TableCell>
-              <TableCell align="left">Status</TableCell>
-              <TableCell align="left">Comment</TableCell>
+              <TableCell align="left">{t('proposals.table.id', { ns: 'dashboard' })}</TableCell>
+              <TableCell align="left">
+                {t('proposals.table.proposedAt', { ns: 'dashboard' })}
+              </TableCell>
+              <TableCell align="left">
+                {t('proposals.table.proposedBy', { ns: 'dashboard' })}
+              </TableCell>
+              {/* <TableCell align="left">Reviewed by</TableCell> */}
+              <TableCell align="left">
+                {t('proposals.table.wordsAmount', { ns: 'dashboard' })}
+              </TableCell>
+              <TableCell align="left">
+                {t('proposals.table.languages', { ns: 'dashboard' })}
+              </TableCell>
+              <TableCell align="left">
+                {t('proposals.table.status', { ns: 'dashboard' })}
+              </TableCell>
+              <TableCell align="left">
+                {t('proposals.table.comment', { ns: 'dashboard' })}
+              </TableCell>
               <TableCell align="right"></TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {proposals.map((proposal) => (
-              <TableRow
-                key={proposal.id}
-                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-              >
-                {/* <TableCell component="th" scope="row">
+            {paginatedProposals.items.map((proposal) => {
+              const dictionaryData: DictionaryProposalModelNestedType =
+                proposal.data! as DictionaryProposalModelNestedType;
+              return (
+                <TableRow
+                  key={proposal.id}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  {/* <TableCell component="th" scope="row">
                   <ProposalsTypeChip type={row.type} />
                 </TableCell> */}
-                <TableCell align="left">{proposal.id}</TableCell>
-                <TableCell align="left">{new Date(proposal.proposedAt).toLocaleString()}</TableCell>
-                <TableCell align="left">{proposal.proposedBy.name}</TableCell>
-                <TableCell align="left">{proposal.reviewedBy?.name}</TableCell>
-                <TableCell align="left">
-                  <ProposalsStatusChip status={proposal.status} />
-                </TableCell>
-                <TableCell align="left">{proposal.comment}</TableCell>
-                <TableCell align="right">
-                  <IconButton onClick={() => setSelectedProposal(proposal)}>
-                    <VisibilityIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
+                  <TableCell align="left">{proposal.id}</TableCell>
+                  <TableCell align="left">
+                    {new Date(proposal.proposedAt).toLocaleString()}
+                  </TableCell>
+                  <TableCell align="left">{proposal.proposedBy.name}</TableCell>
+                  {/* <TableCell align="left">{proposal.reviewedBy?.name}</TableCell> */}
+                  <TableCell align="left">{dictionaryData.entries.length}</TableCell>
+                  <TableCell align="left">
+                    {langDialectIdToString(dictionaryData.fromLangDialectId, t) +
+                      ' → ' +
+                      langDialectIdToString(dictionaryData.toLangDialectId, t)}
+                  </TableCell>
+                  <TableCell align="left">
+                    <ProposalsStatusChip status={proposal.status} />
+                  </TableCell>
+                  <TableCell align="left">{proposal.comment}</TableCell>
+                  <TableCell align="right">
+                    <IconButton onClick={() => setSelectedProposal(proposal)}>
+                      <VisibilityIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TablePagination
+                rowsPerPageOptions={[
+                  5,
+                  10,
+                  25,
+                  { label: t('common.all', { ns: 'dashboard' }), value: -1 },
+                ]}
+                colSpan={3}
+                count={paginatedProposals.totalItems}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                slotProps={{
+                  select: {
+                    inputProps: {
+                      'aria-label': t('pagination.rowsPerPage', { ns: 'dashboard' }),
+                    },
+                    native: true,
+                  },
+                }}
+                onPageChange={(_, newPage) =>
+                  replacePaginationParams(newPage, rowsPerPage, options)
+                }
+                onRowsPerPageChange={(event) => {
+                  replacePaginationParams(0, parseInt(event.target.value, 10), options);
+                }}
+                // ActionsComponent={TablePaginationActions}
+              />
+            </TableRow>
+          </TableFooter>
         </Table>
       </TableContainer>
+    );
+  };
+
+  return (
+    <>
+      <Stack gap={2}>
+        <Box>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            {t('proposals.needsReview', { ns: 'dashboard' })}
+          </Typography>
+          {renderTable(proposals)}
+        </Box>
+        <Accordion>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">{t('proposals.history', { ns: 'dashboard' })}</Typography>
+          </AccordionSummary>
+          <AccordionDetails>{renderTable(historyProposals, { history: true })}</AccordionDetails>
+        </Accordion>
+      </Stack>
       {selectedProposal !== undefined && (
         <Modal
           open={selectedProposal !== undefined}
@@ -160,7 +706,10 @@ const DictionaryProposalsOverview: React.FC<{
           >
             <CardHeader
               action={
-                <IconButton aria-label="settings" onClick={() => setSelectedProposal(undefined)}>
+                <IconButton
+                  aria-label={t('common.close', { ns: 'dashboard' })}
+                  onClick={() => setSelectedProposal(undefined)}
+                >
                   <CloseIcon />
                 </IconButton>
               }
@@ -173,46 +722,51 @@ const DictionaryProposalsOverview: React.FC<{
               subheader={new Date(selectedProposal.proposedAt).toLocaleString()}
             />
             <CardContent sx={{ maxHeight: '70vh', overflowY: 'scroll', mb: '20px' }}>
-              <WordEntryForm
-                lang={lang}
-                sourceModels={sourceModels}
-                dictionaryModel={DictionaryProposalModel.fromNestedTypes(
-                  selectedProposal!.data!.entries,
-                  selectedProposal!.data!.source,
-                )}
-                readonly={true}
-              />
+              <Stack gap={4}>
+                <ProposalDiff
+                  proposal={selectedProposal}
+                  baselineWords={baselineWords}
+                  sourceModels={sourceModels}
+                  lang={lang}
+                />
+              </Stack>
             </CardContent>
-            {!readonly && (
+            {!readonly && selectedProposal.status === ProposalStatus.PENDING && (
               <CardActions sx={{ justifyContent: 'center' }}>
                 {/* // TODO: fix real user ID */}
                 <Button
                   variant="outlined"
                   startIcon={<RejectIcon />}
                   onClick={async () => {
-                    const comment = prompt('What is the reason for rejection?');
+                    const comment = prompt(t('proposals.rejectionReason', { ns: 'dashboard' }));
                     if (comment) {
                       try {
                         await rejectProposal(selectedProposal.id, 1, comment);
                         window.location.reload();
                       } catch (e: any) {
-                        alert(`Cannot reject proposal. ${e.message}`);
+                        alert(t('proposals.cannotReject', { ns: 'dashboard', message: e.message }));
                       }
                     }
                   }}
                 >
-                  Reject
+                  {t('proposals.reject', { ns: 'dashboard' })}
                 </Button>
                 {/* // TODO: fix real user ID */}
                 <Button
                   variant="contained"
                   startIcon={<ApproveIcon />}
                   onClick={async () => {
-                    await approveProposal(selectedProposal.id, 1);
-                    window.location.reload();
+                    try {
+                      await approveProposal(selectedProposal.id, 1);
+                      window.location.reload();
+                    } catch (e: any) {
+                      alert(
+                        t('proposals.cannotApprove', { ns: 'dashboard', message: e.message }),
+                      );
+                    }
                   }}
                 >
-                  Approve
+                  {t('proposals.approve', { ns: 'dashboard' })}
                 </Button>
                 {/* <IconButton aria-label="share">
                 <ThumbDownIcon color="error" />

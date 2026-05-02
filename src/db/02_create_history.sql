@@ -220,7 +220,7 @@ DECLARE
 BEGIN
   SELECT
     OLD.word_details_id, OLD.translation_id,
-    OLD.created_by, OLD.created_at,
+    OLD.created_at,
     OLD.created_at, CURRENT_TIMESTAMP -- valid_from, valid_to
   INTO full_row;
 
@@ -245,7 +245,7 @@ DECLARE
 BEGIN
   SELECT
     OLD.definition_id, OLD.translation_id,
-    OLD.created_by, OLD.created_at,
+    OLD.created_at,
     OLD.created_at, CURRENT_TIMESTAMP -- valid_from, valid_to
   INTO full_row;
   

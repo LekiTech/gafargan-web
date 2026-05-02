@@ -26,19 +26,20 @@ const changeDictLang = (args: {
     console.error(`Did not find pair language for '${lang}'`);
     return;
   }
-  const langsParams = isFrom
-    ? `?fromLang=${lang}&toLang=${otherLang}`
-    : `?fromLang=${otherLang}&toLang=${lang}`;
-  const otherParamsArray: string[] = [];
-  searchParams.forEach((value, key, parent) => {
-    if (key !== 'fromLang' && key !== 'toLang') {
-      otherParamsArray.push(`${key}=${value}`);
-    }
-  });
-  const otherParams = otherParamsArray.length > 0 ? '&' + otherParamsArray.join('&') : '';
-  setIsLoading(true);
-  // router.push(pathname + langsParams + otherParams);
-  window.history.replaceState({}, '', pathname + langsParams + otherParams);
+  const params = new URLSearchParams(searchParams.toString());
+  params.set('fromLang', isFrom ? lang : otherLang);
+  params.set('toLang', isFrom ? otherLang : lang);
+
+  const href = `${pathname}?${params.toString()}`;
+  const needsServerRefresh =
+    pathname.includes('/definition') || pathname.includes('/dashboard/dictionary');
+
+  if (needsServerRefresh) {
+    setIsLoading(true);
+    router.replace(href);
+  } else {
+    window.history.replaceState({}, '', href);
+  }
   return;
 };
 

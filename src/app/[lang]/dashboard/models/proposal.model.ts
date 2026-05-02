@@ -12,7 +12,7 @@ abstract class Model {
   protected id?: number;
   constructor(state: StateType, id?: number) {
     this.state = state;
-    if (state === STATE.UNCHANGED) {
+    if (state != STATE.ADDED) {
       this.id = id;
     }
   }
@@ -25,33 +25,42 @@ abstract class Model {
     return this.id;
   }
 
-  setModified(): void {
+  markModified(): void {
     if (this.state !== STATE.ADDED) {
       this.state = STATE.MODIFIED;
     }
   }
 
-  delete(): void {
+  markDeleted(): this {
     this.state = STATE.DELETED;
+    return this;
+  }
+
+  isDeleted(): boolean {
+    return this.state === STATE.DELETED;
+  }
+
+  isPersisted(): boolean {
+    return this.id !== undefined;
   }
 
   abstract isEmpty(): boolean;
 }
 
 // ============== TranslationModel ==============
-
+export type TranslationModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  phrasesPerLangDialect: Record<string, Phrase[]>;
+  tags?: string[];
+};
 export type TranslationModelType =
   | {
       state: 'added';
       phrasesPerLangDialect: Record<string, Phrase[]>;
       tags?: string[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      phrasesPerLangDialect: Record<string, Phrase[]>;
-      tags?: string[];
-    };
+  | TranslationModelExistingType;
 
 interface Phrase {
   phrase: string;
@@ -64,7 +73,7 @@ export class TranslationModel extends Model {
   private phrasesPerLangDialect: Record<string, Phrase[]>;
   private tags?: string[];
   constructor(data: TranslationModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.phrasesPerLangDialect = data.phrasesPerLangDialect;
     this.tags = data.tags;
   }
@@ -82,15 +91,15 @@ export class TranslationModel extends Model {
   }
   setPhrasesByLangDialect(langDialectId: number, phrases: Phrase[]): void {
     this.phrasesPerLangDialect[langDialectId] = phrases;
-    this.setModified();
+    this.markModified();
   }
   deletePhrasesForLangDialect(langDialectId: number): void {
     delete this.phrasesPerLangDialect[langDialectId];
-    this.setModified();
+    this.markModified();
   }
   setTags(tags: string[] | undefined): void {
     this.tags = tags;
-    this.setModified();
+    this.markModified();
   }
 
   /**
@@ -104,7 +113,7 @@ export class TranslationModel extends Model {
    * @returns The updated TranslationModel instance.
    */
   merge(data: Partial<TranslationModelType>): TranslationModel {
-    this.setModified();
+    this.markModified();
     if (data.phrasesPerLangDialect !== undefined) {
       this.phrasesPerLangDialect = data.phrasesPerLangDialect;
     }
@@ -165,50 +174,57 @@ export class TranslationModel extends Model {
 
 // ============== DefinitionModel ==============
 
+export type DefinitionModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  values: DefinitionValue[];
+  tags?: string[];
+  examples?: TranslationModel[];
+};
 export type DefinitionModelType =
   | {
       state: 'added';
-      value: string;
+      values: DefinitionValue[];
       tags?: string[];
       examples?: TranslationModel[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      value: string;
-      tags?: string[];
-      examples?: TranslationModel[];
-    };
+  | DefinitionModelExistingType;
 
+export type DefinitionModelExistingNestedType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  values: DefinitionValue[];
+  tags?: string[];
+  examples?: TranslationModelExistingType[];
+};
 export type DefinitionModelNestedType =
   | {
       state: 'added';
-      value: string;
+      values: DefinitionValue[];
       tags?: string[];
       examples?: TranslationModelType[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      value: string;
-      tags?: string[];
-      examples?: TranslationModelType[];
-    };
+  | DefinitionModelExistingNestedType;
+
+interface DefinitionValue {
+  value: string;
+  tags?: string[];
+}
 
 export class DefinitionModel extends Model {
-  private value: string;
+  private values: DefinitionValue[];
   private tags?: string[];
   private examples?: TranslationModel[];
 
   constructor(data: DefinitionModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
-    this.value = data.value;
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
+    this.values = data.values;
     this.tags = data.tags;
     this.examples = data.examples;
   }
 
-  getValue(): string {
-    return this.value;
+  getValues(): DefinitionValue[] {
+    return this.values;
   }
 
   getTags(): string[] | undefined {
@@ -219,19 +235,18 @@ export class DefinitionModel extends Model {
     return this.examples;
   }
 
-  setValue(value: string): void {
-    this.value = value;
-    this.setModified();
+  setValues(values: DefinitionValue[]): void {
+    this.values = values;
+    this.markModified();
   }
 
   setTags(tags: string[] | undefined): void {
     this.tags = tags;
-    this.setModified();
+    this.markModified();
   }
 
   setExamples(examples: TranslationModel[] | undefined): void {
     this.examples = examples;
-    this.setModified();
   }
 
   /**
@@ -245,9 +260,9 @@ export class DefinitionModel extends Model {
    * @returns The updated DefinitionModel instance.
    */
   merge(data: Partial<DefinitionModelType>): DefinitionModel {
-    this.setModified();
-    if (data.value !== undefined) {
-      this.value = data.value;
+    this.markModified();
+    if (data.values !== undefined) {
+      this.values = data.values;
     }
     if (data.tags !== undefined) {
       this.tags = data.tags;
@@ -262,7 +277,7 @@ export class DefinitionModel extends Model {
     if (this.state === STATE.ADDED) {
       return new DefinitionModel({
         state: this.state,
-        value: this.value,
+        values: this.values,
         tags: this.tags,
         examples: this.examples?.map((e) => e.getCopy()),
       });
@@ -270,15 +285,33 @@ export class DefinitionModel extends Model {
     return new DefinitionModel({
       state: this.state,
       id: this.id!,
-      value: this.value,
+      values: this.values,
       tags: this.tags,
       examples: this.examples?.map((e) => e.getCopy()),
     });
   }
 
+  getShallowCopy(): DefinitionModel {
+    if (this.state === STATE.ADDED) {
+      return new DefinitionModel({
+        state: this.state,
+        values: this.values,
+        tags: this.tags,
+        examples: this.examples,
+      });
+    }
+    return new DefinitionModel({
+      state: this.state,
+      id: this.id!,
+      values: this.values,
+      tags: this.tags,
+      examples: this.examples,
+    });
+  }
+
   isEmpty(): boolean {
     return (
-      this.value.trim() === '' &&
+      (!this.values || this.values.length === 0) &&
       (!this.tags || this.tags.length === 0) &&
       (!this.examples || this.examples.length === 0 || this.examples.every((e) => e.isEmpty()))
     );
@@ -288,7 +321,7 @@ export class DefinitionModel extends Model {
     return (
       m1.state === m2.state &&
       m1.id === m2.id &&
-      m1.value === m2.value &&
+      JSON.stringify(m1.values) === JSON.stringify(m2.values) &&
       JSON.stringify(m1.tags) === JSON.stringify(m2.tags) &&
       m1.examples?.length === m2.examples?.length &&
       // Both true and undefined values are ok
@@ -301,7 +334,7 @@ export class DefinitionModel extends Model {
   static createEmpty(): DefinitionModel {
     return new DefinitionModel({
       state: STATE.ADDED,
-      value: '',
+      values: [{ value: '' }],
       tags: [],
       examples: [],
     });
@@ -317,6 +350,16 @@ export class DefinitionModel extends Model {
 
 // ============== WordDetailModel ==============
 
+export type WordDetailModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  inflection?: string;
+  langDialectId: number;
+  sourceId: number;
+  tags?: string[];
+  definitions: DefinitionModel[];
+  examples?: TranslationModel[];
+};
 export type WordDetailModelType =
   | {
       state: 'added';
@@ -327,16 +370,18 @@ export type WordDetailModelType =
       definitions: DefinitionModel[];
       examples?: TranslationModel[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      inflection?: string;
-      langDialectId: number;
-      sourceId: number;
-      tags?: string[];
-      definitions: DefinitionModel[];
-      examples?: TranslationModel[];
-    };
+  | WordDetailModelExistingType;
+
+export type WordDetailModelExistingNestedType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  inflection?: string;
+  langDialectId: number;
+  sourceId: number;
+  tags?: string[];
+  definitions: DefinitionModelExistingNestedType[];
+  examples?: TranslationModelExistingType[];
+};
 export type WordDetailModelNestedType =
   | {
       state: 'added';
@@ -347,16 +392,7 @@ export type WordDetailModelNestedType =
       definitions: DefinitionModelNestedType[];
       examples?: TranslationModelType[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      inflection?: string;
-      langDialectId: number;
-      sourceId: number;
-      tags?: string[];
-      definitions: DefinitionModelNestedType[];
-      examples?: TranslationModelType[];
-    };
+  | WordDetailModelExistingNestedType;
 
 export class WordDetailModel extends Model {
   private inflection?: string;
@@ -367,7 +403,7 @@ export class WordDetailModel extends Model {
   private examples?: TranslationModel[];
 
   constructor(data: WordDetailModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.inflection = data.inflection;
     this.langDialectId = data.langDialectId;
     this.sourceId = data.sourceId;
@@ -395,27 +431,25 @@ export class WordDetailModel extends Model {
   }
   setInflection(inflection: string | undefined): void {
     this.inflection = inflection;
-    this.setModified();
+    this.markModified();
   }
   setLangDialectId(langDialectId: number): void {
     this.langDialectId = langDialectId;
-    this.setModified();
+    this.markModified();
   }
   setSourceId(sourceId: number): void {
     this.sourceId = sourceId;
-    this.setModified();
+    this.markModified();
   }
   setTags(tags: string[] | undefined): void {
     this.tags = tags;
-    this.setModified();
+    this.markModified();
   }
   setDefinitions(definitions: DefinitionModel[]): void {
     this.definitions = definitions;
-    this.setModified();
   }
   setExamples(examples: TranslationModel[] | undefined): void {
     this.examples = examples;
-    this.setModified();
   }
 
   /**
@@ -429,7 +463,7 @@ export class WordDetailModel extends Model {
    * @returns The updated WordDetailModel instance.
    */
   merge(data: Partial<WordDetailModelType>): WordDetailModel {
-    this.setModified();
+    this.markModified();
     if (data.inflection !== undefined) {
       this.inflection = data.inflection;
     }
@@ -466,6 +500,30 @@ export class WordDetailModel extends Model {
       tags: this.tags,
       definitions: this.definitions.map((d) => d.getCopy()),
       examples: this.examples?.map((e) => e.getCopy()),
+    });
+  }
+
+  getShallowCopy(): WordDetailModel {
+    if (this.state === STATE.ADDED) {
+      return new WordDetailModel({
+        state: this.state,
+        inflection: this.inflection,
+        langDialectId: this.langDialectId,
+        sourceId: this.sourceId,
+        tags: this.tags,
+        definitions: this.definitions,
+        examples: this.examples,
+      });
+    }
+    return new WordDetailModel({
+      state: this.state,
+      id: this.id!,
+      inflection: this.inflection,
+      langDialectId: this.langDialectId,
+      sourceId: this.sourceId,
+      tags: this.tags,
+      definitions: this.definitions,
+      examples: this.examples,
     });
   }
 
@@ -527,6 +585,15 @@ export class WordDetailModel extends Model {
 
 // ============== WordModel ==============
 
+export type WordModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  spelling: string;
+  langDialectId: number;
+  sourceId: number;
+  spellingVariants: SpellingVariantModel[];
+  wordDetails: WordDetailModel[];
+};
 export type WordModelType =
   | {
       state: 'added';
@@ -536,16 +603,17 @@ export type WordModelType =
       spellingVariants: SpellingVariantModel[];
       wordDetails: WordDetailModel[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      spelling: string;
-      langDialectId: number;
-      sourceId: number;
-      spellingVariants: SpellingVariantModel[];
-      wordDetails: WordDetailModel[];
-    };
+  | WordModelExistingType;
 
+export type WordModelExistingNestedType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  spelling: string;
+  langDialectId: number;
+  sourceId: number;
+  spellingVariants: SpellingVariantModelExistingType[];
+  wordDetails: WordDetailModelExistingNestedType[];
+};
 export type WordModelNestedType =
   | {
       state: 'added';
@@ -555,15 +623,7 @@ export type WordModelNestedType =
       spellingVariants: SpellingVariantModelType[];
       wordDetails: WordDetailModelNestedType[];
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      spelling: string;
-      langDialectId: number;
-      sourceId: number;
-      spellingVariants: SpellingVariantModelType[];
-      wordDetails: WordDetailModelNestedType[];
-    };
+  | WordModelExistingNestedType;
 
 export class WordModel extends Model {
   private spelling: string;
@@ -572,7 +632,7 @@ export class WordModel extends Model {
   private spellingVariants: SpellingVariantModel[];
   private wordDetails: WordDetailModel[];
   constructor(data: WordModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.spelling = data.spelling;
     this.spellingVariants = data.spellingVariants;
     this.wordDetails = data.wordDetails;
@@ -597,37 +657,35 @@ export class WordModel extends Model {
   }
   setSpelling(spelling: string): void {
     this.spelling = spelling;
-    this.setModified();
+    this.markModified();
   }
   setWordDetails(wordDetails: WordDetailModel[]): void {
     this.wordDetails = wordDetails;
-    this.setModified();
   }
   setSpellingVariants(spellingVariants: SpellingVariantModel[]): void {
     this.spellingVariants = spellingVariants;
-    this.setModified();
   }
   setLangDialectId(langDialectId: number): void {
     this.langDialectId = langDialectId;
-    this.setModified();
+    this.markModified();
   }
   setSourceId(sourceId: number): void {
     this.sourceId = sourceId;
-    this.setModified();
+    this.markModified();
   }
 
   /**
    * Merges partial data into the WordModel instance in-place. It does not create a new instance.
-   * This method updates the spelling and wordDetails properties based on the provided data.
-   * If the model is in 'added' state, it will update the spelling and wordDetails properties.
-   * If the model is in 'unchanged' state, it will update the spelling and wordDetails properties
+   * This method updates the spelling and word wordDetails properties based on the provided data.
+   * If the model is in 'added' state, it will update the spelling and word wordDetails properties.
+   * If the model is in 'unchanged' state, it will update the spelling and word wordDetails properties
    * and set the state to 'modified'.
    *
    * @param data Partial data to merge into the model.
    * @returns The updated WordModel instance.
    */
   merge(data: Partial<WordModelType>): WordModel {
-    this.setModified();
+    this.markModified();
     if (data.spelling !== undefined) {
       this.spelling = data.spelling;
     }
@@ -658,6 +716,28 @@ export class WordModel extends Model {
       langDialectId: this.langDialectId,
       wordDetails: this.wordDetails.map((wd) => wd.getCopy()),
       spellingVariants: this.spellingVariants.map((sv) => sv.getCopy()),
+      sourceId: this.sourceId,
+    });
+  }
+
+  getShallowCopy(): WordModel {
+    if (this.state === STATE.ADDED) {
+      return new WordModel({
+        state: this.state,
+        spelling: this.spelling,
+        langDialectId: this.langDialectId,
+        wordDetails: this.wordDetails,
+        spellingVariants: this.spellingVariants,
+        sourceId: this.sourceId,
+      });
+    }
+    return new WordModel({
+      state: this.state,
+      id: this.id!,
+      spelling: this.spelling,
+      langDialectId: this.langDialectId,
+      wordDetails: this.wordDetails,
+      spellingVariants: this.spellingVariants,
       sourceId: this.sourceId,
     });
   }
@@ -710,6 +790,7 @@ export class WordModel extends Model {
   }
 
   static fromNestedTypes(data: WordModelNestedType): WordModel {
+    console.log(JSON.stringify(data, null, 2));
     return new WordModel({
       ...data,
       spellingVariants: data.spellingVariants?.map((sv) => new SpellingVariantModel(sv)),
@@ -719,6 +800,13 @@ export class WordModel extends Model {
 }
 
 // ============== SpellingVariantModel ==============
+export type SpellingVariantModelExistingType = {
+  state: 'unchanged' | 'modified' | 'deleted';
+  id: number;
+  spelling: string;
+  sourceId: number;
+  langDialectId: number;
+};
 export type SpellingVariantModelType =
   | {
       state: 'added';
@@ -726,20 +814,14 @@ export type SpellingVariantModelType =
       sourceId: number;
       langDialectId: number;
     }
-  | {
-      state: 'unchanged' | 'modified' | 'deleted';
-      id: number;
-      spelling: string;
-      sourceId: number;
-      langDialectId: number;
-    };
+  | SpellingVariantModelExistingType;
 
 export class SpellingVariantModel extends Model {
   private spelling: string;
   private sourceId: number;
   private langDialectId: number;
   constructor(data: SpellingVariantModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.spelling = data.spelling;
     this.sourceId = data.sourceId;
     this.langDialectId = data.langDialectId;
@@ -756,15 +838,15 @@ export class SpellingVariantModel extends Model {
   }
   setSpelling(spelling: string): void {
     this.spelling = spelling;
-    this.setModified();
+    this.markModified();
   }
   setSourceId(sourceId: number): void {
     this.sourceId = sourceId;
-    this.setModified();
+    this.markModified();
   }
   setLangDialectId(langDialectId: number): void {
     this.langDialectId = langDialectId;
-    this.setModified();
+    this.markModified();
   }
 
   isEmpty(): boolean {
@@ -811,7 +893,7 @@ export class SpellingVariantModel extends Model {
    * @returns The updated SpellingVariantModel instance.
    */
   merge(data: Partial<SpellingVariantModelType>): SpellingVariantModel {
-    this.setModified();
+    this.markModified();
     if (data.spelling !== undefined) {
       this.spelling = data.spelling;
     }
@@ -883,7 +965,7 @@ export class SourceModel extends Model {
   private description?: string;
 
   constructor(data: SourceModelType) {
-    super(data.state, data.state === 'unchanged' ? data.id : undefined);
+    super(data.state, data.state === STATE.ADDED ? undefined : data.id);
     this.name = data.name;
     this.authors = data.authors;
     this.publicationYear = data.publicationYear;
@@ -924,39 +1006,39 @@ export class SourceModel extends Model {
 
   setName(name: string): void {
     this.name = name;
-    this.setModified();
+    this.markModified();
   }
   setAuthors(authors: string | undefined): void {
     this.authors = authors;
-    this.setModified();
+    this.markModified();
   }
   setPublicationYear(publicationYear: string | undefined): void {
     this.publicationYear = publicationYear;
-    this.setModified();
+    this.markModified();
   }
   setProvidedBy(providedBy: string | undefined): void {
     this.providedBy = providedBy;
-    this.setModified();
+    this.markModified();
   }
   setProvidedByUrl(providedByUrl: string | undefined): void {
     this.providedByUrl = providedByUrl;
-    this.setModified();
+    this.markModified();
   }
   setProcessedBy(processedBy: string | undefined): void {
     this.processedBy = processedBy;
-    this.setModified();
+    this.markModified();
   }
   setCopyright(copyright: string | undefined): void {
     this.copyright = copyright;
-    this.setModified();
+    this.markModified();
   }
   setSeeSourceUrl(seeSourceUrl: string | undefined): void {
     this.seeSourceUrl = seeSourceUrl;
-    this.setModified();
+    this.markModified();
   }
   setDescription(description: string | undefined): void {
     this.description = description;
-    this.setModified();
+    this.markModified();
   }
 
   /**
@@ -971,7 +1053,7 @@ export class SourceModel extends Model {
    * @returns The updated SourceModel instance.
    */
   merge(data: Partial<SourceModelType>): SourceModel {
-    this.setModified();
+    this.markModified();
     if (data.name !== undefined) {
       this.name = data.name;
     }
@@ -1056,23 +1138,45 @@ export class SourceModel extends Model {
 
 // ============== DictionaryModel ==============
 
+// This one is used in the backend, as it receives only json data through HTTP API requests
+export type DictionaryProposalModelNestedType = {
+  version: string;
+  entries: WordModelNestedType[];
+  source: SourceModelType;
+  fromLangDialectId: number;
+  toLangDialectId: number;
+};
+
 export class DictionaryProposalModel {
   readonly version = 'V3';
   readonly entries: WordModel[];
   readonly source: SourceModel;
+  readonly fromLangDialectId: number;
+  readonly toLangDialectId: number;
 
-  constructor(entries: WordModel[], source: SourceModel) {
+  constructor(
+    entries: WordModel[],
+    source: SourceModel,
+    fromLangDialectId: number,
+    toLangDialectId: number,
+  ) {
     this.entries = entries;
     this.source = source;
+    this.fromLangDialectId = fromLangDialectId;
+    this.toLangDialectId = toLangDialectId;
   }
 
   static fromNestedTypes(
     entries: WordModelNestedType[],
     source: SourceModelType,
+    fromLangDialectId: number,
+    toLangDialectId: number,
   ): DictionaryProposalModel {
     return new DictionaryProposalModel(
       entries.map((e) => WordModel.fromNestedTypes(e)),
       new SourceModel(source),
+      fromLangDialectId,
+      toLangDialectId,
     );
   }
 }
@@ -1080,10 +1184,10 @@ export class DictionaryProposalModel {
 export class TranslationsProposalModel {
   readonly version = 'V3';
   readonly entries: TranslationModel[];
-  readonly defaultSource: SourceModel;
+  readonly sourceId: number;
 
-  constructor(entries: TranslationModel[], defaultSource: SourceModel) {
+  constructor(entries: TranslationModel[], sourceId: number) {
     this.entries = entries;
-    this.defaultSource = defaultSource;
+    this.sourceId = sourceId;
   }
 }

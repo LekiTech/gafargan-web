@@ -21,12 +21,24 @@ export const DefinitionSchema = new EntitySchema<Definition>({
       generated: true,
     },
     values: {
-      type: 'json',
-      array: true,
+      type: 'jsonb',
+      default: () => "'[]'::jsonb",
     },
     tags: {
       type: 'text',
       array: true,
+    },
+    wordDetailsId: {
+      name: 'word_details_id',
+      type: 'int',
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
     },
     createdAt: {
       name: 'created_at',
@@ -67,7 +79,7 @@ export const DefinitionSchema = new EntitySchema<Definition>({
         joinColumn: { name: 'definition_id', referencedColumnName: 'id' },
         inverseJoinColumn: { name: 'translation_id', referencedColumnName: 'id' },
       },
-      cascade: false,
+      cascade: true,
     },
   },
 });
@@ -173,6 +185,14 @@ export const SourceSchema = new EntitySchema<Source>({
       nullable: true,
       select: false,
     },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
+    },
     createdAt: {
       name: 'created_at',
       type: 'timestamp',
@@ -218,6 +238,22 @@ export const SpellingVariantSchema = new EntitySchema<SpellingVariant>({
     spelling: {
       type: 'text',
     },
+    langDialectId: {
+      name: 'lang_dialect_id',
+      type: 'int',
+    },
+    sourceId: {
+      name: 'source_id',
+      type: 'int',
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
+    },
     createdAt: {
       name: 'created_at',
       type: 'timestamp',
@@ -230,6 +266,18 @@ export const SpellingVariantSchema = new EntitySchema<SpellingVariant>({
     },
   },
   relations: {
+    createdBy: {
+      type: 'many-to-one',
+      target: () => User,
+      joinColumn: { name: 'created_by' },
+      inverseSide: 'createdTranslations',
+    },
+    updatedBy: {
+      type: 'many-to-one',
+      target: () => User,
+      joinColumn: { name: 'updated_by' },
+      inverseSide: 'updatedTranslations',
+    },
     langDialect: {
       type: 'many-to-one',
       target: () => LangDialect,
@@ -273,6 +321,14 @@ export const TranslationSchema = new EntitySchema<Translation>({
     raw: {
       type: 'text',
       nullable: true,
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
     },
     createdAt: {
       name: 'created_at',
@@ -322,6 +378,12 @@ export const UserSchema = new EntitySchema<User>({
     },
     password: {
       type: 'text',
+      select: false,
+    },
+    passwordChangedAt: {
+      name: 'password_changed_at',
+      type: 'timestamp',
+      default: () => 'CURRENT_TIMESTAMP',
       select: false,
     },
     language: {
@@ -420,6 +482,22 @@ export const WordSchema = new EntitySchema<Word>({
     spelling: {
       type: 'text',
     },
+    langDialectId: {
+      name: 'lang_dialect_id',
+      type: 'int',
+    },
+    sourceId: {
+      name: 'source_id',
+      type: 'int',
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
+    },
     createdAt: {
       name: 'created_at',
       type: 'timestamp',
@@ -461,7 +539,7 @@ export const WordSchema = new EntitySchema<Word>({
       target: () => SpellingVariant,
       inverseSide: 'word',
     },
-    details: {
+    wordDetails: {
       type: 'one-to-many',
       target: () => WordDetail,
       inverseSide: 'word',
@@ -488,6 +566,26 @@ export const WordDetailSchema = new EntitySchema<WordDetail>({
       type: 'text',
       nullable: true,
     },
+    langDialectId: {
+      name: 'lang_dialect_id',
+      type: 'int',
+    },
+    wordId: {
+      name: 'word_id',
+      type: 'int',
+    },
+    createdById: {
+      name: 'created_by',
+      type: 'int',
+    },
+    updatedById: {
+      name: 'updated_by',
+      type: 'int',
+    },
+    sourceId: {
+      name: 'source_id',
+      type: 'int',
+    },
     createdAt: {
       name: 'created_at',
       type: 'timestamp',
@@ -504,7 +602,7 @@ export const WordDetailSchema = new EntitySchema<WordDetail>({
       type: 'many-to-one',
       target: () => Word,
       joinColumn: { name: 'word_id' },
-      inverseSide: 'details',
+      inverseSide: 'wordDetails',
     },
     langDialect: {
       type: 'many-to-one',
@@ -544,7 +642,7 @@ export const WordDetailSchema = new EntitySchema<WordDetail>({
         joinColumn: { name: 'word_details_id', referencedColumnName: 'id' },
         inverseJoinColumn: { name: 'translation_id', referencedColumnName: 'id' },
       },
-      cascade: false,
+      cascade: true,
     },
   },
 });
