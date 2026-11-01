@@ -230,6 +230,20 @@ export async function requireDashboardAdminUser(
   return user;
 }
 
+/**
+ * Guard for server actions / repository functions that can be invoked directly from the client.
+ * Throws instead of redirecting, so it is safe to use outside of page rendering.
+ */
+export async function requireDashboardActionUser(): Promise<DashboardSessionUser> {
+  const user = await getDashboardSessionUser();
+
+  if (!user) {
+    throw new Error('Unauthorized');
+  }
+
+  return user;
+}
+
 export async function requireDashboardApiUser(): Promise<
   | { user: DashboardSessionUser; response: null }
   | { user: null; response: NextResponse<{ message: string }> }

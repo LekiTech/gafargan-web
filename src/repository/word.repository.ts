@@ -17,6 +17,15 @@ import { WordSearchType } from './enums';
 import { FindOperator, ILike, In } from 'typeorm';
 import { sources } from 'next/dist/compiled/webpack/webpack';
 import type { TranslationLinkTarget } from './translation.repository';
+import { requireDashboardActionUser } from '@/dashboard/auth';
+
+// Functions in this file are server actions and can be called with arbitrary arguments,
+// so never trust caller-provided limits
+const MAX_LIMIT = 100;
+const clampLimit = (limit: unknown, fallback: number) => {
+  const value = Math.floor(Number(limit));
+  return Number.isFinite(value) && value > 0 ? Math.min(value, MAX_LIMIT) : fallback;
+};
 
 // Initialize a shared PG client
 // const client = new Client({ connectionString: process.env.DATABASE_URL });
@@ -45,9 +54,9 @@ export async function simpleSearch({
   }
   const words = await wordRepo.find({
     where: { spelling: ILike(`${normalizedSpelling}%`), langDialectId: fromLangDialectId },
-    select: ['id', 'spelling', 'langDialectId'],
+    select: { id: true, spelling: true, langDialectId: true },
     order: { spelling: 'ASC' },
-    take: limit,
+    take: clampLimit(limit, 20),
   });
   console.log('simpleSearch', JSON.stringify(words, null, 2));
   return JSON.parse(JSON.stringify(words));
@@ -122,7 +131,12 @@ export async function suggestionsFuzzy({
   definitionsLangDialectIds,
   limit = 10,
 }: SearchSpellingQuery): Promise<FoundSpelling[]> {
-  const queryParameters = [spelling, wordLangDialectIds, definitionsLangDialectIds, limit];
+  const queryParameters = [
+    spelling,
+    wordLangDialectIds,
+    definitionsLangDialectIds,
+    clampLimit(limit, 10),
+  ];
   const findSpellingsQuery = `
     WITH combined AS (
       (SELECT spelling AS word_spelling, id, NULL AS variant_spelling, NULL AS variant_id FROM word
@@ -183,7 +197,7 @@ export async function searchAdvanced({
   const wordRepo = AppDataSource.getRepository(WordSchema.options.tableName!);
 
   const page = Math.max(1, inputPage || 1); // ensure page >= 1
-  const limit = Math.min(inputLimit || 20, 100); // optional max cap
+  const limit = clampLimit(inputLimit, 20);
   const query = wordRepo
     .createQueryBuilder('word')
     // top-level relations
@@ -427,6 +441,7 @@ export async function getWordsHistoryByIds(
   ids: number[],
   validTo: Date,
 ): Promise<WordHistorySnapshot[]> {
+  await requireDashboardActionUser();
   const uniqueIds = Array.from(new Set(ids.filter((id) => Number.isFinite(id))));
   if (uniqueIds.length === 0) {
     return [];
@@ -811,7 +826,7 @@ export async function searchInExamples({
     searchTerm,
     wordLangDialectIds.map(String),
     definitionsLangDialectIds.map(String),
-    limit,
+    clampLimit(limit, 10),
   ]);
   // console.log('searchInExamples', res);
   return JSON.parse(JSON.stringify(res));
@@ -849,7 +864,7 @@ export async function searchInDefinitions({
     searchTerm,
     wordLangDialectIds,
     definitionsLangDialectIds,
-    limit,
+    clampLimit(limit, 10),
   ]);
   // console.log('searchInDefinitions', res);
   return JSON.parse(JSON.stringify(res));

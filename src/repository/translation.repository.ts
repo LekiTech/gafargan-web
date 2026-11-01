@@ -5,6 +5,7 @@ import { Translation } from './entities/Translation';
 import { TranslationSchema } from './entities/schemas';
 import { PaginatedResponse } from './types.model';
 import { In } from 'typeorm';
+import { requireDashboardActionUser } from '@/dashboard/auth';
 
 export type TranslationLink = {
   linkType: 'wordDetail' | 'definition';
@@ -94,6 +95,7 @@ async function getLinksByTranslationId(translationIds: number[]) {
 export async function getTranslationsByIdsWithLinks(
   ids: number[],
 ): Promise<Record<number, TranslationWithLinks>> {
+  await requireDashboardActionUser();
   const safeIds = Array.from(new Set(ids.filter((id) => Number.isFinite(id))));
   if (safeIds.length === 0) {
     return {};
@@ -131,6 +133,7 @@ export async function getPaginatedTranslations({
   page: number;
   size: number;
 }): Promise<PaginatedResponse<TranslationWithLinks>> {
+  await requireDashboardActionUser();
   const AppDataSource = await getDataSource();
   const translationRepo = AppDataSource.getRepository<Translation>(
     TranslationSchema.options.tableName!,

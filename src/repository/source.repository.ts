@@ -1,4 +1,4 @@
-'use server';
+import 'server-only';
 import { SourceModelType } from '@/dashboard/models/proposal.model';
 import { getDataSource } from './dataSource';
 import { Source } from './entities/Source';

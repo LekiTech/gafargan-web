@@ -36,7 +36,7 @@ import { Button } from '@mui/material';
 export default async function RootLayout(props: RootLayoutProps) {
   const { children, params } = props;
   const cookieStore = await cookies();
-  const { lang } = await params;
+  const { lang } = (await params) as Awaited<Params>;
   const sessionId = cookieStore.get('sessionid');
   const { t } = await initTranslations(lang);
 

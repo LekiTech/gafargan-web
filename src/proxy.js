@@ -64,6 +64,20 @@ const sign = async (value) => {
     .replace(/=+$/g, '');
 };
 
+// Constant-time comparison to avoid leaking the expected signature through timing
+const timingSafeEqual = (left, right) => {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  let result = 0;
+  for (let i = 0; i < left.length; i++) {
+    result |= left.charCodeAt(i) ^ right.charCodeAt(i);
+  }
+
+  return result === 0;
+};
+
 const getDashboardSessionPayload = async (sessionValue) => {
   if (!sessionValue) {
     return null;
@@ -71,7 +85,7 @@ const getDashboardSessionPayload = async (sessionValue) => {
 
   const [encodedPayload, signature] = sessionValue.split('.');
 
-  if (!getAuthSecret() || !encodedPayload || !signature || signature !== (await sign(encodedPayload))) {
+  if (!getAuthSecret() || !encodedPayload || !signature || !timingSafeEqual(signature, await sign(encodedPayload))) {
     return null;
   }
 
@@ -92,7 +106,7 @@ const getDashboardSessionPayload = async (sessionValue) => {
   }
 };
 
-export async function middleware(request) {
+export async function proxy(request) {
   request.headers.set('x-next-pathname', request.nextUrl.pathname);
 
   const dashboardMatch = request.nextUrl.pathname.match(/^\/(\w{3})\/dashboard(\/|$)/);

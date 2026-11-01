@@ -28,5 +28,6 @@ export type SearchParams = Promise<
 
 export type RootLayoutProps = {
   children: React.ReactNode;
-  params: Params;
+  // Next.js types layout route params as plain strings, narrow with `as Awaited<Params>` when awaiting
+  params: Promise<{ lang: string }>;
 };

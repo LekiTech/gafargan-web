@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "build:prod": "next build --experimental-build-mode compile",
+    "dev": "next dev --webpack",
+    "build": "next build --webpack",
+    "build:prod": "next build --webpack --experimental-build-mode compile",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "engines": {
     "node": "=22.15.0",
@@ -20,7 +20,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
-    "@mui/material-nextjs": "^7.1.0",
+    "@mui/material-nextjs": "^7.3.10",
     "@toolpad/core": "^0.16.0",
     "accept-language": "^3.0.18",
     "axios": "^1.15.0",
@@ -30,25 +30,31 @@
     "i18next-resources-to-backend": "^1.1.4",
     "lezgi-numbers": "^1.1.0",
     "mixpanel": "^0.18.0",
-    "next": "^15.3.3",
+    "next": "^16.4.3",
     "next-i18n-router": "^5.3.1",
     "pg": "^8.15.6",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-i18next": "^13.2.2",
     "reflect-metadata": "^0.2.2",
     "remark": "^15.0.1",
     "remark-html": "^16.0.1",
-    "typeorm": "^0.3.22"
+    "typeorm": "^1.1.2"
   },
   "devDependencies": {
     "@types/pg": "^8.11.14",
     "@types/react": "18.2.21",
     "@types/react-dom": "18.2.7",
-    "eslint": "8.49.0",
-    "eslint-config-next": "^15.3.2",
-    "eslint-plugin-react": "7.27.1",
-    "eslint-plugin-react-hooks": "4.3.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.4.3",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
     "typescript": "5.2.2"
+  },
+  "overrides": {
+    "@toolpad/core": {
+      "next": "$next"
+    },
+    "yaml": "^2.8.3"
   }
 }

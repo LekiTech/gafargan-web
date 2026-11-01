@@ -20,7 +20,7 @@ export async function generateMetadata(
   props: RootLayoutProps,
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
-  const params = await props.params;
+  const params = (await props.params) as Awaited<Params>;
   const { lang } = params;
   const { t } = await initTranslations(lang);
 
@@ -48,7 +48,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export default async function RootLayout(props: RootLayoutProps) {
   const { children, params } = props;
-  const { lang } = await params;
+  const { lang } = (await params) as Awaited<Params>;
 
   return (
     <html

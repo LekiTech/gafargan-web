@@ -30,6 +30,9 @@ export const AppDataSource = new DataSource({
             rejectUnauthorized: false,
           }
       : false,
+  // Keep TypeORM 0.3 behaviour: skip null/undefined properties in `find` where criteria
+  // instead of throwing (the default since TypeORM 1.0)
+  invalidWhereValuesBehavior: { null: 'ignore', undefined: 'ignore' },
   synchronize: false, // Automatically sync the database (set to false in production)
   logging: false, // Optional, set to false in production
   entities: [

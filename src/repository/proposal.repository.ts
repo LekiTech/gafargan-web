@@ -29,6 +29,7 @@ import { Definition } from './entities/Definition';
 import { DUMMY_USER_ID } from './constants';
 import { PaginatedResponse } from './types.model';
 import { Source } from './entities/Source';
+import { requireDashboardActionUser } from '@/dashboard/auth';
 
 export type PaginationQuery = {
   type: ProposalType;
@@ -46,6 +47,7 @@ export async function getPaginatedProposals({
   // wordLangDialectId,
   // definitionsLangDialectId,
 }: PaginationQuery): Promise<PaginatedResponse<Proposal>> {
+  await requireDashboardActionUser();
   // status = status ?? ProposalStatus.PENDING;
   const AppDataSource = await getDataSource();
   const proposalRepo = AppDataSource.getRepository<Proposal>(ProposalSchema.options.tableName!);
@@ -86,7 +88,10 @@ export interface CreateProposalDto {
 }
 
 export async function createProposal(dto: CreateProposalDto): Promise<Proposal> {
-  const { type, data, proposedById } = dto;
+  const user = await requireDashboardActionUser();
+  const { type, data } = dto;
+  // Never trust the caller-provided user id, always attribute the proposal to the signed-in user
+  const proposedById = user.id;
 
   if (![ProposalType.SOURCE, ProposalType.DICTIONARY, ProposalType.TRANSLATIONS].includes(type)) {
     throw new Error(`Invalid proposal type: ${type}`);
@@ -109,9 +114,10 @@ export async function createProposal(dto: CreateProposalDto): Promise<Proposal> 
 /**
  * Approve and apply a proposal by ID.
  * @param proposalId The PK of the proposal row
- * @param adminId    The user ID performing the approval
+ * @param _adminId   Ignored, the reviewer is always the signed-in dashboard user
  */
-export async function approveProposal(proposalId: number, adminId: number) {
+export async function approveProposal(proposalId: number, _adminId?: number) {
+  const { id: adminId } = await requireDashboardActionUser();
   const AppDataSource = await getDataSource();
   const proposalRepo = AppDataSource.getRepository<Proposal>(ProposalSchema.options.tableName!);
   const proposalEntity = await proposalRepo.findOne({ where: { id: proposalId } });
@@ -541,9 +547,10 @@ async function ensureTranslationLinkHistoryTriggersCompatible(manager: EntityMan
 /**
  * Reject a pending proposal.
  * @param proposalId The PK of the proposal row
- * @param adminId    The user ID performing the rejection
+ * @param _adminId   Ignored, the reviewer is always the signed-in dashboard user
  */
-export async function rejectProposal(proposalId: number, adminId: number, comment: string) {
+export async function rejectProposal(proposalId: number, _adminId: number | undefined, comment: string) {
+  const { id: adminId } = await requireDashboardActionUser();
   const AppDataSource = await getDataSource();
   const repo = AppDataSource.getRepository<Proposal>(ProposalSchema.options.tableName!);
   const proposalEntity = await repo.findOne({ where: { id: proposalId } });

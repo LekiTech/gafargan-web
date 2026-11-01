@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // TypeORM loads database drivers (e.g. `pg`) dynamically at runtime, which breaks when bundled
+  serverExternalPackages: ['typeorm'],
+  experimental: {
+    // TypeORM identifies entities by their class names, which server minification mangles
+    serverMinification: false,
+  },
   compiler: {
     // Remove console calls (except inside node_modules)
     removeConsole: process.env.NODE_ENV === 'production' ? {
